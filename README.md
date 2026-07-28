@@ -1,16 +1,19 @@
-## Hi there 👋
+# SegSeq
 
-<!--
-**segseq/segseq** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+Turn Strava Segments Into Stage Races.
 
-Here are some ideas to get you started:
+SegSeq allows athletes to create and compete in
+multi-segment challenges based on Strava segments.
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+## MVP
+
+- Strava Login
+- Create SegSeq
+- Leaderboards
+- Cycling
+- Running
+
+## Vision
+
+Complete the Sequence.
+Own the Leaderboard.
