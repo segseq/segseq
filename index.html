@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>SegSeq - Turn Strava Segments Into Stage Races</title>
+
+<link href="httpsis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+    --navy:#072B57;
+    --navy-light:#0E487D;
+    --orange:#FF6B1A;
+    --white:#FFFFFF;
+    --gray:#D6E3F2;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Inter,sans-serif;
+    background:var(--navy);
+    color:white;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:0 30px;
+}
+
+.hero{
+
+    min-height:100vh;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    position:relative;
+
+    background:
+    radial-gradient(circle at top,
+    rgba(255,107,26,.15),
+    transparent 40%);
+}
+
+.hero-content{
+    text-align:center;
+    max-width:850px;
+}
+
+.logo{
+    font-size:5rem;
+    color:white;
+    margin-bottom:20px;
+}
+
+.logo span{
+    color:var(--orange);
+}
+
+.brand{
+    font-size:5rem;
+    font-weight:800;
+    letter-spacing:-2px;
+}
+
+.brand .accent{
+    color:var(--orange);
+}
+
+.tagline{
+    font-size:1.6rem;
+    margin-top:25px;
+    color:white;
+}
+
+.subtitle{
+    font-size:1.1rem;
+    opacity:.8;
+    margin-top:25px;
+    line-height:1.7;
+}
+
+.cta{
+    margin-top:50px;
+}
+
+.btn{
+
+    display:inline-block;
+    padding:16px 34px;
+
+    border-radius:12px;
+
+    font-weight:700;
+
+    text-decoration:none;
+
+    transition:.2s;
+
+}
+
+.btn-primary{
+    background:var(--orange);
+    color:white;
+}
+
+.btn-primary:hover{
+    transform:translateY(-2px);
+}
+
+.preview{
+
+    margin-top:80px;
+
+    background:white;
+
+    color:#222;
+
+    border-radius:24px;
+
+    padding:30px;
+
+    max-width:700px;
+
+    margin-left:auto;
+    margin-right:auto;
+
+    box-shadow:
+    0 20px 60px rgba(0,0,0,.3);
+}
+
+.challenge{
+    font-weight:700;
+    margin-bottom:20px;
+}
+
+.rank{
+    display:flex;
+    justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid #eee;
+}
+
+.section{
+    padding:120px 0;
+}
+
+.section-title{
+    text-align:center;
+    font-size:2.5rem;
+    margin-bottom:60px;
+}
+
+.steps{
+
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:24px;
+
+}
+
+.card{
+
+    background:rgba(255,255,255,.05);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    border-radius:20px;
+
+    padding:30px;
+}
+
+.number{
+    color:var(--orange);
+    font-size:1.8rem;
+    font-weight:800;
+    margin-bottom:15px;
+}
+
+.card h3{
+    margin-bottom:15px;
+}
+
+.card p{
+    opacity:.75;
+    line-height:1.6;
+}
+
+.examples{
+
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:24px;
+}
+
+.example{
+    background:white;
+    color:#222;
+    border-radius:24px;
+    padding:35px;
+}
+
+.example h3{
+    color:var(--navy);
+    margin-bottom:15px;
+}
+
+.example-meta{
+    color:var(--orange);
+    font-weight:700;
+}
+
+.waitlist{
+
+    text-align:center;
+}
+
+.waitlist-form{
+
+    margin-top:40px;
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:15px;
+
+    flex-wrap:wrap;
+}
+
+input{
+
+    width:320px;
+
+    padding:18px;
+
+    border-radius:12px;
+
+    border:none;
+}
+
+footer{
+    text-align:center;
+    padding:60px 20px;
+    color:rgba(255,255,255,.6);
+}
+
+@media(max-width:900px){
+
+.steps{
+grid-template-columns:1fr;
+}
+
+.examples{
+grid-template-columns:1fr;
+}
+
+.brand{
+font-size:3rem;
+}
+
+.logo{
+font-size:3rem;
+}
+
+}
+
+</style>
+</head>
+<body>
+
+<section class="hero">
+
+<div class="hero-content">
+
+<div class="logo">
+<span>∿</span>∿
+</div>
+
+<h1 class="brand">
+Seg<span class="accent">S</span>eq
+</h1>
+
+<h2 class="tagline">
+Turn Strava Segments Into Stage Races
+</h2>
+
+<p class="subtitle">
+Create multi-segment challenges,
+define the sequence,
+set the time window
+and compete on a single leaderboard.
+</p>
+
+<div class="cta">
+# class="btn btn-primary">
+Join Early Access
+</a>
+</div>
+
+<div class="preview">
+
+<div class="challenge">
+Challenge Flandrien
+</div>
+
+<div class="rank">
+<span>1. Mathieu P.</span>
+<span>31:24</span>
+</div>
+
+<div class="rank">
+<span>2. Sarah M.</span>
+<span>32:11</span>
+</div>
+
+<div class="rank">
+<span>3. Alex G.</span>
+<span>33:04</span>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section class="section">
+
+<div class="container">
+
+<h2 class="section-title">
+How It Works
+</h2>
+
+<div class="steps">
+
+<div class="card">
+<div class="number">01</div>
+<h3>Select Segments</h3>
+<p>Choose 2 to 5 Strava segments.</p>
+</div>
+
+<div class="card">
+<div class="number">02</div>
+<h3>Define Sequence</h3>
+<p>Set the order and time window.</p>
+</div>
+
+<div class="card">
+<div class="number">03</div>
+<h3>Complete Challenge</h3>
+<p>Run or ride every segment.</p>
+</div>
+
+<div class="card">
+<div class="number">04</div>
+<h3>Own The Leaderboard</h3>
+<p>Compare total time against everyone else.</p>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section class="section">
+
+<div class="container">
+
+<h2 class="section-title">
+Featured Challenges
+</h2>
+
+<div class="examples">
+
+<div class="example">
+<h3>UTMB • 4 Days</h3>
+<div class="example-meta">
+4 Segments • Trail Running
+</div>
+</div>
+
+<div class="example">
+<h3>Challenge Flandrien</h3>
+<div class="example-meta">
+4 Segments • Cycling
+</div>
+</div>
+
+<div class="example">
+<h3>Classiques Montréal</h3>
+<div class="example-meta">
+48 Hours • Cycling
+</div>
+</div>
+
+<div class="example">
+<h3>Weekend Block</h3>
+<div class="example-meta">
+72 Hours • Running
+</div>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section class="section waitlist">
+
+<div class="container">
+
+<h2 class="section-title">
+Get Early Access
+</h2>
+
+<p>
+Be among the first athletes to create and compete in SegSeq challenges.
+</p>
+
+<div class="waitlist-form">
+
+<input
+type="email"
+placeholder="your@email.com"
+/>
+
+#
+
+</div>
+
+</div>
+
+</section>
+
+<footer>
+
+<div class="logo">
+<span>∿</span>∿
+</div>
+
+SegSeq • Multi-Segment Challenges Powered By Strava
+
+</footer>
+
+</body>
+</html>
