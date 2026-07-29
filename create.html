@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>SegSeq - Create Challenge</title>
+
+<style>
+:root{
+  --navy:#072B57;
+  --navy-light:#0E487D;
+  --orange:#FF6B1A;
+  --white:#FFFFFF;
+  --gray:#D6E3F2;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:Inter,sans-serif;
+  background:var(--navy);
+  color:white;
+  min-height:100vh;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:40px 20px;
+}
+
+/* HERO HEADER */
+.hero{
+  text-align:center;
+  padding:80px 20px 40px;
+}
+
+.logo{
+  font-size:5rem;
+  color:white;
+  margin-bottom:20px;
+}
+
+.logo span{
+  color:var(--orange);
+}
+
+.brand{
+  font-size:5rem;
+  font-weight:800;
+  letter-spacing:-2px;
+}
+
+.brand .accent{
+  color:var(--orange);
+}
+
+.tagline{
+  font-size:1.6rem;
+  margin-top:25px;
+  color:white;
+}
+
+.subtitle{
+  font-size:1.1rem;
+  opacity:.8;
+  margin-top:25px;
+  line-height:1.7;
+}
+
+/* FORM CARD */
+.form-card{
+  background:white;
+  color:#222;
+  border-radius:24px;
+  padding:40px;
+  box-shadow:0 20px 60px rgba(0,0,0,.30);
+  margin-top:40px;
+}
+
+.form-card h2{
+  color:var(--navy);
+  margin-bottom:20px;
+  font-size:2rem;
+  font-weight:800;
+}
+
+label{
+  display:block;
+  margin-top:20px;
+  font-weight:600;
+  color:var(--navy);
+}
+
+input, select{
+  width:100%;
+  padding:16px;
+  border-radius:12px;
+  border:1px solid #ccc;
+  margin-top:8px;
+  font-size:1rem;
+}
+
+#segments{
+  margin-top:20px;
+}
+
+.segment-item{
+  background:#F5F8FC;
+  padding:12px;
+  border-radius:10px;
+  margin-top:10px;
+  color:#072B57;
+  font-weight:600;
+}
+
+/* CTA */
+.cta{
+  text-align:center;
+  margin-top:40px;
+}
+
+.btn{
+  display:inline-block;
+  background:var(--orange);
+  color:white;
+  padding:16px 32px;
+  border-radius:12px;
+  text-decoration:none;
+  font-weight:700;
+  transition:.2s;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+}
+
+/* FOOTER */
+footer{
+  text-align:center;
+  margin-top:60px;
+  padding:60px 20px;
+  color:rgba(255,255,255,.6);
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- HERO HEADER -->
+<section class="hero">
+  <div class="logo"><span>∿</span>∿</div>
+  <h1 class="brand">Seg<span class="accent">S</span>eq</h1>
+  <h2 class="tagline">Turn Strava Segments Into Stage Races</h2>
+  <p class="subtitle">
+    Create multi-segment challenges, define the sequence, set the time window
+    and compete on a single leaderboard.
+  </p>
+</section>
+
+<div class="container">
+
+  <div class="form-card">
+
+    <h2>Create a Challenge</h2>
+
+    <label>Challenge Name</label>
+    <input id="challenge-name" placeholder="Ex: UTMB 4-Day Challenge">
+
+    <label>Sport</label>
+    <select id="sport">
+      <option value="run">Running</option>
+      <option value="ride">Cycling</option>
+    </select>
+
+    <label>Duration (hours)</label>
+    <input id="duration" type="number" min="1" placeholder="48">
+
+    <label>Add Strava Segment ID</label>
+    <input id="segment-input" placeholder="Ex: 1234567">
+
+    <div class="cta">
+      <a class="btn" onclick="addSegment()">Add Segment</a>
+    </div>
+
+    <div id="segments"></div>
+
+    <div class="cta">
+      <a class="btn" onclick="publishChallenge()">Publish Challenge</a>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="logo"><span>∿</span>∿</div>
+    SegSeq • Multi-Segment Challenges
+  </footer>
+
+</div>
+
+<script>
+const segments = [];
+
+function addSegment() {
+  const id = document.getElementById("segment-input").value.trim();
+  if (!id) return;
+
+  if (segments.length >= 5) {
+    alert("Maximum 5 segments");
+    return;
+  }
+
+  segments.push(id);
+
+  const list = document.getElementById("segments");
+  const item = document.createElement("div");
+  item.className = "segment-item";
+  item.textContent = "Segment #" + id;
+  list.appendChild(item);
+
+  document.getElementById("segment-input").value = "";
+}
+
+async function publishChallenge() {
+  const name = document.getElementById("challenge-name").value.trim();
+  const sport = document.getElementById("sport").value;
+  const duration = parseInt(document.getElementById("duration").value);
+
+  if (!name || !duration || segments.length < 2) {
+    alert("Please fill all fields and add at least 2 segments.");
+    return;
+  }
+
+  const payload = {
+    name,
+    sport,
+    duration,
+    segments
+  };
+
+  console.log("Challenge ready to send:", payload);
+
+  alert("Challenge created! (Backend not yet connected)");
+}
+</script>
+
+</body>
+</html>
