@@ -206,16 +206,6 @@ footer{
         <div class="value" id="country">Loading...</div>
       </div>
 
-      <div class="info-box">
-        <div class="label">Followers</div>
-        <div class="value" id="followers">Loading...</div>
-      </div>
-
-      <div class="info-box">
-        <div class="label">Activities</div>
-        <div class="value" id="activities">Loading...</div>
-      </div>
-
     </div>
 
   </div>
@@ -229,7 +219,7 @@ footer{
     </p>
 
     <div class="cta">
-      <a href="https://segseq.vercel.app/create.html" class="btn">
+      <a href="https://segseq.vercel.app" class="btn">
         Create a Challenge
       </a>
     </div>
@@ -253,13 +243,7 @@ async function loadProfile() {
     }
     const athlete = await athleteRes.json();
 
-    // 2. Followers
-    const followersRes = await fetch("/api/strava/followers", { credentials: "include" });
-    const followers = followersRes.ok ? await followersRes.json() : [];
-
-    // 3. Activities
-    const activitiesRes = await fetch("/api/strava/activities", { credentials: "include" });
-    const activities = activitiesRes.ok ? await activitiesRes.json() : [];
+    
 
     // Photo
     document.getElementById("athlete-photo").src = athlete.profile;
@@ -276,13 +260,7 @@ async function loadProfile() {
     document.getElementById("country").textContent =
       athlete.country || "N/A";
 
-    // Followers count
-    document.getElementById("followers").textContent =
-      followers.length;
-
-    // Activities count
-    document.getElementById("activities").textContent =
-      activities.length;
+    
 
   } catch (err) {
     console.error(err);
