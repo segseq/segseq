@@ -403,7 +403,7 @@ Be among the first athletes to create and compete in SegSeq challenges.
 </p>
 
 <div class="cta">
-  <a href="https://segseq-backend.vercel.app/api/strava/auth" class="btn btn-primary">
+  <a href="https://segseq.vercel.app/api/strava/auth" class="btn btn-primary">
     Connect with Strava
   </a>
 </div>
@@ -426,7 +426,7 @@ SegSeq • Multi-Segment Challenges
 
 <script>
 async function loadActivities() {
-  const res = await fetch("https://segseq-backend.vercel.app/api/strava/activities");
+  const res = await fetch("https://segseq.vercel.app/api/strava/activities");
   const data = await res.json();
 
   const container = document.getElementById("activities");
