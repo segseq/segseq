@@ -4,15 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>SegSeq - Welcome</title>
+<title>SegSeq - Profile</title>
 
 <style>
-
 :root{
   --navy:#072B57;
   --navy-light:#0E487D;
   --orange:#FF6B1A;
   --white:#FFFFFF;
+  --gray:#D6E3F2;
 }
 
 *{
@@ -34,13 +34,24 @@ body{
   padding:40px 20px;
 }
 
+/* HERO HEADER (same as landing) */
 .hero{
   text-align:center;
-  margin-bottom:50px;
+  padding:80px 20px 40px;
+}
+
+.logo{
+  font-size:5rem;
+  color:white;
+  margin-bottom:20px;
+}
+
+.logo span{
+  color:var(--orange);
 }
 
 .brand{
-  font-size:4rem;
+  font-size:5rem;
   font-weight:800;
   letter-spacing:-2px;
 }
@@ -49,18 +60,27 @@ body{
   color:var(--orange);
 }
 
-.subtitle{
-  margin-top:20px;
-  font-size:1.2rem;
-  opacity:.85;
+.tagline{
+  font-size:1.6rem;
+  margin-top:25px;
+  color:white;
 }
 
+.subtitle{
+  font-size:1.1rem;
+  opacity:.8;
+  margin-top:25px;
+  line-height:1.7;
+}
+
+/* PROFILE CARD */
 .profile-card{
   background:white;
   color:#222;
   border-radius:24px;
   padding:40px;
   box-shadow:0 20px 60px rgba(0,0,0,.30);
+  margin-top:40px;
 }
 
 .profile-header{
@@ -87,6 +107,7 @@ body{
   display:grid;
   grid-template-columns:repeat(2,1fr);
   gap:20px;
+  margin-top:40px;
 }
 
 .info-box{
@@ -109,6 +130,7 @@ body{
   color:var(--navy);
 }
 
+/* CTA */
 .cta{
   text-align:center;
   margin-top:40px;
@@ -129,145 +151,74 @@ body{
   transform:translateY(-2px);
 }
 
+/* FOOTER */
 footer{
   text-align:center;
-  margin-top:50px;
-  opacity:.7;
+  margin-top:60px;
+  padding:60px 20px;
+  color:rgba(255,255,255,.6);
 }
 
 @media(max-width:768px){
-
   .brand{
     font-size:3rem;
   }
-
   .info-grid{
     grid-template-columns:1fr;
   }
-
 }
-
 </style>
 </head>
 
 <body>
 
+<!-- HERO HEADER -->
+<section class="hero">
+  <div class="logo"><span>∿</span>∿</div>
+  <h1 class="brand">Seg<span class="accent">S</span>eq</h1>
+  <h2 class="tagline">Turn Strava Segments Into Stage Races</h2>
+  <p class="subtitle">
+    Create multi-segment challenges, define the sequence, set the time window
+    and compete on a single leaderboard.
+  </p>
+</section>
+
 <div class="container">
-
-<div class="hero-content">
-
-<div class="logo">
-<span>∿</span>∿
-</div>
-
-<h1 class="brand">
-Seg<span class="accent">S</span>eq
-</h1>
-
-<h2 class="tagline">
-Turn Strava Segments Into Stage Races
-</h2>
-
-<p class="subtitle">
-Create multi-segment challenges,
-define the sequence,
-set the time window
-and compete on a single leaderboard.
-</p>
-</div>
 
   <div class="profile-card">
 
     <div class="profile-header">
+      <img id="athlete-photo" class="profile-photo"
+           src="https://via.placeholder.com/140" alt="Athlete photo">
 
-      <img
-        id="athlete-photo"
-        class="profile-photo"
-        src="https://via.placeholder.com/140"
-        alt="Athlete photo"
-      >
+      <div class="welcome" id="welcome">Loading...</div>
+    </div>
 
-      <div class="welcome" id="welcome">
-		Welcome back
-	   </div>
+    <div class="info-grid">
 
-	  <div class="info-grid">
+      <div class="info-box">
+        <div class="label">Name</div>
+        <div class="value" id="name">Loading...</div>
+      </div>
 
-  <div class="info-box">
-    <div class="label">Name</div>
-    <div class="value" id="name">Loading...</div>
-  </div>
+      <div class="info-box">
+        <div class="label">Country</div>
+        <div class="value" id="country">Loading...</div>
+      </div>
 
-  <div class="info-box">
-    <div class="label">Country</div>
-    <div class="value" id="country">Loading...</div>
-  </div>
+      <div class="info-box">
+        <div class="label">Followers</div>
+        <div class="value" id="followers">Loading...</div>
+      </div>
 
-
-</div>
+      <div class="info-box">
+        <div class="label">Activities</div>
+        <div class="value" id="activities">Loading...</div>
+      </div>
 
     </div>
 
-   <div class="cta">
-	<a href="https://segseq.vercel.app" class="btn btn-primary">
-	Continue to SegSeq 
-	</a>
+  </div>
 
-</div>
-
-<footer>
-
-<div class="logo">
-<span>∿</span>∿
-</div>
-
-SegSeq • Multi-Segment Challenges
-
-</footer>
-
-</div>
-
-<script>
-async function loadProfile() {
-  try {
-    const res = await fetch("/api/strava/me", {
-  credentials: "include"
-});
-
-    if (!res.ok) {
-      document.getElementById("welcome").textContent = "Not authenticated";
-      return;
-    }
-
-    const athlete = await res.json();
-
-    // Photo
-    document.getElementById("athlete-photo").src = athlete.profile;
-
-    // Welcome message
-    document.getElementById("welcome").textContent =
-      `Welcome back, ${athlete.firstname}!`;
-
-    // Info boxes
-    document.getElementById("name").textContent =
-      athlete.firstname + " " + athlete.lastname;
-
-    document.getElementById("city").textContent = athlete.city || "N/A";
-    document.getElementById("country").textContent = athlete.country || "N/A";
-
-    document.getElementById("followers").textContent =
-      athlete.follower_count || 0;
-
-    document.getElementById("activities").textContent =
-      athlete.resource_state || "N/A"; // Strava ne donne pas le total ici
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-loadProfile();
-</script>
-
-
-</body>
-</html>
+  <div class="cta">
+    <a href="https://segseq.vercel.app" class="btn">
