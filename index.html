@@ -303,33 +303,12 @@ and compete on a single leaderboard.
 </p>
 
 <div class="cta">
-# class="btn btn-primary">
-Join Early Access
-</a>
+  <a href="https://segseq-backend.vercel.app/api/auth" class="btn btn-primary">
+    Connect with Strava
+  </a>
 </div>
 
-<div class="preview">
 
-<div class="challenge">
-Challenge Flandrien
-</div>
-
-<div class="rank">
-<span>1. Mathieu P.</span>
-<span>31:24</span>
-</div>
-
-<div class="rank">
-<span>2. Sarah M.</span>
-<span>32:11</span>
-</div>
-
-<div class="rank">
-<span>3. Alex G.</span>
-<span>33:04</span>
-</div>
-
-</div>
 
 </div>
 
@@ -455,6 +434,26 @@ placeholder="your@email.com"
 SegSeq • Multi-Segment Challenges Powered By Strava
 
 </footer>
+
+<ul id="activities"></ul>
+
+<script>
+async function loadActivities() {
+  const res = await fetch("https://segseq-backend.vercel.app/api/activities");
+  const data = await res.json();
+
+  const container = document.getElementById("activities");
+
+  if (!container) return;
+
+  container.innerHTML = data
+    .map(act => `<li>${act.name} — ${act.distance}m</li>`)
+    .join("");
+}
+
+loadActivities();
+</script>
+
 
 </body>
 </html>
