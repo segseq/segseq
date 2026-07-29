@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     );
 
     // Redirection vers la page profil
-    return res.redirect("profile.html");
+    return res.redirect("/profile.html");
   } catch (err) {
     console.error("Callback crash:", err);
     return res.status(500).send("Token exchange failed");
