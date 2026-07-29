@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+// rien à importer, fetch est natif
 
 export default async function handler(req, res) {
   const { code } = req.query;
@@ -29,13 +29,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // 🔥 Stocker le token dans un cookie sécurisé
+    // Stocker le token dans un cookie sécurisé
     res.setHeader(
       "Set-Cookie",
       `strava_token=${data.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax`
     );
 
-    // 🔥 Redirection vers la page profil
+    // Redirection vers la page profil
     return res.redirect("profile.html");
   } catch (err) {
     console.error("Callback crash:", err);
