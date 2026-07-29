@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>SegSeq - Welcome Athlete</title>
+
+://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+  --navy:#072B57;
+  --navy-light:#0E487D;
+  --orange:#FF6B1A;
+  --white:#FFFFFF;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:Inter,sans-serif;
+  background:var(--navy);
+  color:white;
+  min-height:100vh;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:40px 20px;
+}
+
+.hero{
+  text-align:center;
+  margin-bottom:50px;
+}
+
+.brand{
+  font-size:4rem;
+  font-weight:800;
+  letter-spacing:-2px;
+}
+
+.brand .accent{
+  color:var(--orange);
+}
+
+.subtitle{
+  margin-top:20px;
+  font-size:1.2rem;
+  opacity:.85;
+}
+
+.profile-card{
+  background:white;
+  color:#222;
+  border-radius:24px;
+  padding:40px;
+  box-shadow:0 20px 60px rgba(0,0,0,.30);
+}
+
+.profile-header{
+  text-align:center;
+  margin-bottom:40px;
+}
+
+.profile-photo{
+  width:140px;
+  height:140px;
+  border-radius:50%;
+  border:6px solid var(--orange);
+  object-fit:cover;
+}
+
+.welcome{
+  margin-top:20px;
+  font-size:2rem;
+  color:var(--navy);
+  font-weight:800;
+}
+
+.info-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:20px;
+}
+
+.info-box{
+  background:#F5F8FC;
+  border-radius:16px;
+  padding:24px;
+}
+
+.label{
+  font-size:.9rem;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  color:#777;
+  margin-bottom:8px;
+}
+
+.value{
+  font-size:1.3rem;
+  font-weight:700;
+  color:var(--navy);
+}
+
+.cta{
+  text-align:center;
+  margin-top:40px;
+}
+
+.btn{
+  display:inline-block;
+  background:var(--orange);
+  color:white;
+  padding:16px 32px;
+  border-radius:12px;
+  text-decoration:none;
+  font-weight:700;
+  transition:.2s;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+}
+
+footer{
+  text-align:center;
+  margin-top:50px;
+  opacity:.7;
+}
+
+@media(max-width:768px){
+
+  .brand{
+    font-size:3rem;
+  }
+
+  .info-grid{
+    grid-template-columns:1fr;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="hero">
+    <h1 class="brand">
+      Seg<span class="accent">S</span>eq
+    </h1>
+
+    <p class="subtitle">
+      Complete the Sequence. Own the Leaderboard.
+    </p>
+  </div>
+
+  <div class="profile-card">
+
+    <div class="profile-header">
+
+      <img
+        id="athlete-photo"
+        class="profile-photo"
+        src="https://via.placeholder.com/140"
+        alt="Athlete photo"
+      >
+
+      <div class="welcome">
+        Welcome back, <info-box">
+        <div class="label">Name</div>
+        <div class="value" id="name">John Doe</div>
+      </div>
+
+      <div class="info-box">
+        <div class="label">City</div>
+        <div class="value" id="city">Montreal</div>
+      </div>
+
+      <div class="info-box">
+        <div class="label">Country</div>
+        <div class="value" id="country">Canada</div>
+      </div>
+
+      <div class="info-box">
+        <div class="label">Followers</div>
+        <div class="value" id="followers">125</div>
+      </div>
+
+      <div class="info-box">
+        <div class="label">Activities</div>
+        <div class="value" id="activities">842</div>
+      </div>
+
+    </div>
+
+    <div class="cta">
+      / class="btn">
+        Continue to SegSeq
+      </a>
+    </div>
+
+  </div>
+
+  <footer>
+    Powered by Strava • Built for Athletes
+  </footer>
+
+</div>
+
+<script>
+
+// Exemple de données reçues du backend
+
+const athlete = {
+  name: "Aurelien Jarry",
+  photo: "https://via.placeholder.com/140",
+  city: "Verdun",
+  country: "Canada",
+  followers: 45,
+  activities: 1127
+};
+
+document.getElementById("athlete-name").textContent = athlete.name;
+document.getElementById("name").textContent = athlete.name;
+document.getElementById("city").textContent = athlete.city;
+document.getElementById("country").textContent = athlete.country;
+document.getElementById("followers").textContent = athlete.followers;
+document.getElementById("activities").textContent = athlete.activities;
+document.getElementById("athlete-photo").src = athlete.photo;
+
+</script>
+
+</body>
+</html>
