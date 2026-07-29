@@ -1,4 +1,0 @@
-Client ID
-268353
-Client Secret
-54f6e30ce4e787b9e341d8c8a696885d34bd22c0
