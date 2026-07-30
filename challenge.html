@@ -141,10 +141,10 @@ footer{
 <div class="container">
 
   <div class="card">
-    <h2 id="challenge-name">Challenge Name</h2>
+    <h2 id="challenge-name">Loading...</h2>
 
     <p id="challenge-description" style="opacity:.8; line-height:1.6;">
-      Description here...
+      Loading description...
     </p>
 
     <div class="section-title">Details</div>
@@ -182,21 +182,23 @@ footer{
 const params = new URLSearchParams(window.location.search);
 const challengeId = params.get("id");
 
-// Valeurs fictives pour l'instant
+// Pour l'instant : données fictives
+// Plus tard : remplacer par un fetch("/api/segseq/challenge?id=" + challengeId)
 const challenge = {
-  name: "UTMB 4-Day Challenge",
-  description: "A multi-stage mountain running challenge inspired by UTMB.",
-  sport: "Running",
+  id: challengeId,
+  name: "Challenge #" + challengeId,
+  description: "This challenge was created by an athlete using SegSeq.",
+  sport: "run",
   duration: 48,
   segments: [
-    { id: 1234567, name: "Col du Bonhomme", order: 1 },
-    { id: 2345678, name: "Col de la Seigne", order: 2 },
-    { id: 3456789, name: "Grand Col Ferret", order: 3 }
+    { id: 1234567, order: 1 },
+    { id: 2345678, order: 2 },
+    { id: 3456789, order: 3 }
   ],
   leaderboard: [
-    { rank: 1, athlete: "Killian Jornet", time: "12h 45m" },
-    { rank: 2, athlete: "Jim Walmsley", time: "13h 10m" },
-    { rank: 3, athlete: "Mathieu Blanchard", time: "13h 55m" }
+    { rank: 1, athlete: "Alex Tremblay", time: "14h 22m" },
+    { rank: 2, athlete: "Marie Gagnon", time: "15h 10m" },
+    { rank: 3, athlete: "Samuel Roy", time: "16h 05m" }
   ]
 };
 
@@ -213,7 +215,7 @@ challenge.segments.forEach(seg => {
   div.className = "segment-item";
   div.innerHTML = `
     <span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span>
-    Segment #${seg.id} — ${seg.name}
+    Segment #${seg.id}
   `;
   segList.appendChild(div);
 });
