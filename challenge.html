@@ -168,6 +168,11 @@ footer{
       </tbody>
     </table>
 
+<button id="refresh-btn"
+        style="margin-top:15px; padding:10px 20px; background:#FF6B1A; color:white; border:none; border-radius:8px; cursor:pointer;">
+  Refresh leaderboard
+</button>
+
   </div>
 
   <footer>
@@ -234,6 +239,27 @@ async function loadChallenge() {
 }
 
 loadChallenge();
+
+document.getElementById("refresh-btn").addEventListener("click", async () => {
+  const lb = document.getElementById("leaderboard");
+  lb.innerHTML = `<tr><td colspan="3">Refreshing...</td></tr>`;
+
+  const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}&force=1`);
+  const lbData = await lbRes.json();
+
+  lb.innerHTML = "";
+  lbData.leaderboard.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.rank}</td>
+      <td>${row.athlete}</td>
+      <td>${row.time_human}</td>
+    `;
+    lb.appendChild(tr);
+  });
+});
+
+
 </script>
 
 

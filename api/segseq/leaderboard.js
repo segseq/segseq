@@ -1,12 +1,17 @@
 import cookie from "cookie";
 import { query } from "../../db.js";
 
+const TTL_HOURS = 24;
+
 export default async function handler(req, res) {
   const challengeId = req.query.id;
 
   if (!challengeId) {
     return res.status(400).json({ error: "Missing challenge id" });
   }
+
+	// pour refresh manuel
+  const force = req.query.force === "1";
 
   // Lire strava_token
   const cookies = cookie.parse(req.headers.cookie || "");
@@ -17,9 +22,31 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Récupérer les segments du challenge
+    //
+    // 1. Vérifier si un leaderboard existe déjà en BD
+    //
+    const existing = await query(
+      `SELECT data, updated_at
+       FROM leaderboards
+       WHERE challenge_id = $1`,
+      [challengeId]
+    );
+
+    if (!force && existing.length > 0) {
+      const updatedAt = new Date(existing[0].updated_at);
+      const ageHours = (Date.now() - updatedAt.getTime()) / 1000 / 3600;
+
+      // Si le leaderboard a moins de 24h → on renvoie le cache
+      if (ageHours < TTL_HOURS) {
+        return res.status(200).json(existing[0].data);
+      }
+    }
+
+    //
+    // 2. Récupérer les segments du challenge
+    //
     const segments = await query(
-      `SELECT segment_id, order_index
+      `SELECT segment_id
        FROM challenge_segments
        WHERE challenge_id = $1
        ORDER BY order_index ASC`,
@@ -28,7 +55,9 @@ export default async function handler(req, res) {
 
     const segmentIds = segments.map(s => s.segment_id);
 
-    // 2. Récupérer le leaderboard Strava pour chaque segment
+    //
+    // 3. Appeler Strava pour chaque segment (1 appel / segment)
+    //
     const segmentLeaderboards = [];
 
     for (const segId of segmentIds) {
@@ -46,7 +75,9 @@ export default async function handler(req, res) {
       }
     }
 
-    // 3. Fusionner les temps par athlète
+    //
+    // 4. Fusionner les temps par athlète
+    //
     const totals = {}; // athlete_id → { name, total_seconds }
 
     for (const lb of segmentLeaderboards) {
@@ -63,7 +94,9 @@ export default async function handler(req, res) {
       }
     }
 
-    // 4. Convertir en tableau et trier
+    //
+    // 5. Convertir en tableau et trier
+    //
     const leaderboard = Object.entries(totals)
       .map(([athlete_id, data]) => ({
         athlete_id,
@@ -77,7 +110,23 @@ export default async function handler(req, res) {
         ...row
       }));
 
-    return res.status(200).json({ leaderboard });
+    const finalData = { leaderboard };
+
+    //
+    // 6. Stocker le leaderboard en BD (upsert)
+    //
+    await query(
+      `INSERT INTO leaderboards (challenge_id, data, updated_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (challenge_id)
+       DO UPDATE SET data = $2, updated_at = NOW()`,
+      [challengeId, finalData]
+    );
+
+    //
+    // 7. Retourner le leaderboard
+    //
+    return res.status(200).json(finalData);
 
   } catch (err) {
     console.error("Leaderboard error:", err);
