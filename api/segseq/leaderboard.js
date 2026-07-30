@@ -1,20 +1,28 @@
-import cookie from "cookie";
 import { query } from "../../db.js";
 
+// TTL du cache en heures
 const TTL_HOURS = 24;
+
+// Parseur cookie maison (évite les problèmes ESM/CJS)
+function parseCookie(header = "") {
+  const out = {};
+  header.split(";").forEach(part => {
+    const [k, v] = part.split("=").map(s => s && s.trim());
+    if (k) out[k] = v || "";
+  });
+  return out;
+}
 
 export default async function handler(req, res) {
   const challengeId = req.query.id;
+  const force = req.query.force === "1";
 
   if (!challengeId) {
     return res.status(400).json({ error: "Missing challenge id" });
   }
 
-	// pour refresh manuel
-  const force = req.query.force === "1";
-
-  // Lire strava_token
-  const cookies = cookie.parse(req.headers.cookie || "");
+  // Lire le cookie Strava
+  const cookies = parseCookie(req.headers.cookie || "");
   const token = cookies.strava_token;
 
   if (!token) {
@@ -23,7 +31,7 @@ export default async function handler(req, res) {
 
   try {
     //
-    // 1. Vérifier si un leaderboard existe déjà en BD
+    // 1. Vérifier si un leaderboard existe déjà
     //
     const existing = await query(
       `SELECT data, updated_at
@@ -36,7 +44,6 @@ export default async function handler(req, res) {
       const updatedAt = new Date(existing[0].updated_at);
       const ageHours = (Date.now() - updatedAt.getTime()) / 1000 / 3600;
 
-      // Si le leaderboard a moins de 24h → on renvoie le cache
       if (ageHours < TTL_HOURS) {
         return res.status(200).json(existing[0].data);
       }
@@ -56,22 +63,30 @@ export default async function handler(req, res) {
     const segmentIds = segments.map(s => s.segment_id);
 
     //
-    // 3. Appeler Strava pour chaque segment (1 appel / segment)
+    // 3. Appeler Strava pour chaque segment → /all_efforts
     //
-    const segmentLeaderboards = [];
+    const segmentEfforts = [];
 
     for (const segId of segmentIds) {
-      const lbRes = await fetch(
-        `https://www.strava.com/api/v3/segments/${segId}/leaderboard`,
+      const effortsRes = await fetch(
+        `https://www.strava.com/api/v3/segments/${segId}/all_efforts`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
 
-      const lbData = await lbRes.json();
+      const text = await effortsRes.text();
 
-      if (lbData.entries) {
-        segmentLeaderboards.push(lbData.entries);
+      let efforts;
+      try {
+        efforts = JSON.parse(text);
+      } catch (e) {
+        console.error("Strava returned non‑JSON:", text);
+        continue;
+      }
+
+      if (Array.isArray(efforts)) {
+        segmentEfforts.push(efforts);
       }
     }
 
@@ -80,22 +95,22 @@ export default async function handler(req, res) {
     //
     const totals = {}; // athlete_id → { name, total_seconds }
 
-    for (const lb of segmentLeaderboards) {
-      for (const entry of lb) {
-        const id = entry.athlete_id;
-        const name = entry.athlete_name;
-        const time = entry.elapsed_time;
+    for (const effortList of segmentEfforts) {
+      for (const effort of effortList) {
+        const athleteId = effort.athlete.id;
+        const name = effort.athlete.name;
+        const time = effort.elapsed_time;
 
-        if (!totals[id]) {
-          totals[id] = { name, total_seconds: 0 };
+        if (!totals[athleteId]) {
+          totals[athleteId] = { name, total_seconds: 0 };
         }
 
-        totals[id].total_seconds += time;
+        totals[athleteId].total_seconds += time;
       }
     }
 
     //
-    // 5. Convertir en tableau et trier
+    // 5. Convertir en tableau + trier
     //
     const leaderboard = Object.entries(totals)
       .map(([athlete_id, data]) => ({
@@ -113,7 +128,7 @@ export default async function handler(req, res) {
     const finalData = { leaderboard };
 
     //
-    // 6. Stocker le leaderboard en BD (upsert)
+    // 6. Stocker en BD (upsert)
     //
     await query(
       `INSERT INTO leaderboards (challenge_id, data, updated_at)
