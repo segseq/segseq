@@ -49,14 +49,15 @@ export default async function handler(req, res) {
     // --- 2. Insérer l’athlète dans la base ---
     // On stocke au minimum l’ID, prénom, nom, photo
     await query(
-      `INSERT INTO athletes (id, firstname, lastname, profile_picture)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO athletes (id, firstname, lastname, profile, country)
+       VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (id) DO NOTHING`,
       [
         athleteId,
         athlete.firstname || null,
         athlete.lastname || null,
         athlete.profile || null
+		athlete.country || null
       ]
     );
 
