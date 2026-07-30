@@ -183,6 +183,7 @@ const challengeId = params.get("id");
 
 async function loadChallenge() {
   try {
+    // 1. Charger les infos du challenge depuis ta BD
     const res = await fetch(`/api/segseq/challenge?id=${challengeId}`);
     const data = await res.json();
 
@@ -210,15 +211,19 @@ async function loadChallenge() {
       segList.appendChild(div);
     });
 
-    // Leaderboard
+    // 2. Charger le vrai leaderboard Strava public
+    const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}`);
+    const lbData = await lbRes.json();
+
     const lb = document.getElementById("leaderboard");
     lb.innerHTML = "";
-    data.leaderboard.forEach(row => {
+
+    lbData.leaderboard.forEach(row => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${row.rank}</td>
         <td>${row.athlete}</td>
-        <td>${row.time}</td>
+        <td>${row.time_human}</td>
       `;
       lb.appendChild(tr);
     });
@@ -230,6 +235,7 @@ async function loadChallenge() {
 
 loadChallenge();
 </script>
+
 
 
 </body>
