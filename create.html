@@ -321,6 +321,52 @@ function renderSegments() {
 }
 </script>
 
+<script>
+async function publishChallenge() {
+  const name = document.getElementById("challenge-name").value;
+  const description = document.getElementById("description").value;
+  const sport = document.getElementById("sport").value;
+  const duration = parseInt(document.getElementById("duration").value, 10);
+
+  // Récupération des segments depuis ton UI
+  const segmentInputs = document.querySelectorAll(".segment-input");
+  const segments = Array.from(segmentInputs).map(input => input.value.trim()).filter(Boolean);
+
+  if (segments.length < 2) {
+    alert("Tu dois ajouter au moins 2 segments.");
+    return;
+  }
+
+  const payload = {
+    name,
+    description,
+    sport,
+    duration,
+    segments
+  };
+
+  try {
+    const res = await fetch("/api/segseq/challenges", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert("Erreur: " + data.error);
+      return;
+    }
+
+    // Redirection vers la page du challenge
+    window.location.href = `/challenge.html?id=${data.id}`;
+  } catch (err) {
+    console.error(err);
+    alert("Erreur réseau");
+  }
+}
+</script>
 
 
 </body>
