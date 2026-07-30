@@ -29,17 +29,22 @@ export default async function handler(req, res) {
       });
     }
 
-    // Stocker le token dans un cookie sécurisé
-    res.setHeader(
-      "Set-Cookie",
-      `strava_token=${data.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax`
-    );
+    const isProd = req.headers.host.includes("vercel.app");
+
+	const cookieFlags = isProd
+	? "Path=/; HttpOnly; Secure; SameSite=Lax"
+	: "Path=/; HttpOnly; SameSite=None";
 	
-	// cookie athlete_id
     res.setHeader(
-      "Set-Cookie",
-      `athlete_id=${data.athlete.id}; Path=/; HttpOnly; Secure; SameSite=Lax`
-    );
+	  "Set-Cookie",
+	  `athlete_id=${data.athlete.id}; ${cookieFlags}`
+	);
+
+	res.setHeader(
+	  "Set-Cookie",
+	  `strava_token=${data.access_token}; ${cookieFlags}`
+	);
+
 
     // Redirection vers la page profil
 	return res.redirect("https://segseq.vercel.app/profile.html");
