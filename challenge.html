@@ -1,18 +1,234 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Challenge</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>SegSeq - Challenge</title>
+
+<style>
+:root{
+  --navy:#072B57;
+  --navy-light:#0E487D;
+  --orange:#FF6B1A;
+  --white:#FFFFFF;
+  --gray:#D6E3F2;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:Inter,sans-serif;
+  background:var(--navy);
+  color:white;
+  min-height:100vh;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:40px 20px;
+}
+
+/* HERO */
+.hero{
+  text-align:center;
+  padding:60px 20px 20px;
+}
+
+.logo{
+  font-size:4rem;
+  color:white;
+}
+
+.logo span{
+  color:var(--orange);
+}
+
+.brand{
+  font-size:4rem;
+  font-weight:800;
+  letter-spacing:-2px;
+}
+
+.brand .accent{
+  color:var(--orange);
+}
+
+/* CARD */
+.card{
+  background:white;
+  color:#222;
+  border-radius:24px;
+  padding:40px;
+  box-shadow:0 20px 60px rgba(0,0,0,.30);
+  margin-top:40px;
+}
+
+.card h2{
+  color:var(--navy);
+  margin-bottom:20px;
+  font-size:2rem;
+  font-weight:800;
+}
+
+.section-title{
+  color:var(--navy);
+  font-size:1.4rem;
+  font-weight:700;
+  margin-top:30px;
+  margin-bottom:10px;
+}
+
+/* SEGMENTS */
+.segment-item{
+  background:#F5F8FC;
+  padding:12px;
+  border-radius:10px;
+  margin-top:10px;
+  color:#072B57;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+/* LEADERBOARD */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:20px;
+}
+
+th, td{
+  padding:12px;
+  text-align:left;
+}
+
+th{
+  background:var(--navy-light);
+  color:white;
+}
+
+tr:nth-child(even){
+  background:#F5F8FC;
+}
+
+tr:nth-child(odd){
+  background:#E9F1FA;
+}
+
+footer{
+  text-align:center;
+  margin-top:60px;
+  padding:60px 20px;
+  color:rgba(255,255,255,.6);
+}
+</style>
 </head>
+
 <body>
-  <h1>Challenge loaded</h1>
-  <p id="info"></p>
+
+<section class="hero">
+  <div class="logo"><span>∿</span>∿</div>
+  <h1 class="brand">Seg<span class="accent">S</span>eq</h1>
+</section>
+
+<div class="container">
+
+  <div class="card">
+    <h2 id="challenge-name">Challenge Name</h2>
+
+    <p id="challenge-description" style="opacity:.8; line-height:1.6;">
+      Description here...
+    </p>
+
+    <div class="section-title">Details</div>
+    <p><strong>Sport:</strong> <span id="challenge-sport"></span></p>
+    <p><strong>Duration:</strong> <span id="challenge-duration"></span> hours</p>
+
+    <div class="section-title">Segments</div>
+    <div id="segments-list"></div>
+
+    <div class="section-title">Leaderboard</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Athlete</th>
+          <th>Total Time</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboard">
+      </tbody>
+    </table>
+
+  </div>
+
+  <footer>
+    <div class="logo"><span>∿</span>∿</div>
+    SegSeq • Multi-Segment Challenges
+  </footer>
+
+</div>
 
 <script>
+// Lire l'ID dans l'URL
 const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
+const challengeId = params.get("id");
 
-document.getElementById("info").textContent = "Challenge ID = " + id;
+// Valeurs fictives pour l'instant
+const challenge = {
+  name: "UTMB 4-Day Challenge",
+  description: "A multi-stage mountain running challenge inspired by UTMB.",
+  sport: "Running",
+  duration: 48,
+  segments: [
+    { id: 1234567, name: "Col du Bonhomme", order: 1 },
+    { id: 2345678, name: "Col de la Seigne", order: 2 },
+    { id: 3456789, name: "Grand Col Ferret", order: 3 }
+  ],
+  leaderboard: [
+    { rank: 1, athlete: "Killian Jornet", time: "12h 45m" },
+    { rank: 2, athlete: "Jim Walmsley", time: "13h 10m" },
+    { rank: 3, athlete: "Mathieu Blanchard", time: "13h 55m" }
+  ]
+};
+
+// Remplir les champs
+document.getElementById("challenge-name").textContent = challenge.name;
+document.getElementById("challenge-description").textContent = challenge.description;
+document.getElementById("challenge-sport").textContent = challenge.sport;
+document.getElementById("challenge-duration").textContent = challenge.duration;
+
+// Segments
+const segList = document.getElementById("segments-list");
+challenge.segments.forEach(seg => {
+  const div = document.createElement("div");
+  div.className = "segment-item";
+  div.innerHTML = `
+    <span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span>
+    Segment #${seg.id} — ${seg.name}
+  `;
+  segList.appendChild(div);
+});
+
+// Leaderboard
+const lb = document.getElementById("leaderboard");
+challenge.leaderboard.forEach(row => {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td>${row.rank}</td>
+    <td>${row.athlete}</td>
+    <td>${row.time}</td>
+  `;
+  lb.appendChild(tr);
+});
 </script>
 
 </body>
