@@ -97,13 +97,18 @@ label{
   color:var(--navy);
 }
 
-input, select{
+input, select, textarea{
   width:100%;
   padding:16px;
   border-radius:12px;
   border:1px solid #ccc;
   margin-top:8px;
   font-size:1rem;
+}
+
+textarea{
+  min-height:120px;
+  resize:vertical;
 }
 
 #segments{
@@ -117,6 +122,9 @@ input, select{
   margin-top:10px;
   color:#072B57;
   font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
 
 /* CTA */
@@ -170,8 +178,11 @@ footer{
 
     <h2>Create a Challenge</h2>
 
-    <label>Challenge Name</label>
-    <input id="challenge-name" placeholder="Ex: UTMB 4-Day Challenge">
+    <label>Challenge Name (max 40 chars)</label>
+    <input id="challenge-name" maxlength="40" placeholder="Ex: UTMB 4-Day Challenge">
+
+    <label>Description</label>
+    <textarea id="description" placeholder="Describe your challenge..."></textarea>
 
     <label>Sport</label>
     <select id="sport">
@@ -179,23 +190,36 @@ footer{
       <option value="ride">Cycling</option>
     </select>
 
-    <label>Duration (hours)</label>
-    <input id="duration" type="number" min="1" placeholder="48">
+    <label>Duration (hours, max 120)</label>
+    <input id="duration" type="number" min="1" max="120" placeholder="48">
 
     <label>Add Strava Segment ID</label>
-    <input id="segment-input" placeholder="Ex: 1234567">
-
-    <div class="cta">
-      <a class="btn" onclick="addSegment()">Add Segment</a>
+    <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
+      <button onclick="addSegment()" 
+              style="background:none; border:none; font-size:2rem; color:var(--orange); cursor:pointer;">
+        ∿
+      </button>
+      <span style="color:#777; font-size:.9rem;">Add segment</span>
     </div>
+
+    <input id="segment-input" placeholder="Ex: 1234567">
 
     <div id="segments"></div>
 
-    <div class="cta">
-      <a class="btn" onclick="publishChallenge()">Publish Challenge</a>
-    </div>
-
   </div>
+
+  <!-- TRY NOW SECTION -->
+  <section class="section waitlist" style="text-align:center; margin-top:80px;">
+    <h2 class="section-title" style="color:white;">Try now</h2>
+
+    <p style="max-width:600px; margin:auto; opacity:.85;">
+      Be among the first athletes to create and compete in SegSeq challenges.
+    </p>
+
+    <div class="cta">
+      <a class="btn" onclick="publishChallenge()">Create Challenge</a>
+    </div>
+  </section>
 
   <footer>
     <div class="logo"><span>∿</span>∿</div>
@@ -229,6 +253,7 @@ function addSegment() {
 
 async function publishChallenge() {
   const name = document.getElementById("challenge-name").value.trim();
+  const description = document.getElementById("description").value.trim();
   const sport = document.getElementById("sport").value;
   const duration = parseInt(document.getElementById("duration").value);
 
@@ -239,6 +264,7 @@ async function publishChallenge() {
 
   const payload = {
     name,
+    description,
     sport,
     duration,
     segments
