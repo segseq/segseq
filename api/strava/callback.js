@@ -34,6 +34,12 @@ export default async function handler(req, res) {
       "Set-Cookie",
       `strava_token=${data.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax`
     );
+	
+	// cookie athlete_id
+    res.setHeader(
+      "Set-Cookie",
+      `athlete_id=${data.athlete.id}; Path=/; HttpOnly; Secure; SameSite=Lax`
+    );
 
     // Redirection vers la page profil
 	return res.redirect("https://segseq.vercel.app/profile.html");

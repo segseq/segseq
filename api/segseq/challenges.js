@@ -1,4 +1,6 @@
 import { query } from "../../db.js";
+	import cookie from "cookie";
+
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -13,8 +15,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    // TODO: récupérer l'athlete_id Strava depuis ton cookie/token
-    const creatorId = 123456; // placeholder pour l'instant
+    // récupérer l'athlete_id Strava depuis ton cookie/token
+	const cookies = cookie.parse(req.headers.cookie || "");
+	const creatorId = cookies.athlete_id;
+
+if (!creatorId) {
+  return res.status(401).json({ error: "Not authenticated" });
+}
 
     // 1. Insérer le challenge
     const rows = await query(
