@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "cookie": "^2.0.1",
+    "cookie-es": "^3.1.1",
     "dotenv": "^17.4.2",
     "pg": "^8.22.0"
   },
