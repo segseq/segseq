@@ -3,6 +3,11 @@ import { query } from "../../db.js";
 
 
 export default async function handler(req, res) {
+  //debug
+  console.log("REQ BODY:", req.body);
+  console.log("REQ COOKIES RAW:", req.headers.cookie);
+  console.log("PARSED COOKIES:", cookie.parse(req.headers.cookie || ""));
+  
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
