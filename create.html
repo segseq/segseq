@@ -323,15 +323,12 @@ function renderSegments() {
 
 <script>
 async function publishChallenge() {
-  const name = document.getElementById("challenge-name").value;
-  const description = document.getElementById("description").value;
-  const sport = document.getElementById("sport").value;
+  const name = document.getElementById("challenge-name").value.trim();
+  const description = document.getElementById("description").value.trim();
+  const sport = document.getElementById("sport").value.trim();
   const duration = parseInt(document.getElementById("duration").value, 10);
 
-  // Récupération des segments depuis ton UI
-  const segmentInputs = document.querySelectorAll(".segment-input");
-  const segments = Array.from(segmentInputs).map(input => input.value.trim()).filter(Boolean);
-
+  // Utiliser TON tableau global segments[]
   if (segments.length < 2) {
     alert("Tu dois ajouter au moins 2 segments.");
     return;
@@ -367,6 +364,7 @@ async function publishChallenge() {
   }
 }
 </script>
+
 
 
 </body>
