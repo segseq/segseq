@@ -251,52 +251,76 @@ footer{
 </div>
 
 <script>
-const segments = [];
+let segments = [];
 
 function addSegment() {
-  console.log("click ∿"); // pour vérifier dans la console
-
   const input = document.getElementById("segment-input");
   const id = input.value.trim();
-
-  if (!id) {
-    alert("Enter a segment ID first.");
-    return;
-  }
+  if (!id) return;
 
   if (segments.length >= 5) {
     alert("Maximum 5 segments");
     return;
   }
 
+  // Ajouter dans la liste interne
   segments.push(id);
 
-  const list = document.getElementById("segments");
-
-  const item = document.createElement("div");
-  item.className = "segment-item";
-  item.style.display = "flex";
-  item.style.alignItems = "center";
-  item.style.gap = "12px";
-  item.style.marginTop = "10px";
-  item.style.background = "#F5F8FC";
-  item.style.padding = "12px";
-  item.style.borderRadius = "10px";
-  item.style.color = "#072B57";
-  item.style.fontWeight = "600";
-
-  const seq = segments.length;
-
-  item.innerHTML = `
-    <span style="font-size:1.2rem; color:#FF6B1A;">${seq}.</span>
-    <span>Segment #${id}</span>
-  `;
-
-  list.appendChild(item);
+  // Re-render complet
+  renderSegments();
 
   input.value = "";
 }
+
+function removeSegment(index) {
+  // Supprimer le segment
+  segments.splice(index, 1);
+
+  // Re-render
+  renderSegments();
+}
+
+function renderSegments() {
+  const list = document.getElementById("segments");
+  list.innerHTML = "";
+
+  segments.forEach((id, i) => {
+    const item = document.createElement("div");
+    item.className = "segment-item";
+    item.style.display = "flex";
+    item.style.alignItems = "center";
+    item.style.gap = "12px";
+    item.style.marginTop = "10px";
+    item.style.background = "#F5F8FC";
+    item.style.padding = "12px";
+    item.style.borderRadius = "10px";
+    item.style.color = "#072B57";
+    item.style.fontWeight = "600";
+    item.style.justifyContent = "space-between";
+
+    item.innerHTML = `
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:1.2rem; color:#FF6B1A;">${i + 1}.</span>
+        <span>Segment #${id}</span>
+      </div>
+
+      <button onclick="removeSegment(${i})"
+              style="
+                background:none;
+                border:none;
+                color:#FF6B1A;
+                font-size:1.4rem;
+                cursor:pointer;
+              ">
+        ×
+      </button>
+    `;
+
+    list.appendChild(item);
+  });
+}
 </script>
+
 
 
 </body>
