@@ -23,13 +23,11 @@ function addSeconds(date, sec) {
 }
 
 // construit une réalisation valide du segseq pour un athlète
-function findValidSegSeqCompletion(segmentIds, effortsBySegment, maxDurationHours) {
+function findValidSegSeqCompletion(segmentIds, effortsBySegment, durationHoursLimit) {
 
-  // >>> DEBUG
   console.log("=== DEBUG: Checking athlete segments ===");
   console.log("Segment IDs:", segmentIds);
   console.log("Efforts by segment:", Object.keys(effortsBySegment));
-  // <<< DEBUG
 
   if (segmentIds.some(id => !effortsBySegment[id] || effortsBySegment[id].length === 0)) {
     console.log(">>> DEBUG: Missing segment efforts, athlete eliminated");
@@ -43,12 +41,10 @@ function findValidSegSeqCompletion(segmentIds, effortsBySegment, maxDurationHour
 
   for (const startEffort of firstEfforts) {
 
-    // >>> DEBUG
     console.log("=== DEBUG: Trying start effort ===");
     console.log("Start segment:", firstSegmentId);
     console.log("Activity:", startEffort.activity.id);
     console.log("Start date:", startEffort.start_date);
-    // <<< DEBUG
 
     const usedActivities = new Set();
     const sequenceEfforts = [];
@@ -95,11 +91,9 @@ function findValidSegSeqCompletion(segmentIds, effortsBySegment, maxDurationHour
       sequenceEfforts.push(chosen);
       prevEnd = chosenEnd;
 
-      // >>> DEBUG
       console.log("Segment", segId, "chosen effort:");
       console.log("  Activity:", chosen.activity.id);
       console.log("  Start:", chosen.start_date);
-      // <<< DEBUG
     }
 
     if (!valid) continue;
@@ -110,13 +104,11 @@ function findValidSegSeqCompletion(segmentIds, effortsBySegment, maxDurationHour
 
     const durationHours = (endTime.getTime() - startDate.getTime()) / 1000 / 3600;
 
-    // >>> DEBUG
     console.log("=== DEBUG: Duration check ===");
     console.log("Duration hours:", durationHours);
-    console.log("Max allowed:", maxDurationHours);
-    // <<< DEBUG
+    console.log("Limit:", durationHoursLimit);
 
-    if (durationHours > maxDurationHours) {
+    if (durationHours > durationHoursLimit) {
       console.log(">>> DEBUG: Duration too long, athlete eliminated");
       continue;
     }
@@ -159,7 +151,7 @@ export default async function handler(req, res) {
 
   try {
     const challengeRows = await query(
-      `SELECT max_duration_hours
+      `SELECT duration_hours
        FROM challenges
        WHERE id = $1`,
       [challengeId]
@@ -169,7 +161,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Challenge not found" });
     }
 
-    const maxDurationHours = challengeRows[0].max_duration_hours;
+    const durationHoursLimit = challengeRows[0].duration_hours;
 
     const existing = await query(
       `SELECT data, updated_at
@@ -234,109 +226,4 @@ export default async function handler(req, res) {
         efforts = JSON.parse(text);
       } catch (e) {
         console.error("Strava returned non‑JSON:", text);
-        segmentEffortsBySegment[segId] = [];
-        continue;
-      }
-
-      if (Array.isArray(efforts)) {
-        segmentEffortsBySegment[segId] = efforts;
-      } else {
-        segmentEffortsBySegment[segId] = [];
-      }
-
-      // >>> DEBUG
-      console.log("Segment", segId, "efforts count:", segmentEffortsBySegment[segId].length);
-      // <<< DEBUG
-    }
-
-    const effortsByAthlete = {};
-
-    for (const segId of segmentIds) {
-      const effortList = segmentEffortsBySegment[segId] || [];
-      for (const effort of effortList) {
-        const athleteId = effort.athlete.id;
-        const name = effort.athlete.name;
-
-        if (!effortsByAthlete[athleteId]) {
-          effortsByAthlete[athleteId] = {
-            name,
-            segments: {}
-          };
-        }
-
-        if (!effortsByAthlete[athleteId].segments[segId]) {
-          effortsByAthlete[athleteId].segments[segId] = [];
-        }
-
-        effortsByAthlete[athleteId].segments[segId].push(effort);
-      }
-    }
-
-    // >>> DEBUG
-    console.log("=== DEBUG: Athletes detected ===");
-    console.log(Object.keys(effortsByAthlete));
-    // <<< DEBUG
-
-    const leaderboardRows = [];
-
-    for (const [athleteId, data] of Object.entries(effortsByAthlete)) {
-
-      // >>> DEBUG
-      console.log("=== DEBUG: Checking athlete", data.name, "(", athleteId, ") ===");
-      // <<< DEBUG
-
-      const completion = findValidSegSeqCompletion(
-        segmentIds,
-        data.segments,
-        maxDurationHours
-      );
-
-      if (!completion) {
-        console.log(">>> DEBUG: Athlete eliminated:", data.name);
-        continue;
-      }
-
-      leaderboardRows.push({
-        athlete_id: athleteId,
-        athlete: data.name,
-        time_seconds: completion.totalSeconds,
-        time_human: formatTime(completion.totalSeconds),
-        challenge_duration_hours: completion.durationHours
-      });
-    }
-
-    const leaderboard = leaderboardRows
-      .sort((a, b) => a.time_seconds - b.time_seconds)
-      .map((row, index) => ({
-        rank: index + 1,
-        ...row
-      }));
-
-    const t1 = Date.now();
-    const calcMs = t1 - t0;
-
-    const finalData = {
-      leaderboard,
-      meta: {
-        source: "fresh",
-        calculation_status: "completed",
-        calculation_time_ms: calcMs,
-        max_duration_hours: maxDurationHours
-      }
-    };
-
-    await query(
-      `INSERT INTO leaderboards (challenge_id, data, updated_at)
-       VALUES ($1, $2, NOW())
-       ON CONFLICT (challenge_id)
-       DO UPDATE SET data = $2, updated_at = NOW()`,
-      [challengeId, finalData]
-    );
-
-    return res.status(200).json(finalData);
-
-  } catch (err) {
-    console.error("Leaderboard error:", err);
-    return res.status(500).json({ error: "Server error" });
-  }
-}
+        segmentEffortsBySegment
