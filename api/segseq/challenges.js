@@ -23,11 +23,7 @@ export default async function handler(req, res) {
     // récupérer l'athlete_id Strava depuis ton cookie/token
 	const cookies = cookie.parse(req.headers.cookie || "");
 	const creatorId = cookies.athlete_id;
-// const creatorId = 10605349;
-if (!creatorId) {
-return res.status(401).json({ error: "Not authenticated" });
-}
-
+	// const creatorId = 10605349;
 
     // 1. Insérer le challenge
     const rows = await query(	
