@@ -178,60 +178,59 @@ footer{
 </div>
 
 <script>
-// Lire l'ID dans l'URL
 const params = new URLSearchParams(window.location.search);
 const challengeId = params.get("id");
 
-// Pour l'instant : données fictives
-// Plus tard : remplacer par un fetch("/api/segseq/challenge?id=" + challengeId)
-const challenge = {
-  id: challengeId,
-  name: "Challenge #" + challengeId,
-  description: "This challenge was created by an athlete using SegSeq.",
-  sport: "run",
-  duration: 48,
-  segments: [
-    { id: 1234567, order: 1 },
-    { id: 2345678, order: 2 },
-    { id: 3456789, order: 3 }
-  ],
-  leaderboard: [
-    { rank: 1, athlete: "Alex Tremblay", time: "14h 22m" },
-    { rank: 2, athlete: "Marie Gagnon", time: "15h 10m" },
-    { rank: 3, athlete: "Samuel Roy", time: "16h 05m" }
-  ]
-};
+async function loadChallenge() {
+  try {
+    const res = await fetch(`/api/segseq/challenge?id=${challengeId}`);
+    const data = await res.json();
 
-// Remplir les champs
-document.getElementById("challenge-name").textContent = challenge.name;
-document.getElementById("challenge-description").textContent = challenge.description;
-document.getElementById("challenge-sport").textContent = challenge.sport;
-document.getElementById("challenge-duration").textContent = challenge.duration;
+    if (!res.ok) {
+      document.getElementById("challenge-name").textContent = "Error loading challenge";
+      return;
+    }
 
-// Segments
-const segList = document.getElementById("segments-list");
-challenge.segments.forEach(seg => {
-  const div = document.createElement("div");
-  div.className = "segment-item";
-  div.innerHTML = `
-    <span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span>
-    Segment #${seg.id}
-  `;
-  segList.appendChild(div);
-});
+    // Remplir les champs
+    document.getElementById("challenge-name").textContent = data.name;
+    document.getElementById("challenge-description").textContent = data.description;
+    document.getElementById("challenge-sport").textContent = data.sport;
+    document.getElementById("challenge-duration").textContent = data.duration;
 
-// Leaderboard
-const lb = document.getElementById("leaderboard");
-challenge.leaderboard.forEach(row => {
-  const tr = document.createElement("tr");
-  tr.innerHTML = `
-    <td>${row.rank}</td>
-    <td>${row.athlete}</td>
-    <td>${row.time}</td>
-  `;
-  lb.appendChild(tr);
-});
+    // Segments
+    const segList = document.getElementById("segments-list");
+    segList.innerHTML = "";
+    data.segments.forEach(seg => {
+      const div = document.createElement("div");
+      div.className = "segment-item";
+      div.innerHTML = `
+        <span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span>
+        Segment #${seg.id}
+      `;
+      segList.appendChild(div);
+    });
+
+    // Leaderboard
+    const lb = document.getElementById("leaderboard");
+    lb.innerHTML = "";
+    data.leaderboard.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.rank}</td>
+        <td>${row.athlete}</td>
+        <td>${row.time}</td>
+      `;
+      lb.appendChild(tr);
+    });
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+loadChallenge();
 </script>
+
 
 </body>
 </html>
