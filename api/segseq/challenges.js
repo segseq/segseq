@@ -30,6 +30,11 @@ if (!creatorId) {
 
     // 1. Insérer le challenge
     const rows = await query(
+		if (!creatorId) {
+	console.error("Missing athlete_id cookie");
+	return res.status(401).json({ error: "Not authenticated" });
+	}
+	
       `INSERT INTO challenges (creator_id, name, description, sport, duration_hours)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id`,
