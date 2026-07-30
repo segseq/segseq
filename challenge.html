@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Challenge</title>
+</head>
+<body>
+  <h1>Challenge loaded</h1>
+  <p id="info"></p>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+document.getElementById("info").textContent = "Challenge ID = " + id;
+</script>
+
+</body>
+</html>
