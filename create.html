@@ -345,6 +345,7 @@ async function publishChallenge() {
   try {
     const res = await fetch("/api/segseq/challenges", {
       method: "POST",
+	  credentials: "include",   // 🔥 obligatoire
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
