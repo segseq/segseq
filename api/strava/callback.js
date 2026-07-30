@@ -35,15 +35,11 @@ export default async function handler(req, res) {
 	? "Path=/; HttpOnly; Secure; SameSite=Lax"
 	: "Path=/; HttpOnly; SameSite=None";
 	
-    res.setHeader(
-	  "Set-Cookie",
-	  `athlete_id=${data.athlete.id}; ${cookieFlags}`
-	);
+    res.setHeader("Set-Cookie", [
+	`athlete_id=${data.athlete.id}; ${cookieFlags}`,
+	`strava_token=${data.access_token}; ${cookieFlags}`
+	]);
 
-	res.setHeader(
-	  "Set-Cookie",
-	  `strava_token=${data.access_token}; ${cookieFlags}`
-	);
 
 
     // Redirection vers la page profil
