@@ -56,7 +56,7 @@ export default async function handler(req, res) {
         athleteId,
         athlete.firstname || null,
         athlete.lastname || null,
-        athlete.profile || null
+        athlete.profile || null,
 		athlete.country || null
       ]
     );
