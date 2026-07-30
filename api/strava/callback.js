@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     const isProd = req.headers.host.includes("vercel.app");
 
 	const cookieFlags = isProd
-	? "Path=/; HttpOnly; Secure; SameSite=Lax"
+	? "Path=/; HttpOnly; Secure; SameSite=None"
 	: "Path=/; HttpOnly; SameSite=None";
 	
     res.setHeader("Set-Cookie", [
