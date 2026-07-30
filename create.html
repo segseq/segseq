@@ -124,7 +124,7 @@ textarea{
   font-weight:600;
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:12px;
 }
 
 /* CTA */
@@ -194,15 +194,36 @@ footer{
     <input id="duration" type="number" min="1" max="120" placeholder="48">
 
     <label>Add Strava Segment ID</label>
-    <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
-      <button onclick="addSegment()" 
-              style="background:none; border:none; font-size:2rem; color:var(--orange); cursor:pointer;">
+
+    <!-- Single line: input + ∿ + label -->
+    <div style="
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-top:8px;
+    ">
+
+      <input id="segment-input"
+             placeholder="Ex: 1234567"
+             style="flex:1;">
+
+      <button onclick="addSegment()"
+              style="
+                background:none;
+                border:none;
+                font-size:2rem;
+                color:var(--orange);
+                cursor:pointer;
+                padding:0 10px;
+              ">
         ∿
       </button>
-      <span style="color:#777; font-size:.9rem;">Add segment</span>
-    </div>
 
-    <input id="segment-input" placeholder="Ex: 1234567">
+      <span style="color:#777; font-size:.9rem;">
+        Add segment
+      </span>
+
+    </div>
 
     <div id="segments"></div>
 
@@ -243,9 +264,17 @@ function addSegment() {
   segments.push(id);
 
   const list = document.getElementById("segments");
+
   const item = document.createElement("div");
   item.className = "segment-item";
-  item.textContent = "Segment #" + id;
+
+  const seq = segments.length;
+
+  item.innerHTML = `
+    <span style="font-size:1.2rem; color:var(--orange);">${seq}.</span>
+    <span>Segment #${id}</span>
+  `;
+
   list.appendChild(item);
 
   document.getElementById("segment-input").value = "";
