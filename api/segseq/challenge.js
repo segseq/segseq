@@ -1,8 +1,13 @@
 import { query } from "../../db.js";
+import { parse } from "cookie-es"; // Needed to read the user's cookie
 
 export default async function handler(req, res) {
   const { method } = req;
   const id = req.query.id;
+
+  // Parse cookies to get the current logged-in user
+  const cookies = parse(req.headers.cookie || "");
+  const currentAthleteId = cookies.athlete_id;
 
   try {
     // ==========================================
@@ -12,8 +17,9 @@ export default async function handler(req, res) {
       
       // 1A. GET ALL CHALLENGES (For Explore Page)
       if (!id) {
+        // ADDED: creator_id to the SELECT statement
         const rows = await query(`
-          SELECT id, name, sport, duration_hours, created_at 
+          SELECT id, creator_id, name, sport, duration_hours, created_at 
           FROM challenges 
           ORDER BY created_at DESC
         `);
@@ -43,9 +49,9 @@ export default async function handler(req, res) {
           [id]
         );
 
-        // Return clean object (Mock leaderboard removed)
         return res.status(200).json({
           id: challenge.id,
+          creator_id: challenge.creator_id,
           name: challenge.name,
           description: challenge.description,
           sport: challenge.sport,
@@ -66,18 +72,25 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing challenge id to delete" });
       }
 
-      // 1. Delete associated results
-      await query(`DELETE FROM challenge_results WHERE challenge_id = $1`, [id]);
-      
-      // 2. Delete associated segments mapping
-      await query(`DELETE FROM challenge_segments WHERE challenge_id = $1`, [id]);
-      
-      // 3. Delete the challenge itself
-      const result = await query(`DELETE FROM challenges WHERE id = $1 RETURNING id`, [id]);
+      if (!currentAthleteId) {
+        return res.status(401).json({ error: "You must be logged in to delete a challenge." });
+      }
 
-      if (result.length === 0) {
+      // SECURITY CHECK: Verify the user requesting the delete is the creator
+      const checkOwner = await query(`SELECT creator_id FROM challenges WHERE id = $1`, [id]);
+      
+      if (checkOwner.length === 0) {
         return res.status(404).json({ error: "Challenge not found" });
       }
+
+      if (String(checkOwner[0].creator_id) !== String(currentAthleteId)) {
+        return res.status(403).json({ error: "Forbidden: You can only delete challenges you created." });
+      }
+
+      // If we pass the security check, proceed with deletion
+      await query(`DELETE FROM challenge_results WHERE challenge_id = $1`, [id]);
+      await query(`DELETE FROM challenge_segments WHERE challenge_id = $1`, [id]);
+      const result = await query(`DELETE FROM challenges WHERE id = $1 RETURNING id`, [id]);
 
       return res.status(200).json({ success: true, deleted_id: id });
     } 
