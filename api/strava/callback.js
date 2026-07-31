@@ -1,16 +1,11 @@
-// --- CONFIG : activer bodyParser pour req.query ---
-export const config = {
-  api: {
-    bodyParser: true,
-  },
-};
-
 // --- IMPORTS ---
 import { query } from "../../db.js";
 
 // --- HANDLER ---
 export default async function handler(req, res) {
-  const { code } = req.query;
+  // Récupération du code via WHATWG URL API
+  const urlObj = new URL(req.url, `https://${req.headers.host}`);
+  const code = urlObj.searchParams.get("code");
 
   console.log("STRAVA CALLBACK — code reçu :", code);
 
@@ -32,7 +27,6 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-
     console.log("STRAVA TOKEN RESPONSE:", data);
 
     if (!data.access_token) {
@@ -46,8 +40,7 @@ export default async function handler(req, res) {
     const athlete = data.athlete;
     const athleteId = athlete.id;
 
-    // --- 2. Insérer l’athlète ET SES TOKENS dans la base ---
-    // Utilisation de ON CONFLICT DO UPDATE pour rafraîchir les tokens s'il se reconnecte
+    // --- 2. UPSERT dans la base ---
     await query(
       `INSERT INTO athletes (id, firstname, lastname, profile, country, access_token, refresh_token, expires_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -73,8 +66,7 @@ export default async function handler(req, res) {
 
     console.log("ATHLETE AND TOKENS UPSERTED:", athleteId);
 
-    // --- 3. Définir les cookies correctement ---
-    // IMPORTANT : SameSite=None + Secure pour que Chrome les envoie dans fetch()
+    // --- 3. Cookies ---
     const cookieFlags = "Path=/; HttpOnly; Secure; SameSite=None";
 
     res.setHeader("Set-Cookie", [
@@ -84,7 +76,7 @@ export default async function handler(req, res) {
 
     console.log("COOKIES SET FOR ATHLETE:", athleteId);
 
-    // --- 4. Redirection vers ton frontend ---
+    // --- 4. Redirection ---
     return res.redirect("https://segseq.vercel.app/profile.html");
 
   } catch (err) {
