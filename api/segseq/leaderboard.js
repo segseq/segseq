@@ -149,7 +149,7 @@ export default async function handler(req, res) {
     }
 
    // ==========================================
-    // PHASE 2: EVALUATE LOGIC STEP-BY-STEP
+    // PHASE 2: EVALUATE LOGIC (NO SEQUENCE REQUIRED)
     // ==========================================
     
     const efforts = await query(
@@ -174,96 +174,87 @@ export default async function handler(req, res) {
     });
 
     let completedAllCount = 0;
-    let sequenceValidCount = 0;
     let durationValidCount = 0;
     let finalLeaderboard = [];
 
-    logStep(`📊 --- STEP 2 to 4: Evaluating ${Object.keys(athletes).length} Total Athletes ---`);
+    logStep(`📊 --- STEP 2 & 3: Evaluating ${Object.keys(athletes).length} Total Athletes ---`);
 
     for (const [athName, athEfforts] of Object.entries(athletes)) {
       
-      // Step 2: Did they complete ALL segments at least once?
+      // Step 2: Did they complete ALL segments at least once overall?
       const uniqueSegs = new Set(athEfforts.map(e => e.segment_id));
       if (uniqueSegs.size < reqSegIds.length) continue; 
       completedAllCount++;
 
-      // Group their efforts by segment and sort chronologically
-      const effortsBySeg = {};
-      reqSegIds.forEach(id => effortsBySeg[id] = []);
-      athEfforts.forEach(e => effortsBySeg[e.segment_id].push(e));
-      
-      for (const id in effortsBySeg) {
-        effortsBySeg[id].sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
-      }
-
-      let hasValidSequence = false;
       let bestCompletion = null;
 
-      // Step 3: Try to build a valid sequence starting from EACH effort of the first segment
-      const firstSegId = reqSegIds[0];
-      
-      for (const startEffort of effortsBySeg[firstSegId]) {
-        let currentSequence = [startEffort];
-        // End time of the current segment effort
-        let prevEndTimeMs = new Date(startEffort.start_date).getTime() + (startEffort.elapsed_time * 1000);
-        let seqOk = true;
+      // Step 3: Sliding Time Window Check
+      // Treat every effort as a potential "Start" of the challenge window
+      for (const startEffort of athEfforts) {
+        const windowStartMs = new Date(startEffort.start_date).getTime();
+        const windowMaxEndMs = windowStartMs + (durationHoursLimit * 3600 * 1000);
 
-        // Look for the next segments in order
-        for (let i = 1; i < reqSegIds.length; i++) {
-          const nextSegId = reqSegIds[i];
-          // Find the FIRST effort on the next segment that started AFTER the previous segment ended
-          const nextEffort = effortsBySeg[nextSegId].find(e => new Date(e.start_date).getTime() >= prevEndTimeMs);
+        // Filter all efforts for this athlete that fall entirely within this time window
+        const effortsInWindow = athEfforts.filter(e => {
+          const eStart = new Date(e.start_date).getTime();
+          const eEnd = eStart + (e.elapsed_time * 1000);
+          return eStart >= windowStartMs && eEnd <= windowMaxEndMs;
+        });
+
+        // Group the efforts inside this window by segment
+        const segMap = {};
+        effortsInWindow.forEach(e => {
+          if (!segMap[e.segment_id]) segMap[e.segment_id] = [];
+          segMap[e.segment_id].push(e);
+        });
+
+        // Does this window contain at least one effort for EVERY required segment?
+        if (Object.keys(segMap).length === reqSegIds.length) {
           
-          if (nextEffort) {
-            currentSequence.push(nextEffort);
-            prevEndTimeMs = new Date(nextEffort.start_date).getTime() + (nextEffort.elapsed_time * 1000);
-          } else {
-            seqOk = false; // Sequence broken
-            break;
-          }
-        }
+          let totalElapsedSeconds = 0;
+          let actualStartMs = Infinity;
+          let actualEndMs = 0;
 
-        if (seqOk) {
-          hasValidSequence = true;
-          
-          // Step 4: Sequence is valid! Now check the duration limit.
-          // Duration = (End time of last segment) - (Start time of first segment)
-          const startTimeMs = new Date(startEffort.start_date).getTime();
-          const durationHours = (prevEndTimeMs - startTimeMs) / (1000 * 3600);
-
-          if (durationHours <= durationHoursLimit) {
-            // Calculate sum of actual moving/elapsed time for the leaderboard ranking
-            const totalElapsedSeconds = currentSequence.reduce((sum, e) => sum + e.elapsed_time, 0);
+          // Find the FASTEST effort for each segment within this specific window
+          for (const segId of reqSegIds) {
+            segMap[segId].sort((a, b) => a.elapsed_time - b.elapsed_time);
+            const fastest = segMap[segId][0];
             
-            // If they did the challenge multiple times, keep their fastest total time
-            if (!bestCompletion || totalElapsedSeconds < bestCompletion.total_seconds) {
-              bestCompletion = {
-                athlete: athName,
-                total_seconds: totalElapsedSeconds,
-                time_human: formatTime(totalElapsedSeconds),
-                debug_duration: durationHours.toFixed(2)
-              };
-            }
-          } else {
-             logStep(`  - ❌ ${athName} failed duration: Took ${durationHours.toFixed(2)}h (Limit: ${durationHoursLimit}h)`);
+            totalElapsedSeconds += fastest.elapsed_time;
+            
+            const fStart = new Date(fastest.start_date).getTime();
+            const fEnd = fStart + (fastest.elapsed_time * 1000);
+            if (fStart < actualStartMs) actualStartMs = fStart;
+            if (fEnd > actualEndMs) actualEndMs = fEnd;
+          }
+
+          const actualDurationHours = (actualEndMs - actualStartMs) / (1000 * 3600);
+
+          // Save it if it's their best overall time
+          if (!bestCompletion || totalElapsedSeconds < bestCompletion.total_seconds) {
+            bestCompletion = {
+              athlete: athName,
+              total_seconds: totalElapsedSeconds,
+              time_human: formatTime(totalElapsedSeconds),
+              debug_duration: actualDurationHours.toFixed(2)
+            };
           }
         }
       }
 
-      if (hasValidSequence) sequenceValidCount++;
-      
       if (bestCompletion) {
         durationValidCount++;
-        logStep(`  - ✅ ${athName} passed! Duration: ${bestCompletion.debug_duration}h, Moving Time: ${bestCompletion.time_human}`);
+        logStep(`  - ✅ ${athName} passed! Duration window: ${bestCompletion.debug_duration}h, Moving Time: ${bestCompletion.time_human}`);
         finalLeaderboard.push(bestCompletion);
+      } else {
+        logStep(`  - ❌ ${athName} failed: Completed all segments, but never within a ${durationHoursLimit}h window.`);
       }
     }
 
     logStep(`  ✅ ${completedAllCount} athletes completed ALL segments.`);
-    logStep(`  ✅ ${sequenceValidCount} athletes completed them in the correct SEQUENCE.`);
-    logStep(`  ✅ ${durationValidCount} athletes completed them within the ${durationHoursLimit}h limit.`);
+    logStep(`  ✅ ${durationValidCount} athletes completed them within a ${durationHoursLimit}h window (Any Order).`);
 
-    logStep(`📊 --- STEP 5: Final Ranking ---`);
+    logStep(`📊 --- STEP 4: Final Ranking ---`);
     finalLeaderboard.sort((a, b) => a.total_seconds - b.total_seconds);
     finalLeaderboard.forEach((row, idx) => row.rank = idx + 1);
     
@@ -272,12 +263,10 @@ export default async function handler(req, res) {
     // ==========================================
     // PHASE 3: SAVE RESULTS TO DATABASE
     // ==========================================
-    logStep(`💾 --- STEP 6: Saving to Database ---`);
+    logStep(`💾 --- STEP 5: Saving to Database ---`);
     
-    // 1. Clear old results for this challenge (in case someone's sequence became invalid)
     await query(`DELETE FROM challenge_results WHERE challenge_id = $1`, [challengeId]);
 
-    // 2. Insert the fresh leaderboard
     let savedCount = 0;
     for (const row of finalLeaderboard) {
       await query(`
