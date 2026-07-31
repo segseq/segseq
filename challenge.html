@@ -70,14 +70,34 @@ body{
 }
 .segment-item{
   background:#F5F8FC;
-  padding:12px;
+  padding:12px 16px;
   border-radius:10px;
   margin-top:10px;
   color:#072B57;
   font-weight:600;
   display:flex;
   align-items:center;
+  justify-content:space-between; /* Aligns left text and right button */
+}
+.segment-item-left {
+  display:flex;
+  align-items:center;
   gap:12px;
+}
+/* NEW STRAVA BUTTON STYLE */
+.btn-strava {
+  background: var(--navy-light);
+  color: white;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: 0.2s;
+}
+.btn-strava:hover {
+  background: var(--navy);
+  transform: translateY(-1px);
 }
 /* TERMINAL DEBUG WINDOW */
 .debug-console {
@@ -223,7 +243,17 @@ async function loadChallenge() {
     data.segments.forEach(seg => {
       const div = document.createElement("div");
       div.className = "segment-item";
-      div.innerHTML = `<span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span> Segment #${seg.id}`;
+      
+      // Updated innerHTML to include the Strava link button
+      div.innerHTML = `
+        <div class="segment-item-left">
+          <span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span> 
+          <span>Segment #${seg.id}</span>
+        </div>
+        <a href="https://www.strava.com/segments/${seg.id}" target="_blank" rel="noopener noreferrer" class="btn-strava">
+          View on Strava
+        </a>
+      `;
       segList.appendChild(div);
     });
 
