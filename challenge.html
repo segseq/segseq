@@ -118,22 +118,6 @@ footer{
   padding:60px 20px;
   color:rgba(255,255,255,.6);
 }
-.open-strava-btn {
-  margin-left: auto;
-  padding: 6px 12px;
-  background: var(--orange);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: 0.2s;
-}
-
-.open-strava-btn:hover {
-  background: #ff833f;
-}
 </style>
 </head>
 <body>
@@ -217,11 +201,6 @@ function renderLeaderboardData(lbData) {
     lb.innerHTML = `<tr><td colspan="3">No valid completions found.</td></tr>`;
   }
 }
-function openStravaSegment(segmentId) {
-  const url = `https://www.strava.com/segments/${segmentId}`;
-  window.open(url, "_blank");
-}
-
 
 async function loadChallenge() {
   try {
@@ -244,13 +223,7 @@ async function loadChallenge() {
     data.segments.forEach(seg => {
       const div = document.createElement("div");
       div.className = "segment-item";
-      div.innerHTML = `
-  <span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span>
-  Segment #${seg.id}
-  <button class="open-strava-btn" onclick="openStravaSegment(${seg.id})">
-    Open in Strava
-  </button>`;
-	Segment #${seg.id}`;
+      div.innerHTML = `<span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span> Segment #${seg.id}`;
       segList.appendChild(div);
     });
 
