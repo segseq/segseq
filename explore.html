@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SegSeq - Explore Challenges</title>
+<style>
+:root{
+  --navy:#072B57;
+  --navy-light:#0E487D;
+  --orange:#FF6B1A;
+  --white:#FFFFFF;
+  --gray:#D6E3F2;
+  --danger:#E63946;
+}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+body{
+  font-family:Inter,sans-serif;
+  background:var(--navy);
+  color:white;
+  min-height:100vh;
+}
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:40px 20px;
+}
+/* HERO HEADER */
+.hero{
+  text-align:center;
+  padding:60px 20px 20px;
+}
+.logo{
+  font-size:4rem;
+  color:white;
+}
+.logo span{
+  color:var(--orange);
+}
+.brand{
+  font-size:4rem;
+  font-weight:800;
+  letter-spacing:-2px;
+}
+.brand .accent{
+  color:var(--orange);
+}
+.subtitle{
+  font-size:1.1rem;
+  opacity:.8;
+  margin-top:15px;
+}
+/* CHALLENGE LIST */
+.challenge-list {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.challenge-card {
+  background: white;
+  color: #222;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.challenge-info h3 {
+  color: var(--navy);
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+.challenge-info p {
+  color: #555;
+  font-size: 0.95rem;
+}
+.challenge-actions {
+  display: flex;
+  gap: 10px;
+}
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  font-size: 0.9rem;
+  transition: .2s;
+}
+.btn-view {
+  background: var(--navy-light);
+  color: white;
+}
+.btn-view:hover {
+  background: var(--navy);
+}
+.btn-delete {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+.btn-delete:hover {
+  background: var(--danger);
+  color: white;
+}
+footer{
+  text-align:center;
+  margin-top:60px;
+  padding:60px 20px;
+  color:rgba(255,255,255,.6);
+}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="logo"><span>∿</span>∿</div>
+  <h1 class="brand">Seg<span class="accent">S</span>eq</h1>
+  <p class="subtitle">Explore and manage existing challenges.</p>
+</section>
+
+<div class="container">
+  <div class="challenge-list" id="challenges-container">
+    <p style="text-align: center;">Loading challenges...</p>
+  </div>
+</div>
+
+<footer>
+  <div class="logo"><span>∿</span>∿</div>
+  SegSeq • Multi-Segment Challenges
+</footer>
+
+<script>
+async function loadChallenges() {
+  const container = document.getElementById("challenges-container");
+  try {
+    // Calls the updated API without an ID to get the full list
+    const res = await fetch("/api/segseq/challenge");
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || "Failed to load");
+
+    if (data.length === 0) {
+      container.innerHTML = `<p style="text-align: center;">No challenges found. <a href="/Create.html" style="color:var(--orange);">Create one!</a></p>`;
+      return;
+    }
+
+    container.innerHTML = "";
+    data.forEach(challenge => {
+      const card = document.createElement("div");
+      card.className = "challenge-card";
+      card.id = `challenge-${challenge.id}`;
+      card.innerHTML = `
+        <div class="challenge-info">
+          <h3>${challenge.name}</h3>
+          <p><strong>Sport:</strong> ${challenge.sport.toUpperCase()} | <strong>Duration:</strong> ${challenge.duration_hours}h</p>
+        </div>
+        <div class="challenge-actions">
+          <a href="/challenge.html?id=${challenge.id}" class="btn btn-view">View</a>
+          <button onclick="deleteChallenge(${challenge.id})" class="btn btn-delete">Delete</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = `<p style="text-align: center; color: red;">Error loading challenges.</p>`;
+  }
+}
+
+async function deleteChallenge(id) {
+  if (!confirm("Are you sure you want to delete this challenge? This action cannot be undone.")) return;
+
+  try {
+    // Calls the updated API using the DELETE method
+    const res = await fetch(`/api/segseq/challenge?id=${id}`, { method: "DELETE" });
+    const data = await res.json();
+
+    if (res.ok) {
+      document.getElementById(`challenge-${id}`).remove();
+    } else {
+      alert("Error: " + data.error);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Network error occurred.");
+  }
+}
+
+loadChallenges();
+</script>
+
+</body>
+</html>
