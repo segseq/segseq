@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
 <title>SegSeq - Challenge</title>
-
 <style>
 :root{
   --navy:#072B57;
@@ -14,52 +12,41 @@
   --white:#FFFFFF;
   --gray:#D6E3F2;
 }
-
 *{
   margin:0;
   padding:0;
   box-sizing:border-box;
 }
-
 body{
   font-family:Inter,sans-serif;
   background:var(--navy);
   color:white;
   min-height:100vh;
 }
-
 .container{
   max-width:900px;
   margin:auto;
   padding:40px 20px;
 }
-
-/* HERO */
 .hero{
   text-align:center;
   padding:60px 20px 20px;
 }
-
 .logo{
   font-size:4rem;
   color:white;
 }
-
 .logo span{
   color:var(--orange);
 }
-
 .brand{
   font-size:4rem;
   font-weight:800;
   letter-spacing:-2px;
 }
-
 .brand .accent{
   color:var(--orange);
 }
-
-/* CARD */
 .card{
   background:white;
   color:#222;
@@ -68,14 +55,12 @@ body{
   box-shadow:0 20px 60px rgba(0,0,0,.30);
   margin-top:40px;
 }
-
 .card h2{
   color:var(--navy);
   margin-bottom:20px;
   font-size:2rem;
   font-weight:800;
 }
-
 .section-title{
   color:var(--navy);
   font-size:1.4rem;
@@ -83,8 +68,6 @@ body{
   margin-top:30px;
   margin-bottom:10px;
 }
-
-/* SEGMENTS */
 .segment-item{
   background:#F5F8FC;
   padding:12px;
@@ -96,32 +79,39 @@ body{
   align-items:center;
   gap:12px;
 }
-
-/* LEADERBOARD */
+/* TERMINAL DEBUG WINDOW */
+.debug-console {
+  background: #0a192f;
+  color: #00ff41;
+  font-family: 'Courier New', Courier, monospace;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  height: 250px;
+  overflow-y: auto;
+  margin-top: 10px;
+  line-height: 1.6;
+  border: 1px solid #1e3a8a;
+}
 table{
   width:100%;
   border-collapse:collapse;
   margin-top:20px;
 }
-
 th, td{
   padding:12px;
   text-align:left;
 }
-
 th{
   background:var(--navy-light);
   color:white;
 }
-
 tr:nth-child(even){
   background:#F5F8FC;
 }
-
 tr:nth-child(odd){
   background:#E9F1FA;
 }
-
 footer{
   text-align:center;
   margin-top:60px;
@@ -130,32 +120,32 @@ footer{
 }
 </style>
 </head>
-
 <body>
-
 <section class="hero">
   <div class="logo"><span>∿</span>∿</div>
   <h1 class="brand">Seg<span class="accent">S</span>eq</h1>
 </section>
-
 <div class="container">
-
   <div class="card">
     <h2 id="challenge-name">Loading...</h2>
-
     <p id="challenge-description" style="opacity:.8; line-height:1.6;">
       Loading description...
     </p>
-
+    
     <div class="section-title">Details</div>
     <p><strong>Sport:</strong> <span id="challenge-sport"></span></p>
     <p><strong>Duration:</strong> <span id="challenge-duration"></span> hours</p>
-
+    
     <div class="section-title">Segments</div>
     <div id="segments-list"></div>
+    
+    <!-- NEW DEBUG SECTION -->
+    <div class="section-title">Logic Execution Log</div>
+    <div id="debug-log" class="debug-console">
+      Awaiting execution...
+    </div>
 
     <div class="section-title">Leaderboard</div>
-
     <table>
       <thead>
         <tr>
@@ -167,71 +157,80 @@ footer{
       <tbody id="leaderboard">
       </tbody>
     </table>
-
-<button id="refresh-btn"
-        style="margin-top:15px; padding:10px 20px; background:#FF6B1A; color:white; border:none; border-radius:8px; cursor:pointer;">
-  Refresh leaderboard
-</button>
-
+    
+    <button id="refresh-btn" 
+      style="margin-top:15px; padding:10px 20px; background:#FF6B1A; color:white; 
+      border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
+      Force Sync Strava Data & Recalculate
+    </button>
   </div>
-
+  
   <footer>
     <div class="logo"><span>∿</span>∿</div>
     SegSeq • Multi-Segment Challenges
   </footer>
-
 </div>
 
 <script>
 const params = new URLSearchParams(window.location.search);
 const challengeId = params.get("id");
 
-async function loadChallenge() {
-  try {
-    // 1. Charger les infos du challenge depuis ta BD
-    const res = await fetch(`/api/segseq/challenge?id=${challengeId}`);
-    const data = await res.json();
+function renderLeaderboardData(lbData) {
+  // Render Debug Console
+  const debugLog = document.getElementById("debug-log");
+  if (lbData.debug_steps) {
+    debugLog.innerHTML = lbData.debug_steps.join("<br/>");
+    debugLog.scrollTop = debugLog.scrollHeight; // Auto-scroll to bottom
+  }
 
-    if (!res.ok) {
-      document.getElementById("challenge-name").textContent = "Error loading challenge";
-      return;
-    }
-
-    // Remplir les champs
-    document.getElementById("challenge-name").textContent = data.name;
-    document.getElementById("challenge-description").textContent = data.description;
-    document.getElementById("challenge-sport").textContent = data.sport;
-    document.getElementById("challenge-duration").textContent = data.duration;
-
-    // Segments
-    const segList = document.getElementById("segments-list");
-    segList.innerHTML = "";
-    data.segments.forEach(seg => {
-      const div = document.createElement("div");
-      div.className = "segment-item";
-      div.innerHTML = `
-        <span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span>
-        Segment #${seg.id}
-      `;
-      segList.appendChild(div);
-    });
-
-    // 2. Charger le vrai leaderboard Strava public
-    const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}`);
-    const lbData = await lbRes.json();
-
-    const lb = document.getElementById("leaderboard");
-    lb.innerHTML = "";
-
+  // Render Table
+  const lb = document.getElementById("leaderboard");
+  lb.innerHTML = ""; 
+  
+  if (lbData.leaderboard && lbData.leaderboard.length > 0) {
     lbData.leaderboard.forEach(row => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${row.rank}</td>
         <td>${row.athlete}</td>
-        <td>${row.time_human}</td>
+        <td><strong>${row.time_human}</strong></td>
       `;
       lb.appendChild(tr);
     });
+  } else {
+    lb.innerHTML = `<tr><td colspan="3">No valid completions found.</td></tr>`;
+  }
+}
+
+async function loadChallenge() {
+  try {
+    // 1. Load Challenge Details
+    const res = await fetch(`/api/segseq/challenge?id=${challengeId}`);
+    const data = await res.json();
+    
+    if (!res.ok) {
+      document.getElementById("challenge-name").textContent = "Error loading challenge";
+      return;
+    }
+    
+    document.getElementById("challenge-name").textContent = data.name;
+    document.getElementById("challenge-description").textContent = data.description;
+    document.getElementById("challenge-sport").textContent = data.sport;
+    document.getElementById("challenge-duration").textContent = data.duration;
+    
+    const segList = document.getElementById("segments-list");
+    segList.innerHTML = "";
+    data.segments.forEach(seg => {
+      const div = document.createElement("div");
+      div.className = "segment-item";
+      div.innerHTML = `<span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span> Segment #${seg.id}`;
+      segList.appendChild(div);
+    });
+
+    // 2. Load Local Leaderboard (force=0)
+    const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}`);
+    const lbData = await lbRes.json();
+    renderLeaderboardData(lbData);
 
   } catch (err) {
     console.error(err);
@@ -240,29 +239,27 @@ async function loadChallenge() {
 
 loadChallenge();
 
+// 3. Handle Refresh Button (force=1)
 document.getElementById("refresh-btn").addEventListener("click", async () => {
   const lb = document.getElementById("leaderboard");
-  lb.innerHTML = `<tr><td colspan="3">Refreshing...</td></tr>`;
-
-  const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}&force=1`);
-  const lbData = await lbRes.json();
-
-  lb.innerHTML = "";
-  lbData.leaderboard.forEach(row => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${row.rank}</td>
-      <td>${row.athlete}</td>
-      <td>${row.time_human}</td>
-    `;
-    lb.appendChild(tr);
-  });
+  const debugLog = document.getElementById("debug-log");
+  
+  lb.innerHTML = `<tr><td colspan="3">Refreshing from Strava API... Please wait.</td></tr>`;
+  debugLog.innerHTML = "> Initiating Force Sync with Strava API...<br/>> This may take a few seconds...";
+  
+  try {
+    const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}&force=1`);
+    const lbData = await lbRes.json();
+    
+    if(!lbRes.ok) {
+      debugLog.innerHTML += `<br/><span style="color:red">> Error: ${lbData.error}</span>`;
+      return;
+    }
+    renderLeaderboardData(lbData);
+  } catch (err) {
+    console.error(err);
+  }
 });
-
-
 </script>
-
-
-
 </body>
 </html>
