@@ -4,7 +4,14 @@ import { query } from "../../db.js";
 function formatTime(sec) {
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
-  return `${h}h ${m}m`;
+  const s = sec % 60;
+  
+  let result = "";
+  if (h > 0) result += `${h}h `;
+  if (m > 0 || h > 0) result += `${m}m `; // Show minutes if hours exist, even if minutes are 0
+  result += `${s}s`;
+  
+  return result.trim();
 }
 
 
@@ -232,6 +239,26 @@ export default async function handler(req, res) {
     finalLeaderboard.forEach((row, idx) => row.rank = idx + 1);
     
     logStep(`  🏆 Leaderboard generated with ${finalLeaderboard.length} athletes.`);
+
+    // ==========================================
+    // PHASE 3: SAVE RESULTS TO DATABASE
+    // ==========================================
+    logStep(`💾 --- STEP 6: Saving to Database ---`);
+    
+    // 1. Clear old results for this challenge (in case someone's sequence became invalid)
+    await query(`DELETE FROM challenge_results WHERE challenge_id = $1`, [challengeId]);
+
+    // 2. Insert the fresh leaderboard
+    let savedCount = 0;
+    for (const row of finalLeaderboard) {
+      await query(`
+        INSERT INTO challenge_results (challenge_id, athlete_name, rank, total_seconds, time_human, updated_at)
+        VALUES ($1, $2, $3, $4, $5, NOW())
+      `, [challengeId, row.athlete, row.rank, row.total_seconds, row.time_human]);
+      savedCount++;
+    }
+    
+    logStep(`  ✅ Saved ${savedCount} rows to challenge_results table.`);
 
     return res.status(200).json({
       leaderboard: finalLeaderboard,
