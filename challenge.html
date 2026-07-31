@@ -165,18 +165,21 @@ footer{
       Awaiting execution...
     </div>
 
-    <div class="section-title">Leaderboard</div>
+      <div class="section-title">Leaderboard</div>
     <table>
       <thead>
         <tr>
           <th>#</th>
           <th>Athlete</th>
+          <th>Date</th>
           <th>Total Time</th>
+          <th>Moving Time</th>
         </tr>
       </thead>
       <tbody id="leaderboard">
       </tbody>
     </table>
+
     
     <button id="refresh-btn" 
       style="margin-top:15px; padding:10px 20px; background:#FF6B1A; color:white; 
@@ -196,14 +199,12 @@ const params = new URLSearchParams(window.location.search);
 const challengeId = params.get("id");
 
 function renderLeaderboardData(lbData) {
-  // Render Debug Console
   const debugLog = document.getElementById("debug-log");
   if (lbData.debug_steps) {
     debugLog.innerHTML = lbData.debug_steps.join("<br/>");
-    debugLog.scrollTop = debugLog.scrollHeight; // Auto-scroll to bottom
+    debugLog.scrollTop = debugLog.scrollHeight;
   }
 
-  // Render Table
   const lb = document.getElementById("leaderboard");
   lb.innerHTML = ""; 
   
@@ -213,14 +214,17 @@ function renderLeaderboardData(lbData) {
       tr.innerHTML = `
         <td>${row.rank}</td>
         <td>${row.athlete}</td>
-        <td><strong>${row.time_human}</strong></td>
+        <td>${row.start_date}</td>
+        <td>${row.total_time_human}</td>
+        <td><strong style="color:var(--orange);">${row.moving_time_human}</strong></td>
       `;
       lb.appendChild(tr);
     });
   } else {
-    lb.innerHTML = `<tr><td colspan="3">No valid completions found.</td></tr>`;
+    lb.innerHTML = `<tr><td colspan="5">No valid completions found.</td></tr>`;
   }
 }
+
 
 async function loadChallenge() {
   try {
