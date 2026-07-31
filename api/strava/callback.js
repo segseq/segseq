@@ -46,22 +46,32 @@ export default async function handler(req, res) {
     const athlete = data.athlete;
     const athleteId = athlete.id;
 
-    // --- 2. Insérer l’athlète dans la base ---
-    // On stocke au minimum l’ID, prénom, nom, photo
+    // --- 2. Insérer l’athlète ET SES TOKENS dans la base ---
+    // Utilisation de ON CONFLICT DO UPDATE pour rafraîchir les tokens s'il se reconnecte
     await query(
-      `INSERT INTO athletes (id, firstname, lastname, profile, country)
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (id) DO NOTHING`,
+      `INSERT INTO athletes (id, firstname, lastname, profile, country, access_token, refresh_token, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT (id) DO UPDATE SET 
+         firstname = EXCLUDED.firstname,
+         lastname = EXCLUDED.lastname,
+         profile = EXCLUDED.profile,
+         country = EXCLUDED.country,
+         access_token = EXCLUDED.access_token,
+         refresh_token = EXCLUDED.refresh_token,
+         expires_at = EXCLUDED.expires_at`,
       [
         athleteId,
         athlete.firstname || null,
         athlete.lastname || null,
         athlete.profile || null,
-		athlete.country || null
+        athlete.country || null,
+        data.access_token,
+        data.refresh_token,
+        data.expires_at
       ]
     );
 
-    console.log("ATHLETE INSERTED OR ALREADY EXISTS:", athleteId);
+    console.log("ATHLETE AND TOKENS UPSERTED:", athleteId);
 
     // --- 3. Définir les cookies correctement ---
     // IMPORTANT : SameSite=None + Secure pour que Chrome les envoie dans fetch()
