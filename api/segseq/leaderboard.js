@@ -43,11 +43,11 @@ export default async function handler(req, res) {
     const reqSegIds = segmentsRows.map(s => s.segment_id);
 
 
-       // ==========================================
-    // PHASE 1: SYNC STRAVA DATA TO LOCAL DB
+    // ==========================================
+    // PHASE 1: SYNC STRAVA DATA TO LOCAL DB (OPTIMIZED)
     // ==========================================
     if (force) {
-      logStep("🔄 Force refresh requested. Fetching efforts for ALL registered athletes...");
+      logStep("🔄 Force refresh requested. Fetching NEW efforts for registered athletes...");
       
       const allAthletes = await query(`
         SELECT id, firstname, lastname, access_token 
@@ -55,21 +55,46 @@ export default async function handler(req, res) {
         WHERE access_token IS NOT NULL
       `);
       
-      logStep(`Found ${allAthletes.length} registered athletes to check.`);
+      let rateLimitHit = false;
 
       for (const athlete of allAthletes) {
+        if (rateLimitHit) break;
+
         const athleteName = `${athlete.firstname} ${athlete.lastname}`.trim();
         logStep(`Checking efforts for ${athleteName}...`);
         
         for (const segId of reqSegIds) {
+          if (rateLimitHit) break;
           
+          // --- OPTIMIZATION: Find the newest effort we already have ---
+          const lastEffortDb = await query(`
+            SELECT MAX(start_date) as last_date 
+            FROM segment_efforts 
+            WHERE segment_id = $1 AND athlete_name = $2
+          `, [segId, athleteName]);
+
+          let dateFilter = "";
+          if (lastEffortDb.length > 0 && lastEffortDb[0].last_date) {
+            // Add 1 second to the last known effort so we don't fetch it again
+            const lastDate = new Date(lastEffortDb[0].last_date);
+            lastDate.setSeconds(lastDate.getSeconds() + 1);
+            dateFilter = `&start_date_local=${lastDate.toISOString()}`;
+            logStep(`  - Incremental sync: Only fetching efforts after ${lastDate.toLocaleDateString()}`);
+          } else {
+            logStep(`  - First time sync: Fetching full history...`);
+          }
+          // -----------------------------------------------------------
+
           let page = 1;
           let hasMorePages = true;
           let totalInsertedForSegment = 0;
+          const MAX_PAGES = 3; 
 
-          // Loop through Strava pagination to get ALL historical efforts
-          while (hasMorePages) {
-            const lbRes = await fetch(`https://www.strava.com/api/v3/segments/${segId}/all_efforts?per_page=200&page=${page}`, {
+          while (hasMorePages && page <= MAX_PAGES) {
+            // Append the dateFilter to the Strava URL
+            const stravaUrl = `https://www.strava.com/api/v3/segments/${segId}/all_efforts?per_page=200&page=${page}${dateFilter}`;
+            
+            const lbRes = await fetch(stravaUrl, {
               headers: { Authorization: `Bearer ${athlete.access_token}` }
             });
             
@@ -91,15 +116,18 @@ export default async function handler(req, res) {
                 
                 totalInsertedForSegment += inserted;
 
-                // If Strava returned 200 items, there might be a next page.
                 if (lbData.length === 200) {
                   page++;
                 } else {
-                  hasMorePages = false; // Reached the end of their efforts
+                  hasMorePages = false;
                 }
               } else {
-                hasMorePages = false; // Empty array, no more efforts
+                hasMorePages = false; // No new efforts found
               }
+            } else if (lbRes.status === 429) {
+              logStep(`  - 🛑 STRAVA RATE LIMIT EXCEEDED (429). Stop clicking sync! Please wait 15 minutes.`);
+              hasMorePages = false;
+              rateLimitHit = true; 
             } else if (lbRes.status === 401) {
               logStep(`  - ⚠️ Token expired for ${athleteName}.`);
               hasMorePages = false;
@@ -110,14 +138,15 @@ export default async function handler(req, res) {
           }
 
           if (totalInsertedForSegment > 0) {
-            logStep(`  - Segment ${segId}: Saved ${totalInsertedForSegment} new efforts for ${athleteName}.`);
+            logStep(`  - Segment ${segId}: Saved ${totalInsertedForSegment} NEW efforts.`);
+          } else if (!rateLimitHit) {
+            logStep(`  - Segment ${segId}: Up to date (0 new efforts).`);
           }
         }
       }
     } else {
       logStep("⚡ Loading data from local Database (No Strava API calls used).");
     }
-
 
    // ==========================================
     // PHASE 2: EVALUATE LOGIC STEP-BY-STEP
