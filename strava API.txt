@@ -1,0 +1,12 @@
+Client ID
+268353
+Client Secret
+54f6e30ce4e787b9e341d8c8a696885d34bd22c0
+
+--
+webhooks
+curl.exe -X POST https://www.strava.com/api/v3/push_subscriptions  -F client_id=268353  -F client_secret=54f6e30ce4e787b9e341d8c8a696885d34bd22c0  -F callback_url=https://segseq.vercel.app/api/strava/webhook   -F verify_token=segseq_secure_webhook_123
+
+
+
+id: 363405

@@ -17,13 +17,19 @@ export default async function handler(req, res) {
       
       // 1A. GET ALL CHALLENGES (For Explore Page)
       if (!id) {
-        // ADDED: creator_id to the SELECT statement
         const rows = await query(`
           SELECT id, creator_id, name, sport, duration_hours, created_at 
           FROM challenges 
           ORDER BY created_at DESC
         `);
-        return res.status(200).json(rows);
+        
+        // Check permissions on the server side
+        const challengesWithPermissions = rows.map(row => ({
+          ...row,
+          can_delete: currentAthleteId && String(row.creator_id) === String(currentAthleteId)
+        }));
+
+        return res.status(200).json(challengesWithPermissions);
       } 
       
       // 1B. GET SINGLE CHALLENGE (For Challenge Details Page)

@@ -136,20 +136,12 @@ footer{
 </footer>
 
 <script>
-// Helper function to read the logged-in user's ID from their cookie
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-}
-
 async function loadChallenges() {
   const container = document.getElementById("challenges-container");
-  const currentUserId = getCookie("athlete_id"); // Get current user
 
   try {
-    const res = await fetch("/api/segseq/challenge");
+    // Make sure to include credentials so the backend receives the cookie!
+    const res = await fetch("/api/segseq/challenge", { credentials: "include" });
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.error || "Failed to load");
@@ -165,9 +157,9 @@ async function loadChallenges() {
       card.className = "challenge-card";
       card.id = `challenge-${challenge.id}`;
       
-      // Conditionally create the delete button HTML
+      // Use the backend's secure permission flag
       let deleteBtnHtml = "";
-      if (currentUserId && String(challenge.creator_id) === String(currentUserId)) {
+      if (challenge.can_delete) {
         deleteBtnHtml = `<button onclick="deleteChallenge(${challenge.id})" class="btn btn-delete">Delete</button>`;
       }
 
@@ -193,7 +185,10 @@ async function deleteChallenge(id) {
   if (!confirm("Are you sure you want to delete this challenge? This action cannot be undone.")) return;
 
   try {
-    const res = await fetch(`/api/segseq/challenge?id=${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/segseq/challenge?id=${id}`, { 
+      method: "DELETE",
+      credentials: "include" // Required so backend knows who is deleting
+    });
     const data = await res.json();
 
     if (res.ok) {
