@@ -36,13 +36,12 @@ export default async function handler(req, res) {
     const reqSegIds = segmentsRows.map(s => s.segment_id);
 
 
-    // ==========================================
+       // ==========================================
     // PHASE 1: SYNC STRAVA DATA TO LOCAL DB
     // ==========================================
     if (force) {
       logStep("🔄 Force refresh requested. Fetching efforts for ALL registered athletes...");
       
-      // Get all athletes who have an access token
       const allAthletes = await query(`
         SELECT id, firstname, lastname, access_token 
         FROM athletes 
@@ -51,40 +50,60 @@ export default async function handler(req, res) {
       
       logStep(`Found ${allAthletes.length} registered athletes to check.`);
 
-
       for (const athlete of allAthletes) {
         const athleteName = `${athlete.firstname} ${athlete.lastname}`.trim();
         logStep(`Checking efforts for ${athleteName}...`);
         
         for (const segId of reqSegIds) {
-          // Fetch using THIS specific athlete's token
-          const lbRes = await fetch(`https://www.strava.com/api/v3/segments/${segId}/all_efforts`, {
-            headers: { Authorization: `Bearer ${athlete.access_token}` }
-          });
           
-          if (lbRes.ok) {
-            const lbData = await lbRes.json();
+          let page = 1;
+          let hasMorePages = true;
+          let totalInsertedForSegment = 0;
+
+          // Loop through Strava pagination to get ALL historical efforts
+          while (hasMorePages) {
+            const lbRes = await fetch(`https://www.strava.com/api/v3/segments/${segId}/all_efforts?per_page=200&page=${page}`, {
+              headers: { Authorization: `Bearer ${athlete.access_token}` }
+            });
             
-            if (Array.isArray(lbData) && lbData.length > 0) {
-              let inserted = 0;
-              for (const entry of lbData) {
-                const resDb = await query(`
-                  INSERT INTO segment_efforts (segment_id, athlete_name, start_date, elapsed_time)
-                  VALUES ($1, $2, $3, $4)
-                  ON CONFLICT (segment_id, athlete_name, start_date) DO NOTHING
-                  RETURNING id;
-                `, [segId, athleteName, entry.start_date_local, entry.elapsed_time]);
+            if (lbRes.ok) {
+              const lbData = await lbRes.json();
+              
+              if (Array.isArray(lbData) && lbData.length > 0) {
+                let inserted = 0;
+                for (const entry of lbData) {
+                  const resDb = await query(`
+                    INSERT INTO segment_efforts (segment_id, athlete_name, start_date, elapsed_time)
+                    VALUES ($1, $2, $3, $4)
+                    ON CONFLICT (segment_id, athlete_name, start_date) DO NOTHING
+                    RETURNING id;
+                  `, [segId, athleteName, entry.start_date_local, entry.elapsed_time]);
+                  
+                  if (resDb.length > 0) inserted++;
+                }
                 
-                if (resDb.length > 0) inserted++;
+                totalInsertedForSegment += inserted;
+
+                // If Strava returned 200 items, there might be a next page.
+                if (lbData.length === 200) {
+                  page++;
+                } else {
+                  hasMorePages = false; // Reached the end of their efforts
+                }
+              } else {
+                hasMorePages = false; // Empty array, no more efforts
               }
-              if (inserted > 0) {
-                logStep(`  - Segment ${segId}: Saved ${inserted} new efforts for ${athleteName}.`);
-              }
+            } else if (lbRes.status === 401) {
+              logStep(`  - ⚠️ Token expired for ${athleteName}.`);
+              hasMorePages = false;
+            } else {
+              logStep(`  - ⚠️ API Error ${lbRes.status} for ${athleteName} on segment ${segId}.`);
+              hasMorePages = false;
             }
-          } else if (lbRes.status === 401) {
-            logStep(`  - ⚠️ Token expired for ${athleteName}. (Needs OAuth refresh implementation)`);
-          } else {
-            logStep(`  - ⚠️ API Error ${lbRes.status} for ${athleteName} on segment ${segId}.`);
+          }
+
+          if (totalInsertedForSegment > 0) {
+            logStep(`  - Segment ${segId}: Saved ${totalInsertedForSegment} new efforts for ${athleteName}.`);
           }
         }
       }
