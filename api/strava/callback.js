@@ -37,18 +37,24 @@ export default async function handler(req, res) {
       });
     }
 
-    const athlete = data.athlete;
+    const athlete = data.athlete || {};
     const athleteId = athlete.id;
 
-    // --- 2. UPSERT dans la base ---
+    if (!athleteId) {
+      console.error("No athlete ID returned from Strava");
+      return res.status(500).send("Strava API error: Missing athlete ID");
+    }
+
+    // --- 2. UPSERT dans la base avec COALESCE ---
+    // COALESCE(nouvelle_valeur, ancienne_valeur) protège contre l'écrasement par NULL
     await query(
       `INSERT INTO athletes (id, firstname, lastname, profile, country, access_token, refresh_token, expires_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (id) DO UPDATE SET 
-         firstname = EXCLUDED.firstname,
-         lastname = EXCLUDED.lastname,
-         profile = EXCLUDED.profile,
-         country = EXCLUDED.country,
+         firstname = COALESCE(EXCLUDED.firstname, athletes.firstname),
+         lastname = COALESCE(EXCLUDED.lastname, athletes.lastname),
+         profile = COALESCE(EXCLUDED.profile, athletes.profile),
+         country = COALESCE(EXCLUDED.country, athletes.country),
          access_token = EXCLUDED.access_token,
          refresh_token = EXCLUDED.refresh_token,
          expires_at = EXCLUDED.expires_at`,
