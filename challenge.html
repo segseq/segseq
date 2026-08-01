@@ -99,6 +99,38 @@ body{
   transform:translateY(-2px);
 }
 
+.btn-view-feature {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;               /* fond blanc */
+  color: var(--orange);            /* texte orange */
+  padding: 12px 22px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  transition: .2s;
+  white-space: nowrap;
+  border: 2px solid var(--orange); /* bordure fine orange */
+}
+
+.btn-view-feature:hover {
+  transform: translateY(-2px);
+  background: var(--orange);       /* hover orange */
+  color: white;                    /* texte blanc */
+}
+
+.btn-view-feature .icon {
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.btn-view-feature .label {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
 /* TERMINAL DEBUG WINDOW */
 .debug-console {
   background: #0a192f;
@@ -264,7 +296,7 @@ async function loadChallenge() {
           <span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span> 
           <span>Segment #${seg.id}</span>
         </div>
-        <a href="https://www.strava.com/segments/${seg.id}" target="_blank" rel="noopener noreferrer" class="btn-strava">
+        <a href="https://www.strava.com/segments/${seg.id}" target="_blank" rel="noopener noreferrer" class="btn-view-feature">
           View on Strava
         </a>
       `;
