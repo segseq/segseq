@@ -54,6 +54,44 @@ body{
   opacity:.8;
   margin-top:15px;
 }
+/* STATS GRID */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+}
+
+.stat-value {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--orange);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  color: var(--navy);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+@media(max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: 1fr; /* Les tuiles passent l'une sous l'autre sur mobile */
+  }
+}
 /* CHALLENGE LIST */
 .challenge-list {
   margin-top: 40px;
@@ -125,6 +163,19 @@ footer{
 </section>
 
 <div class="container">
+
+<!--   SECTION STATS  -->
+ <div class="stats-grid">
+   <div class="stat-card">
+     <div class="stat-value" id="stat-athletes">-</div>
+     <div class="stat-label">Athlètes Inscrits</div>
+   </div>
+   <div class="stat-card">
+     <div class="stat-value" id="stat-challenges">-</div>
+     <div class="stat-label">Challenges Créés</div>
+   </div>
+ </div>
+
   <div class="challenge-list" id="challenges-container">
     <p style="text-align: center;">Loading challenges...</p>
   </div>  
@@ -211,6 +262,24 @@ async function deleteChallenge(id) {
   }
 }
 
+// FONCTION POUR CHARGER LES STATS 
+async function loadStats() {
+  try {
+    const res = await fetch("/api/segseq/stats");
+    if (res.ok) {
+      const data = await res.json();
+      
+      // Animation sympa pour l'affichage (optionnel mais très propre)
+      document.getElementById("stat-athletes").textContent = data.athletes;
+      document.getElementById("stat-challenges").textContent = data.challenges;
+    }
+  } catch (err) {
+    console.error("Error loading stats:", err);
+  }
+}
+
+// Appels au chargement de la page
+loadStats(); // 
 loadChallenges();
 </script>
 

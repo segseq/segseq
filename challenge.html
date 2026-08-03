@@ -187,6 +187,11 @@ footer{
     <p><strong>Sport:</strong> <span id="challenge-sport"></span></p>
     <p><strong>Duration:</strong> <span id="challenge-duration"></span> hours</p>
     
+
+ <!-- Totaux strava -->
+ <p><strong>Distance totale:</strong> <span id="challenge-distance"></span> km</p> 
+ <p><strong>Dénivelé positif (D+):</strong> <span id="challenge-elevation"></span> m</p> 
+	
     <div class="section-title">Segments</div>
     <div id="segments-list"></div>
     
@@ -283,34 +288,54 @@ async function loadChallenge() {
     document.getElementById("challenge-sport").textContent = data.sport;
     document.getElementById("challenge-duration").textContent = data.duration;
     
-    const segList = document.getElementById("segments-list");
-    segList.innerHTML = "";
-    data.segments.forEach(seg => {
-      const div = document.createElement("div");
-      div.className = "segment-item";
+    // 👇 NOUVEAU : Affichage des totaux (conversion des mètres en kilomètres pour la distance)
+    document.getElementById("challenge-distance").textContent = (data.total_distance / 1000).toFixed(2);
+    document.getElementById("challenge-elevation").textContent = Math.round(data.total_elevation);
+
+    const segList = document.getElementById("segments-list"); 
+    segList.innerHTML = ""; 
+    data.segments.forEach(seg => { 
+      const div = document.createElement("div"); 
+      div.className = "segment-item"; 
       
-      // Updated innerHTML to include the Strava link button
-      div.innerHTML = `
-        <div class="segment-item-left">
-          <span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span> 
-          <span>Segment #${seg.id}</span>
-        </div>
-        <a href="https://www.strava.com/segments/${seg.id}" target="_blank" rel="noopener noreferrer" class="btn-view-feature">
-          View on Strava
-        </a>
-      `;
-      segList.appendChild(div);
-    });
+      // 👇 NOUVEAU : On utilise le vrai nom et on affiche les détails du segment
+      const displayName = seg.name ? seg.name : `Segment #${seg.id}`;
+      const details = seg.distance ? `(${(seg.distance / 1000).toFixed(2)} km, +${Math.round(seg.elevation)} m)` : '';
+
+      div.innerHTML = ` 
+      <div class="segment-item-left"> 
+        <span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span> 
+        <span>
+          <strong>${displayName}</strong> <br/>
+          <small style="color:#777; font-weight:normal;">${details}</small>
+        </span> 
+      </div> 
+      <a href="https://www.strava.com/segments/${seg.id}" target="_blank" rel="noopener noreferrer" class="btn-view-feature"> 
+        View on Strava 
+      </a> 
+      `; 
+      segList.appendChild(div); 
+    }); 
 
     // 2. Load Local Leaderboard (force=0)
-    const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}`);
-    const lbData = await lbRes.json();
-    renderLeaderboardData(lbData);
+     const autoSync = params.get("autosync");
 
-  } catch (err) {
-    console.error(err);
+  if (autoSync === "1") {
+    // Si on vient de créer le challenge, on clique automatiquement sur le bouton de synchro
+    document.getElementById("refresh-btn").click();
+    
+    // On nettoie l'URL pour éviter que ça se relance si l'utilisateur rafraîchit la page (F5)
+    window.history.replaceState({}, document.title, `/challenge.html?id=${challengeId}`);
+  } else {
+    // Comportement normal : on charge le classement local (force=0)
+    const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}`); 
+    const lbData = await lbRes.json(); 
+    renderLeaderboardData(lbData); 
   }
-}
+
+} catch (err) { 
+  console.error(err); 
+} 
 
 loadChallenge();
 

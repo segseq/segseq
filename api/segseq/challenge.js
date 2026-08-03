@@ -34,41 +34,78 @@ export default async function handler(req, res) {
       
       // 1B. GET SINGLE CHALLENGE (For Challenge Details Page)
       else {
-        const challengeRows = await query(
-          `SELECT id, creator_id, name, description, sport, duration_hours
-           FROM challenges
-           WHERE id = $1`,
-          [id]
-        );
+      const challengeRows = await query(
+        `SELECT id, creator_id, name, description, sport, duration_hours 
+         FROM challenges WHERE id = $1`,
+        [id]
+      );
 
-        if (challengeRows.length === 0) {
-          return res.status(404).json({ error: "Challenge not found" });
+      if (challengeRows.length === 0) {
+        return res.status(404).json({ error: "Challenge not found" });
+      }
+
+      const challenge = challengeRows[0];
+
+      const segmentRows = await query(
+        `SELECT segment_id, order_index 
+         FROM challenge_segments WHERE challenge_id = $1 ORDER BY order_index ASC`,
+        [id]
+      );
+
+      // --- NOUVEAU : Récupération des détails Strava ---
+      // On récupère le token du créateur pour avoir le droit d'interroger l'API Strava
+      const creatorDb = await query(`SELECT access_token FROM athletes WHERE id = $1`, [challenge.creator_id]);
+      const token = creatorDb.length > 0 ? creatorDb[0].access_token : null;
+
+      let totalDistance = 0;
+      let totalElevation = 0;
+      
+      // On interroge Strava pour chaque segment en parallèle
+      const enrichedSegments = await Promise.all(segmentRows.map(async (s) => {
+        let extraData = { name: null, distance: 0, elevation: 0 };
+        
+        if (token) {
+          try {
+            const stravaRes = await fetch(`https://www.strava.com/api/v3/segments/${s.segment_id}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (stravaRes.ok) {
+              const data = await stravaRes.json();
+              extraData = {
+                name: data.name,
+                distance: data.distance || 0, // Strava renvoie des mètres
+                elevation: data.total_elevation_gain || 0 // Strava renvoie des mètres
+              };
+              totalDistance += extraData.distance;
+              totalElevation += extraData.elevation;
+            }
+          } catch (e) { console.error("Strava fetch error:", e); }
         }
 
-        const challenge = challengeRows[0];
+        return {
+          id: s.segment_id,
+          order: s.order_index,
+          name: extraData.name,
+          distance: extraData.distance,
+          elevation: extraData.elevation
+        };
+      }));
 
-        const segmentRows = await query(
-          `SELECT segment_id, order_index
-           FROM challenge_segments
-           WHERE challenge_id = $1
-           ORDER BY order_index ASC`,
-          [id]
-        );
+      // On s'assure que l'ordre est respecté après le Promise.all
+      enrichedSegments.sort((a, b) => a.order - b.order);
 
-        return res.status(200).json({
-          id: challenge.id,
-          creator_id: challenge.creator_id,
-          name: challenge.name,
-          description: challenge.description,
-          sport: challenge.sport,
-          duration: challenge.duration_hours,
-          segments: segmentRows.map(s => ({
-            id: s.segment_id,
-            order: s.order_index
-          }))
-        });
-      }
-    } 
+      return res.status(200).json({
+        id: challenge.id,
+        creator_id: challenge.creator_id,
+        name: challenge.name,
+        description: challenge.description,
+        sport: challenge.sport,
+        duration: challenge.duration_hours,
+        total_distance: totalDistance,   // Ajout au payload
+        total_elevation: totalElevation, // Ajout au payload
+        segments: enrichedSegments       // Segments enrichis
+      });
+    }
     
     // ==========================================
     // HANDLE DELETE REQUESTS (Delete)

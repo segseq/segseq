@@ -347,7 +347,7 @@ async function publishChallenge() {
       return;
     }
 
-    window.location.href = `/challenge.html?id=${data.id}`;
+    window.location.href = `/challenge.html?id=${data.id}&autosync=1`;
   } catch (err) {
     console.error(err);
     alert("Erreur réseau");
