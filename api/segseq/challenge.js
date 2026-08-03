@@ -106,7 +106,7 @@ export default async function handler(req, res) {
         segments: enrichedSegments       // Segments enrichis
       });
     }
-    
+    }
     // ==========================================
     // HANDLE DELETE REQUESTS (Delete)
     // ==========================================
