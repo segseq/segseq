@@ -39,24 +39,59 @@ export default async function handler(req, res) {
     // ==========================================
     // PHASE 1: SYNC STRAVA DATA TO LOCAL DB (OPTIMIZED)
     // ==========================================
-    if (force) {
+    if (force) { 
       logStep("🔄 Force refresh requested. Fetching NEW efforts for registered athletes...");
       
-      const allAthletes = await query(`
-        SELECT id, firstname, lastname, access_token 
+      // 1. AJOUT : On récupère aussi le refresh_token et la date d'expiration
+      const allAthletes = await query(` 
+        SELECT id, firstname, lastname, access_token, refresh_token, expires_at 
         FROM athletes 
-        WHERE access_token IS NOT NULL
-      `);
+        WHERE access_token IS NOT NULL 
+      `); 
       
-      let rateLimitHit = false;
-
-      for (const athlete of allAthletes) {
-        if (rateLimitHit) break;
-
-        const athleteName = `${athlete.firstname} ${athlete.lastname}`.trim();
+      let rateLimitHit = false; 
+      for (const athlete of allAthletes) { 
+        if (rateLimitHit) break; 
+        const athleteName = `${athlete.firstname} ${athlete.lastname}`.trim(); 
         logStep(`Checking efforts for ${athleteName}...`);
+
+        // 2. AJOUT : Vérification et rafraîchissement du token Strava si expiré
+        const nowUnix = Math.floor(Date.now() / 1000);
+        if (athlete.expires_at < nowUnix) {
+          logStep(` ⚠️ Token expired for ${athleteName}. Refreshing...`);
+          try {
+            const tokenRes = await fetch("https://www.strava.com/oauth/token", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                client_id: process.env.STRAVA_CLIENT_ID,
+                client_secret: process.env.STRAVA_CLIENT_SECRET,
+                grant_type: "refresh_token",
+                refresh_token: athlete.refresh_token
+              })
+            });
+
+            if (tokenRes.ok) {
+              const newTokens = await tokenRes.json();
+              // Mise à jour dans la base de données
+              await query(`
+                UPDATE athletes SET access_token = $1, refresh_token = $2, expires_at = $3 WHERE id = $4
+              `, [newTokens.access_token, newTokens.refresh_token, newTokens.expires_at, athlete.id]);
+              
+              // Mise à jour en mémoire pour la suite de la boucle
+              athlete.access_token = newTokens.access_token;
+              logStep(` ✅ Token refreshed successfully.`);
+            } else {
+              logStep(` ❌ Failed to refresh token for ${athleteName}. Skipping.`);
+              continue; // On passe à l'athlète suivant si le refresh échoue
+            }
+          } catch (err) {
+            logStep(` ❌ Error refreshing token for ${athleteName}.`);
+            continue;
+          }
+        }
         
-        for (const segId of reqSegIds) {
+        for (const segId of reqSegIds) { 
           if (rateLimitHit) break;
           
           // --- OPTIMIZATION: Find the newest effort we already have ---
