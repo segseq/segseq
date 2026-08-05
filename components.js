@@ -3,12 +3,12 @@ async function injectComponents() {
   const headerHTML = `
     <header class="main-header">
       <div class="nav-left">
-        <a href="Index.html" class="nav-logo"><span>∿</span>segseq</a>
+        <a href="index.html" class="nav-logo"><span>∿</span>segseq</a>
         <div class="dropdown">
           <button class="dropbtn">Menu ▾</button>
           <div class="dropdown-content">
-            <a href="Explore.html">Explore</a>
-            <a href="Create.html">Create</a>
+            <a href="explore.html">Explore</a>
+            <a href="create.html">Create</a>
           </div>
         </div>
       </div>
@@ -40,7 +40,7 @@ async function injectComponents() {
     if (res.ok) {
       const athlete = await res.json();
       authSection.innerHTML = `
-        <a href="Profile.html">
+        <a href="profile.html">
           <img src="${athlete.profile}" alt="Profile" class="nav-profile-pic" title="Aller au profil">
         </a>
       `;
