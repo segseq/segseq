@@ -1,287 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SegSeq - Explore Challenges</title>
-<style>
-:root{
-  --navy:#072B57;
-  --navy-light:#0E487D;
-  --orange:#FF6B1A;
-  --white:#FFFFFF;
-  --gray:#D6E3F2;
-  --danger:#E63946;
-}
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-body{
-  font-family:Inter,sans-serif;
-  background:var(--navy);
-  color:white;
-  min-height:100vh;
-}
-.container{
-  max-width:900px;
-  margin:auto;
-  padding:40px 20px;
-}
-/* HERO HEADER */
-.hero{
-  text-align:center;
-  padding:60px 20px 20px;
-}
-.logo{
-  font-size:4rem;
-  color:white;
-}
-.logo span{
-  color:var(--orange);
-}
-.brand{
-  font-size:4rem;
-  font-weight:800;
-  letter-spacing:-2px;
-}
-.brand .accent{
-  color:var(--orange);
-}
-.subtitle{
-  font-size:1.1rem;
-  opacity:.8;
-  margin-top:15px;
-}
-/* STATS GRID */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-top: 20px;
-  margin-bottom: 40px;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,.2);
-}
-
-.stat-value {
-  font-size: 3rem;
-  font-weight: 800;
-  color: var(--orange);
-  line-height: 1;
-  margin-bottom: 8px;
-}
-
-.stat-label {
-  color: var(--navy);
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
-}
-
-@media(max-width: 600px) {
-  .stats-grid {
-    grid-template-columns: 1fr; /* Les tuiles passent l'une sous l'autre sur mobile */
-  }
-}
-/* CHALLENGE LIST */
-.challenge-list {
-  margin-top: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.challenge-card {
-  background: white;
-  color: #222;
-  border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.2);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.challenge-info h3 {
-  color: var(--navy);
-  font-size: 1.5rem;
-  margin-bottom: 8px;
-}
-.challenge-info p {
-  color: #555;
-  font-size: 0.95rem;
-}
-.challenge-actions {
-  display: flex;
-  gap: 10px;
-}
-.btn{
-  display:inline-block;
-  background:var(--orange);
-  color:white;
-  padding:16px 32px;
-  border-radius:12px;
-  text-decoration:none;
-  font-weight:700;
-  transition:.2s;
-}
-.btn-view {
-  background: var(--navy-light);
-  color: white;
-}
-.btn-view:hover {
-  background: var(--navy);
-}
-.btn-delete {
-  background: transparent;
-  color: var(--danger);
-  border: 1px solid var(--danger);
-}
-.btn-delete:hover {
-  background: var(--danger);
-  color: white;
-}
-footer{
-  text-align:center;
-  margin-top:60px;
-  padding:60px 20px;
-  color:rgba(255,255,255,.6);
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SegSeq - Explore Challenges</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div id="header-placeholder"></div>
 
-<section class="hero">
-  <div class="logo"><span>∿</span>∿</div>
-</section>
+  <div class="container" style="max-width:900px;">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-athletes">-</div>
+        <div class="stat-label">Athlètes Inscrits</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-challenges">-</div>
+        <div class="stat-label">Challenges Créés</div>
+      </div>
+    </div>
 
-<div class="container">
+    <div class="challenge-list" id="challenges-container">
+      <p style="text-align: center;">Loading challenges...</p>
+    </div>
 
-<!--   SECTION STATS  -->
- <div class="stats-grid">
-   <div class="stat-card">
-     <div class="stat-value" id="stat-athletes">-</div>
-     <div class="stat-label">Athlètes Inscrits</div>
-   </div>
-   <div class="stat-card">
-     <div class="stat-value" id="stat-challenges">-</div>
-     <div class="stat-label">Challenges Créés</div>
-   </div>
- </div>
+    <div class="cta">
+      <a href="Create.html" class="btn btn-primary">Create a challenge</a>
+    </div>
+  </div>
 
-  <div class="challenge-list" id="challenges-container">
-    <p style="text-align: center;">Loading challenges...</p>
-  </div>  
-</div>
+  <div id="footer-placeholder"></div>
 
- <!-- Button SECTION -->
-  <section class="section waitlist" style="text-align:center; margin-top:80px;">
- <div class="cta">
-      <a href="https://segseq.vercel.app/create.html" class="btn">
-        Create a challenge
-      </a>
-  </div>	
-  </section>
-
-<footer>
-  <div class="logo"><span>∿</span>∿</div>
-  SegSeq • Multi-Segment Challenges
-</footer>
-
-<script>
-async function loadChallenges() {
-  const container = document.getElementById("challenges-container");
-
-  try {
-    // Make sure to include credentials so the backend receives the cookie!
-    const res = await fetch("/api/segseq/challenge", { credentials: "include" });
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.error || "Failed to load");
-
-    if (data.length === 0) {
-      container.innerHTML = `<p style="text-align: center;">No challenges found. <a href="/Create.html" style="color:var(--orange);">Create one!</a></p>`;
-      return;
-    }
-
-    container.innerHTML = "";
-    data.forEach(challenge => {
-      const card = document.createElement("div");
-      card.className = "challenge-card";
-      card.id = `challenge-${challenge.id}`;
-      
-      // Use the backend's secure permission flag
-      let deleteBtnHtml = "";
-      if (challenge.can_delete) {
-        deleteBtnHtml = `<button onclick="deleteChallenge(${challenge.id})" class="btn btn-delete">Delete</button>`;
+  <script src="components.js"></script>
+  <script>
+    async function loadChallenges() {
+      const container = document.getElementById("challenges-container");
+      try {
+        const res = await fetch("/api/segseq/challenge", { credentials: "include" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to load");
+        
+        if (data.length === 0) {
+          container.innerHTML = `<p style="text-align: center;">No challenges found. <a href="Create.html" style="color:var(--orange);">Create one!</a></p>`;
+          return;
+        }
+        
+        container.innerHTML = "";
+        data.forEach(challenge => {
+          const card = document.createElement("div");
+          card.className = "challenge-card";
+          card.id = `challenge-${challenge.id}`;
+          
+          let deleteBtnHtml = "";
+          if (challenge.can_delete) {
+            deleteBtnHtml = `<button onclick="deleteChallenge(${challenge.id})" class="btn-delete">Delete</button>`;
+          }
+          
+          card.innerHTML = `
+            <div>
+              <h3 style="color: var(--navy); font-size: 1.5rem; margin-bottom: 8px;">${challenge.name}</h3>
+              <p style="color: #555;"><strong>Sport:</strong> ${challenge.sport.toUpperCase()} | <strong>Duration:</strong> ${challenge.duration_hours}h</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <a href="Challenge.html?id=${challenge.id}" class="btn-view-feature" style="color: white; background: var(--navy-light); border:none;">View</a>
+              ${deleteBtnHtml}
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = `<p style="text-align: center; color: red;">Error loading challenges.</p>`;
       }
-
-      card.innerHTML = `
-        <div class="challenge-info">
-          <h3>${challenge.name}</h3>
-          <p><strong>Sport:</strong> ${challenge.sport.toUpperCase()} | <strong>Duration:</strong> ${challenge.duration_hours}h</p>
-        </div>
-        <div class="challenge-actions">
-          <a href="/challenge.html?id=${challenge.id}" class="btn btn-view">View</a>
-          ${deleteBtnHtml}
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  } catch (err) {
-    console.error(err);
-    container.innerHTML = `<p style="text-align: center; color: red;">Error loading challenges.</p>`;
-  }
-}
-
-async function deleteChallenge(id) {
-  if (!confirm("Are you sure you want to delete this challenge? This action cannot be undone.")) return;
-
-  try {
-    const res = await fetch(`/api/segseq/challenge?id=${id}`, { 
-      method: "DELETE",
-      credentials: "include" // Required so backend knows who is deleting
-    });
-    const data = await res.json();
-
-    if (res.ok) {
-      document.getElementById(`challenge-${id}`).remove();
-    } else {
-      alert("Error: " + data.error);
     }
-  } catch (err) {
-    console.error(err);
-    alert("Network error occurred.");
-  }
-}
 
-// FONCTION POUR CHARGER LES STATS 
-async function loadStats() {
-  try {
-    const res = await fetch("/api/segseq/stats");
-    if (res.ok) {
-      const data = await res.json();
-      
-      // Animation sympa pour l'affichage (optionnel mais très propre)
-      document.getElementById("stat-athletes").textContent = data.athletes;
-      document.getElementById("stat-challenges").textContent = data.challenges;
+    async function deleteChallenge(id) {
+      if (!confirm("Are you sure you want to delete this challenge? This action cannot be undone.")) return;
+      try {
+        const res = await fetch(`/api/segseq/challenge?id=${id}`, { method: "DELETE", credentials: "include" });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById(`challenge-${id}`).remove();
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Network error occurred.");
+      }
     }
-  } catch (err) {
-    console.error("Error loading stats:", err);
-  }
-}
 
-// Appels au chargement de la page
-loadStats(); // 
-loadChallenges();
-</script>
+    async function loadStats() {
+      try {
+        const res = await fetch("/api/segseq/stats");
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById("stat-athletes").textContent = data.athletes;
+          document.getElementById("stat-challenges").textContent = data.challenges;
+        }
+      } catch (err) {
+        console.error("Error loading stats:", err);
+      }
+    }
 
+    loadStats();
+    loadChallenges();
+  </script>
 </body>
 </html>

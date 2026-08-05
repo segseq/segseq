@@ -1,362 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SegSeq - Challenge</title>
-<style>
-:root{
-  --navy:#072B57;
-  --navy-light:#0E487D;
-  --orange:#FF6B1A;
-  --white:#FFFFFF;
-  --gray:#D6E3F2;
-}
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-body{
-  font-family:Inter,sans-serif;
-  background:var(--navy);
-  color:white;
-  min-height:100vh;
-}
-.container{
-  max-width:900px;
-  margin:auto;
-  padding:40px 20px;
-}
-.hero{
-  text-align:center;
-  padding:60px 20px 20px;
-}
-.logo{
-  font-size:4rem;
-  color:white;
-}
-.logo span{
-  color:var(--orange);
-}
-.brand{
-  font-size:4rem;
-  font-weight:800;
-  letter-spacing:-2px;
-}
-.brand .accent{
-  color:var(--orange);
-}
-.card{
-  background:white;
-  color:#222;
-  border-radius:24px;
-  padding:40px;
-  box-shadow:0 20px 60px rgba(0,0,0,.30);
-  margin-top:40px;
-}
-.card h2{
-  color:var(--navy);
-  margin-bottom:20px;
-  font-size:2rem;
-  font-weight:800;
-}
-.section-title{
-  color:var(--navy);
-  font-size:1.4rem;
-  font-weight:700;
-  margin-top:30px;
-  margin-bottom:10px;
-}
-.segment-item{
-  background:#F5F8FC;
-  padding:12px 16px;
-  border-radius:10px;
-  margin-top:10px;
-  color:#072B57;
-  font-weight:600;
-  display:flex;
-  align-items:center;
-  justify-content:space-between; /* Aligns left text and right button */
-}
-.segment-item-left {
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.btn{
-  display:inline-block;
-  background:var(--orange);
-  color:white;
-  padding:16px 32px;
-  border-radius:12px;
-  text-decoration:none;
-  font-weight:700;
-  transition:.2s;
-}
-
-.btn:hover{
-  transform:translateY(-2px);
-}
-
-.btn-view-feature {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: white;               /* fond blanc */
-  color: var(--orange);            /* texte orange */
-  padding: 12px 22px;
-  border-radius: 12px;
-  text-decoration: none;
-  font-weight: 700;
-  transition: .2s;
-  white-space: nowrap;
-  border: 2px solid var(--orange); /* bordure fine orange */
-}
-
-.btn-view-feature:hover {
-  transform: translateY(-2px);
-  background: var(--orange);       /* hover orange */
-  color: white;                    /* texte blanc */
-}
-
-.btn-view-feature .icon {
-  font-size: 1.4rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.btn-view-feature .label {
-  font-size: 0.85rem;
-  opacity: 0.85;
-}
-
-/* TERMINAL DEBUG WINDOW */
-.debug-console {
-  background: #0a192f;
-  color: #00ff41;
-  font-family: 'Courier New', Courier, monospace;
-  padding: 15px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  height: 250px;
-  overflow-y: auto;
-  margin-top: 10px;
-  line-height: 1.6;
-  border: 1px solid #1e3a8a;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:20px;
-}
-th, td{
-  padding:12px;
-  text-align:left;
-}
-th{
-  background:var(--navy-light);
-  color:white;
-}
-tr:nth-child(even){
-  background:#F5F8FC;
-}
-tr:nth-child(odd){
-  background:#E9F1FA;
-}
-footer{
-  text-align:center;
-  margin-top:60px;
-  padding:60px 20px;
-  color:rgba(255,255,255,.6);
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SegSeq - Challenge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<section class="hero">
-  <div class="logo"><span>∿</span>∿</div>
-</section>
-<div class="container">
-  <div class="card">
-    <h2 id="challenge-name">Loading...</h2>
-    <p id="challenge-description" style="opacity:.8; line-height:1.6;">
-      Loading description...
-    </p>
-    
-    <div class="section-title">Details</div>
-    <p><strong>Sport:</strong> <span id="challenge-sport"></span></p>
-    <p><strong>Duration:</strong> <span id="challenge-duration"></span> hours</p>
-   
-	
-    <div class="section-title">Segments</div>
-    <div id="segments-list"></div>
-    
-    <!-- NEW DEBUG SECTION -->
-    <div class="section-title">Logic Execution Log</div>
-    <div id="debug-log" class="debug-console">
-      Awaiting execution...
-    </div>
+  <div id="header-placeholder"></div>
 
-      <div class="section-title">Leaderboard</div>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Athlete</th>
-          <th>Date</th>
-          <th>Total Time</th>
-          <th>Moving Time</th>
-        </tr>
-      </thead>
-      <tbody id="leaderboard">
-      </tbody>
-    </table>
-
-    
-    <button id="refresh-btn" 
-      style="margin-top:15px; padding:10px 20px; background:#FF6B1A; color:white; 
-      border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
-      Force Sync Strava Data & Recalculate
-    </button>
-  </div>
-  
-</div>
-
-<!-- Button SECTION -->
-  <section class="section waitlist" style="text-align:center; margin-top:80px;">
-<div class="cta">
-    <a href="https://segseq.vercel.app/create.html" class="btn">Create a challenge</a>
-    <a href="https://segseq.vercel.app/explore.html" class="btn">Explore challenges</a>
-  </div>
-  </section>
-
-<footer>
-  <div class="logo"><span>∿</span>∿</div>
-  SegSeq • Multi-Segment Challenges
-</footer>
-
-
-<script>
-const params = new URLSearchParams(window.location.search);
-const challengeId = params.get("id");
-
-function renderLeaderboardData(lbData) {
-  const debugLog = document.getElementById("debug-log");
-  if (lbData.debug_steps) {
-    debugLog.innerHTML = lbData.debug_steps.join("<br/>");
-    debugLog.scrollTop = debugLog.scrollHeight;
-  }
-
-  const lb = document.getElementById("leaderboard");
-  lb.innerHTML = ""; 
-  
-  if (lbData.leaderboard && lbData.leaderboard.length > 0) {
-    lbData.leaderboard.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row.rank}</td>
-        <td>${row.athlete}</td>
-        <td>${row.start_date}</td>
-        <td>${row.total_time_human}</td>
-        <td><strong style="color:var(--orange);">${row.moving_time_human}</strong></td>
-      `;
-      lb.appendChild(tr);
-    });
-  } else {
-    lb.innerHTML = `<tr><td colspan="5">No valid completions found.</td></tr>`;
-  }
-}
-
-
-async function loadChallenge() {
-  try {
-    // 1. Load Challenge Details
-    const res = await fetch(`/api/segseq/challenge?id=${challengeId}`);
-    const data = await res.json();
-    
-    if (!res.ok) {
-      document.getElementById("challenge-name").textContent = "Error loading challenge";
-      return;
-    }
-    
-    document.getElementById("challenge-name").textContent = data.name;
-    document.getElementById("challenge-description").textContent = data.description;
-    document.getElementById("challenge-sport").textContent = data.sport;
-    document.getElementById("challenge-duration").textContent = data.duration;
-    
-    // 👇 NOUVEAU : Affichage des totaux (conversion des mètres en kilomètres pour la distance)
-    document.getElementById("challenge-distance").textContent = (data.total_distance / 1000).toFixed(2);
-    document.getElementById("challenge-elevation").textContent = Math.round(data.total_elevation);
-
-    const segList = document.getElementById("segments-list"); 
-    segList.innerHTML = ""; 
-    data.segments.forEach(seg => { 
-      const div = document.createElement("div"); 
-      div.className = "segment-item"; 
+  <div class="container" style="max-width:900px;">
+    <div class="card">
+      <h2 id="challenge-name" style="font-size: 2rem; margin-bottom: 20px;">Loading...</h2>
+      <p id="challenge-description" style="opacity:.8; line-height:1.6; margin-bottom: 30px;">Loading description...</p>
       
-      // 👇 NOUVEAU : On utilise le vrai nom et on affiche les détails du segment
-      const displayName = seg.name ? seg.name : `Segment #${seg.id}`;
-      const details = seg.distance ? `(${(seg.distance / 1000).toFixed(2)} km, +${Math.round(seg.elevation)} m)` : '';
-
-      div.innerHTML = ` 
-      <div class="segment-item-left"> 
-        <span style="font-size:1.2rem; color:#FF6B1A;">${seg.order}.</span> 
-        <span>
-          <strong>${displayName}</strong> <br/>
-          <small style="color:#777; font-weight:normal;">${details}</small>
-        </span> 
-      </div> 
-      <a href="https://www.strava.com/segments/${seg.id}" target="_blank" rel="noopener noreferrer" class="btn-view-feature"> 
-        View on Strava 
-      </a> 
-      `; 
-      segList.appendChild(div); 
-    }); 
-
-    // 2. Load Local Leaderboard (force=0)
-     const autoSync = params.get("autosync");
-
-  if (autoSync === "1") {
-    // Si on vient de créer le challenge, on clique automatiquement sur le bouton de synchro
-    document.getElementById("refresh-btn").click();
+      <h3 style="color:var(--navy); margin-bottom: 10px;">Details</h3>
+      <p><strong>Sport:</strong> <span id="challenge-sport"></span></p>
+      <p><strong>Duration:</strong> <span id="challenge-duration"></span> hours</p>
+      <p><strong>Distance:</strong> <span id="challenge-distance"></span> km</p>
+      <p><strong>Elevation:</strong> <span id="challenge-elevation"></span> m</p>
+      
+      <h3 style="color:var(--navy); margin: 30px 0 10px;">Segments</h3>
+      <div id="segments-list"></div>
+      
+      <h3 style="color:var(--navy); margin: 30px 0 10px;">Logic Execution Log</h3>
+      <div id="debug-log" class="debug-console">Awaiting execution...</div>
+      
+      <h3 style="color:var(--navy); margin: 30px 0 10px;">Leaderboard</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Athlete</th>
+            <th>Date</th>
+            <th>Total Time</th>
+            <th>Moving Time</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard"></tbody>
+      </table>
+      
+      <button id="refresh-btn" class="btn btn-primary" style="margin-top:20px;">Force Sync Strava Data & Recalculate</button>
+    </div>
     
-    // On nettoie l'URL pour éviter que ça se relance si l'utilisateur rafraîchit la page (F5)
-    window.history.replaceState({}, document.title, `/challenge.html?id=${challengeId}`);
-  } else {
-    // Comportement normal : on charge le classement local (force=0)
-    const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}`); 
-    const lbData = await lbRes.json(); 
-    renderLeaderboardData(lbData); 
-  }
+    <div class="cta">
+      <a href="Create.html" class="btn btn-primary">Create a challenge</a>
+      <a href="Explore.html" class="btn btn-primary" style="margin-left: 10px;">Explore challenges</a>
+    </div>
+  </div>
 
-} catch (err) { 
-  console.error(err); 
-}
-} 
+  <div id="footer-placeholder"></div>
 
-loadChallenge();
+  <script src="components.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const challengeId = params.get("id");
 
-// 3. Handle Refresh Button (force=1)
-document.getElementById("refresh-btn").addEventListener("click", async () => {
-  const lb = document.getElementById("leaderboard");
-  const debugLog = document.getElementById("debug-log");
-  
-  lb.innerHTML = `<tr><td colspan="3">Refreshing from Strava API... Please wait.</td></tr>`;
-  debugLog.innerHTML = "> Initiating Force Sync with Strava API...<br/>> This may take a few seconds...";
-  
-  try {
-    const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}&force=1`);
-    const lbData = await lbRes.json();
-    
-    if(!lbRes.ok) {
-      debugLog.innerHTML += `<br/><span style="color:red">> Error: ${lbData.error}</span>`;
-      return;
+    function renderLeaderboardData(lbData) {
+      const debugLog = document.getElementById("debug-log");
+      if (lbData.debug_steps) {
+        debugLog.innerHTML = lbData.debug_steps.join("<br/>");
+        debugLog.scrollTop = debugLog.scrollHeight;
+      }
+      const lb = document.getElementById("leaderboard");
+      lb.innerHTML = "";
+      
+      if (lbData.leaderboard && lbData.leaderboard.length > 0) {
+        lbData.leaderboard.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.rank}</td>
+            <td>${row.athlete}</td>
+            <td>${row.start_date}</td>
+            <td>${row.total_time_human}</td>
+            <td><strong style="color:var(--orange);">${row.moving_time_human}</strong></td>
+          `;
+          lb.appendChild(tr);
+        });
+      } else {
+        lb.innerHTML = `<tr><td colspan="5" style="text-align:center;">No valid completions found.</td></tr>`;
+      }
     }
-    renderLeaderboardData(lbData);
-  } catch (err) {
-    console.error(err);
-  }
-});
-</script>
+
+    async function loadChallenge() {
+      try {
+        const res = await fetch(`/api/segseq/challenge?id=${challengeId}`);
+        const data = await res.json();
+        
+        if (!res.ok) {
+          document.getElementById("challenge-name").textContent = "Error loading challenge";
+          return;
+        }
+        
+        document.getElementById("challenge-name").textContent = data.name;
+        document.getElementById("challenge-description").textContent = data.description;
+        document.getElementById("challenge-sport").textContent = data.sport;
+        document.getElementById("challenge-duration").textContent = data.duration;
+        document.getElementById("challenge-distance").textContent = (data.total_distance / 1000).toFixed(2);
+        document.getElementById("challenge-elevation").textContent = Math.round(data.total_elevation);
+        
+        const segList = document.getElementById("segments-list");
+        segList.innerHTML = "";
+        data.segments.forEach(seg => {
+          const div = document.createElement("div");
+          div.className = "segment-item";
+          const displayName = seg.name ? seg.name : `Segment #${seg.id}`;
+          const details = seg.distance ? `(${(seg.distance / 1000).toFixed(2)} km, +${Math.round(seg.elevation)} m)` : '';
+          
+          div.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span style="font-size:1.2rem; color:var(--orange);">${seg.order}.</span>
+              <span><strong>${displayName}</strong> <br/><small style="color:#777;">${details}</small></span>
+            </div>
+            <a href="https://www.strava.com/segments/${seg.id}" target="_blank" rel="noopener noreferrer" class="btn-view-feature">View on Strava</a>
+          `;
+          segList.appendChild(div);
+        });
+
+        const autoSync = params.get("autosync");
+        if (autoSync === "1") {
+          document.getElementById("refresh-btn").click();
+          window.history.replaceState({}, document.title, `/Challenge.html?id=${challengeId}`);
+        } else {
+          const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}`);
+          const lbData = await lbRes.json();
+          renderLeaderboardData(lbData);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadChallenge();
+
+    document.getElementById("refresh-btn").addEventListener("click", async () => {
+      const lb = document.getElementById("leaderboard");
+      const debugLog = document.getElementById("debug-log");
+      lb.innerHTML = `<tr><td colspan="5" style="text-align:center;">Refreshing from Strava API... Please wait.</td></tr>`;
+      debugLog.innerHTML = "> Initiating Force Sync with Strava API...<br/>> This may take a few seconds...";
+      
+      try {
+        const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}&force=1`);
+        const lbData = await lbRes.json();
+        if(!lbRes.ok) {
+          debugLog.innerHTML += `<br/><span style="color:red">> Error: ${lbData.error}</span>`;
+          return;
+        }
+        renderLeaderboardData(lbData);
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  </script>
 </body>
 </html>

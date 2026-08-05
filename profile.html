@@ -1,272 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-<title>SegSeq - Profile</title>
-
-<style>
-:root{
-  --navy:#072B57;
-  --navy-light:#0E487D;
-  --orange:#FF6B1A;
-  --white:#FFFFFF;
-  --gray:#D6E3F2;
-}
-
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
-body{
-  font-family:Inter,sans-serif;
-  background:var(--navy);
-  color:white;
-  min-height:100vh;
-}
-
-.container{
-  max-width:900px;
-  margin:auto;
-  padding:40px 20px;
-}
-
-/* HERO HEADER */
-.hero{
-  text-align:center;
-  padding:80px 20px 40px;
-}
-
-.logo{
-  font-size:5rem;
-  color:white;
-  margin-bottom:20px;
-}
-
-.logo span{
-  color:var(--orange);
-}
-
-.brand{
-  font-size:5rem;
-  font-weight:800;
-  letter-spacing:-2px;
-}
-
-.brand .accent{
-  color:var(--orange);
-}
-
-.tagline{
-  font-size:1.6rem;
-  margin-top:25px;
-  color:white;
-}
-
-.subtitle{
-  font-size:1.1rem;
-  opacity:.8;
-  margin-top:25px;
-  line-height:1.7;
-}
-
-/* PROFILE CARD */
-.profile-card{
-  background:white;
-  color:#222;
-  border-radius:24px;
-  padding:40px;
-  box-shadow:0 20px 60px rgba(0,0,0,.30);
-  margin-top:40px;
-}
-
-.profile-header{
-  text-align:center;
-  margin-bottom:40px;
-}
-
-.profile-photo{
-  width:140px;
-  height:140px;
-  border-radius:50%;
-  border:6px solid var(--orange);
-  object-fit:cover;
-}
-
-.welcome{
-  margin-top:20px;
-  font-size:2rem;
-  color:var(--navy);
-  font-weight:800;
-}
-
-.info-grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:20px;
-  margin-top:40px;
-}
-
-.info-box{
-  background:#F5F8FC;
-  border-radius:16px;
-  padding:24px;
-}
-
-.label{
-  font-size:.9rem;
-  text-transform:uppercase;
-  letter-spacing:.5px;
-  color:#777;
-  margin-bottom:8px;
-}
-
-.value{
-  font-size:1.3rem;
-  font-weight:700;
-  color:var(--navy);
-}
-
-/* CTA */
-.cta{
-  text-align:center;
-  margin-top:40px;
-}
-
-.btn{
-  display:inline-block;
-  background:var(--orange);
-  color:white;
-  padding:16px 32px;
-  border-radius:12px;
-  text-decoration:none;
-  font-weight:700;
-  transition:.2s;
-}
-
-.btn:hover{
-  transform:translateY(-2px);
-}
-
-/* FOOTER */
-footer{
-  text-align:center;
-  margin-top:60px;
-  padding:60px 20px;
-  color:rgba(255,255,255,.6);
-}
-
-@media(max-width:768px){
-  .brand{
-    font-size:3rem;
-  }
-  .info-grid{
-    grid-template-columns:1fr;
-  }
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SegSeq - Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
+  <div id="header-placeholder"></div>
 
-<!-- HERO HEADER -->
-<section class="hero">
-  <div class="logo"><span>∿</span>∿</div>
-</section>
-
-<div class="container">
-
-  <div class="profile-card">
-
-    <div class="profile-header">
-      <img id="athlete-photo" class="profile-photo"
-           src="https://via.placeholder.com/140" alt="Athlete photo">
-
-      <div class="welcome" id="welcome">Loading...</div>
-    </div>
-
-    <div class="info-grid">
-
-      <div class="info-box">
-        <div class="label">Name</div>
-        <div class="value" id="name">Loading...</div>
+  <div class="container" style="max-width:900px;">
+    <div class="profile-card">
+      <div style="text-align:center; margin-bottom:40px;">
+        <img id="athlete-photo" class="profile-photo" src="https://via.placeholder.com/140" alt="Athlete photo">
+        <div id="welcome" style="margin-top:20px; font-size:2rem; color:var(--navy); font-weight:800;">Loading...</div>
       </div>
-
-      <div class="info-box">
-        <div class="label">Country</div>
-        <div class="value" id="country">Loading...</div>
+      <div class="info-grid">
+        <div class="info-box">
+          <div style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Name</div>
+          <div id="name" style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
+        </div>
+        <div class="info-box">
+          <div style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Country</div>
+          <div id="country" style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
+        </div>
       </div>
-
     </div>
-
-  </div>
-
-  <!-- TRY NOW SECTION (same as index) -->
- <section class="section waitlist">
-
-<div class="container">
 
     <div class="cta">
-      <a href="https://segseq.vercel.app/create.html" class="btn">
-        Create a challenge
-      </a>
-	   <a href="https://segseq.vercel.app/explore.html" class="btn btn">
-  Explore challenges
-   </a>
+      <a href="Create.html" class="btn btn-primary">Create a challenge</a>
+      <a href="Explore.html" class="btn btn-primary" style="margin-left: 10px;">Explore challenges</a>
     </div>
-	
-	
-	
-	
-  </section>
+  </div>
 
-  <footer>
-    <div class="logo"><span>∿</span>∿</div>
-    SegSeq • Multi-Segment Challenges
-  </footer>
+  <div id="footer-placeholder"></div>
 
-</div>
-
-<script>
-async function loadProfile() {
-  try {
-    // 1. Athlete info
-    const athleteRes = await fetch("/api/strava/me", { credentials: "include" });
-    if (!athleteRes.ok) {
-      document.getElementById("welcome").textContent = "Not authenticated";
-      return;
+  <script src="components.js"></script>
+  <script>
+    async function loadProfile() {
+      try {
+        const athleteRes = await fetch("/api/strava/me", { credentials: "include" });
+        if (!athleteRes.ok) {
+          document.getElementById("welcome").textContent = "Not authenticated";
+          return;
+        }
+        const athlete = await athleteRes.json();
+        document.getElementById("athlete-photo").src = athlete.profile;
+        document.getElementById("welcome").textContent = `Welcome back, ${athlete.firstname}!`;
+        document.getElementById("name").textContent = athlete.firstname + " " + athlete.lastname;
+        document.getElementById("country").textContent = athlete.country || "N/A";
+      } catch (err) {
+        console.error(err);
+      }
     }
-    const athlete = await athleteRes.json();
-
-    
-
-    // Photo
-    document.getElementById("athlete-photo").src = athlete.profile;
-
-    // Welcome
-    document.getElementById("welcome").textContent =
-      `Welcome back, ${athlete.firstname}!`;
-
-    // Name
-    document.getElementById("name").textContent =
-      athlete.firstname + " " + athlete.lastname;
-
-    // Country
-    document.getElementById("country").textContent =
-      athlete.country || "N/A";
-
-    
-
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-loadProfile();
-</script>
-
+    loadProfile();
+  </script>
 </body>
 </html>
