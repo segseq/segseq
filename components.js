@@ -30,6 +30,15 @@ async function injectComponents() {
   const footerPlaceholder = document.getElementById('footer-placeholder');
   
   if(headerPlaceholder) headerPlaceholder.innerHTML = headerHTML;
+  
+  const dropbtn = document.querySelector('.dropbtn');
+    const dropdown = document.querySelector('.dropdown');
+
+    dropbtn.addEventListener('click', () => {
+      dropdown.classList.toggle('open');
+    });
+
+  
   if(footerPlaceholder) footerPlaceholder.innerHTML = footerHTML;
 
   // 3. Logique d'authentification Strava pour le header
@@ -41,7 +50,7 @@ async function injectComponents() {
       const athlete = await res.json();
       authSection.innerHTML = `
         <a href="profile.html">
-          <img src="${athlete.profile}" alt="Profile" class="nav-profile-pic" title="Aller au profil">
+          <img src="${athlete.profile}" alt="Profile" class="nav-profile-pic" title="Go to profile">
         </a>
       `;
     } else {

@@ -98,9 +98,14 @@ body {
   background-color: var(--gray);
 }
 
-.dropdown:hover .dropdown-content {
+.dropdown-content {
+  display: none;
+}
+
+.dropdown.open .dropdown-content {
   display: block;
 }
+
 
 /* Profile Photo in Header */
 .nav-profile-pic {
@@ -388,6 +393,7 @@ tr:nth-child(odd) { background: #E9F1FA; color: #222; }
   overflow-y: auto;
   margin-top: 10px;
 }
+
 
 /* --- FOOTER --- */
 footer {
