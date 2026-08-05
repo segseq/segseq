@@ -27,7 +27,7 @@
     </div>
 
     <div class="cta">
-      <a href="Create.html" class="btn btn-primary">Create a challenge</a>
+      <a href="create.html" class="btn btn-primary">Create a challenge</a>
     </div>
   </div>
 
@@ -43,7 +43,7 @@
         if (!res.ok) throw new Error(data.error || "Failed to load");
         
         if (data.length === 0) {
-          container.innerHTML = `<p style="text-align: center;">No challenges found. <a href="Create.html" style="color:var(--orange);">Create one!</a></p>`;
+          container.innerHTML = `<p style="text-align: center;">No challenges found. <a href="create.html" style="color:var(--orange);">Create one!</a></p>`;
           return;
         }
         
@@ -64,7 +64,7 @@
               <p style="color: #555;"><strong>Sport:</strong> ${challenge.sport.toUpperCase()} | <strong>Duration:</strong> ${challenge.duration_hours}h</p>
             </div>
             <div style="display: flex; gap: 10px;">
-              <a href="Challenge.html?id=${challenge.id}" class="btn-view-feature" style="color: white; background: var(--navy-light); border:none;">View</a>
+              <a href="challenge.html?id=${challenge.id}" class="btn-view-feature" style="color: white; background: var(--navy-light); border:none;">View</a>
               ${deleteBtnHtml}
             </div>
           `;
