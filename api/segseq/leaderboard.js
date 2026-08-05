@@ -102,15 +102,15 @@ export default async function handler(req, res) {
           `, [segId, athleteName]);
 
           let dateFilter = "";
-          if (lastEffortDb.length > 0 && lastEffortDb[0].last_date) {
+          /* erreur API 400 if (lastEffortDb.length > 0 && lastEffortDb[0].last_date) {
             // Add 1 second to the last known effort so we don't fetch it again
             const lastDate = new Date(lastEffortDb[0].last_date);
             lastDate.setSeconds(lastDate.getSeconds() + 1);
             dateFilter = `&start_date_local=${lastDate.toISOString()}`;
-            logStep(`  - Incremental sync: Only fetching efforts after ${lastDate.toLocaleDateString()}`);
-          } else {
+			logStep(`  - Incremental sync: Only fetching efforts after ${lastDate.toLocaleDateString()}`);
+          } else { */
             logStep(`  - First time sync: Fetching full history...`);
-          }
+          // }
           // -----------------------------------------------------------
 
           let page = 1;
