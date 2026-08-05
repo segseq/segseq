@@ -215,6 +215,12 @@ body {
   line-height: 1.7;
 }
 
+.section {
+  padding: 60px 0;      
+  margin-bottom: 80px;  
+}
+
+
 .section-title {
   text-align: center;
   font-size: 2.5rem;
