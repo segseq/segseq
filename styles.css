@@ -133,6 +133,8 @@ body {
   cursor: pointer;
   text-align: center;
   border: none;
+  font-family: Inter, sans-serif;
+  font-size: 1rem;
 }
 
 .btn-primary {

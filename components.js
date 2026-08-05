@@ -34,9 +34,11 @@ async function injectComponents() {
   const dropbtn = document.querySelector('.dropbtn');
     const dropdown = document.querySelector('.dropdown');
 
+if (dropbtn && dropdown) {
     dropbtn.addEventListener('click', () => {
       dropdown.classList.toggle('open');
     });
+	}
 
   
   if(footerPlaceholder) footerPlaceholder.innerHTML = footerHTML;
