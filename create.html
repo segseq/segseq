@@ -35,11 +35,16 @@
       </div>
 
       <!-- NOUVEAU : Option de séquence -->
-      <label>Ordre des segments</label>
-      <select id="strict-sequence">
-        <option value="true">Séquence stricte (Ordre obligatoire)</option>
-        <option value="false">Ordre libre (N'importe quel ordre)</option>
-      </select>
+    <div style="display: flex; align-items: center; gap: 15px; margin: 20px 0;">
+        <label class="switch">
+          <input type="checkbox" id="strict-sequence" checked>
+          <span class="slider"></span>
+        </label>
+        <div>
+          <strong style="display: block; color: var(--navy);">Strict sequence</strong>
+          <small style="color: #777;">If enabled, segments must be completed in exact sequence</small>
+        </div>
+      </div>
       
       <label>Add 2 to 5 Strava segments ID</label>
       <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
@@ -128,7 +133,7 @@
       const description = document.getElementById("description").value.trim();
       const sport = document.getElementById("sport").value;
       const durationStr = document.getElementById("duration").value;
-      const strictSequence = document.getElementById("strict-sequence").value === "true";
+	  const strictSequence = document.getElementById("strict-sequence").checked;
       
       // 2a) Validations précises
       if (!name) return alert("Veuillez donner un nom à votre challenge.");
