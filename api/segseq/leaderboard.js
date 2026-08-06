@@ -236,72 +236,85 @@ export default async function handler(req, res) {
         effortsBySeg[id].sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
       }
 
-      let hasValidSequence = false;
+      // ==========================================
+      // ÉTAPE 3 & 4 : Séquence & Vérification de Durée (CORRIGÉ)
+      // ==========================================
+      let validSequences = [];
+
+      // Fonction récursive pour explorer TOUTES les combinaisons possibles
+      function findSequences(currentSeq, currentSegIndex) {
+        // Si on a atteint le nombre de segments requis, la séquence est complète
+        if (currentSegIndex === reqSegIds.length) {
+          validSequences.push([...currentSeq]);
+          return;
+        }
+        
+        const lastEffort = currentSeq[currentSeq.length - 1];
+        // Utilisation de Number() pour garantir un calcul mathématique (évite la concaténation de texte)
+        const prevEndTimeMs = new Date(lastEffort.start_date).getTime() + (Number(lastEffort.elapsed_time) * 1000);
+        
+        const nextSegId = reqSegIds[currentSegIndex];
+        // On récupère TOUS les efforts suivants valides, pas seulement le premier
+        const possibleNextEfforts = effortsBySeg[nextSegId].filter(e => new Date(e.start_date).getTime() >= prevEndTimeMs);
+        
+        for (const nextEffort of possibleNextEfforts) {
+          currentSeq.push(nextEffort);
+          findSequences(currentSeq, currentSegIndex + 1); // On creuse au segment suivant
+          currentSeq.pop(); // Backtrack : on retire l'effort pour tester les autres
+        }
+      }
+
+      // Lancer la recherche à partir de CHAQUE effort du premier segment
+      const firstSegId = reqSegIds[0];
+      for (const startEffort of effortsBySeg[firstSegId]) {
+        findSequences([startEffort], 1);
+      }
+
       let bestCompletion = null;
 
-      // Step 3: Sequence Check - Start from EACH effort of the first segment
-      const firstSegId = reqSegIds[0];
-      
-      for (const startEffort of effortsBySeg[firstSegId]) {
-        let currentSequence = [startEffort];
-        let prevEndTimeMs = new Date(startEffort.start_date).getTime() + (startEffort.elapsed_time * 1000);
-        let seqOk = true;
+      // Évaluer toutes les séquences complètes trouvées
+      for (const seq of validSequences) {
+        const startEffort = seq[0];
+        const endEffort = seq[seq.length - 1];
+        
+        const startTimeMs = new Date(startEffort.start_date).getTime();
+        const endTimeMs = new Date(endEffort.start_date).getTime() + (Number(endEffort.elapsed_time) * 1000);
+        
+        // La différence exacte entre le début du 1er segment et la fin du dernier
+        const totalTimeSeconds = Math.floor((endTimeMs - startTimeMs) / 1000);
+        const durationHours = totalTimeSeconds / 3600;
 
-        // Look for the next segments in strict chronological order
-        for (let i = 1; i < reqSegIds.length; i++) {
-          const nextSegId = reqSegIds[i];
-          // Find the FIRST effort on the next segment that started AFTER the previous segment ended
-          const nextEffort = effortsBySeg[nextSegId].find(e => new Date(e.start_date).getTime() >= prevEndTimeMs);
+        // Vérification de la limite de temps imposée
+        if (durationHours <= Number(durationHoursLimit)) {
+          // Calcul du temps en mouvement des segments (avec Number par sécurité)
+          const movingSeconds = seq.reduce((sum, e) => sum + Number(e.elapsed_time), 0);
           
-          if (nextEffort) {
-            currentSequence.push(nextEffort);
-            prevEndTimeMs = new Date(nextEffort.start_date).getTime() + (nextEffort.elapsed_time * 1000);
-          } else {
-            seqOk = false; // Sequence broken
-            break;
-          }
-        }
+          // On garde la séquence avec le meilleur temps de mouvement
+          if (!bestCompletion || movingSeconds < bestCompletion.moving_seconds) {
+            const startDateStr = new Date(startTimeMs).toLocaleDateString('en-US', { 
+              year: 'numeric', month: 'short', day: 'numeric' 
+            });
 
-        if (seqOk) {
-          hasValidSequence = true;
-          
-          // Step 4: Duration Check
-          const startTimeMs = new Date(startEffort.start_date).getTime();
-          const endTimeMs = prevEndTimeMs; // End of the last segment in the sequence
-          
-          const totalTimeSeconds = Math.floor((endTimeMs - startTimeMs) / 1000);
-          const durationHours = totalTimeSeconds / 3600;
-
-          if (durationHours <= durationHoursLimit) {
-            const movingSeconds = currentSequence.reduce((sum, e) => sum + e.elapsed_time, 0);
-            
-            // Keep their fastest Moving Time if they completed the sequence multiple times
-            if (!bestCompletion || movingSeconds < bestCompletion.moving_seconds) {
-              const startDateStr = new Date(startTimeMs).toLocaleDateString('en-US', { 
-                year: 'numeric', month: 'short', day: 'numeric' 
-              });
-
-              bestCompletion = {
-                athlete: athName,
-                moving_seconds: movingSeconds,
-                moving_time_human: formatTime(movingSeconds),
-                total_time_human: formatTime(totalTimeSeconds),
-                start_date: startDateStr,
-                debug_duration: durationHours.toFixed(2)
-              };
-            }
-          } else {
-             logStep(`  - ❌ ${athName} failed duration: Sequence took ${durationHours.toFixed(2)}h (Limit: ${durationHoursLimit}h)`);
+            bestCompletion = {
+              athlete: athName,
+              moving_seconds: movingSeconds,
+              moving_time_human: formatTime(movingSeconds),
+              total_time_human: formatTime(totalTimeSeconds),
+              start_date: startDateStr,
+              debug_duration: durationHours.toFixed(2)
+            };
           }
         }
       }
 
-      if (hasValidSequence) sequenceValidCount++;
+      if (validSequences.length > 0) sequenceValidCount++;
       
       if (bestCompletion) {
         durationValidCount++;
         logStep(`  - ✅ ${athName} passed! Total: ${bestCompletion.total_time_human}, Moving: ${bestCompletion.moving_time_human}`);
         finalLeaderboard.push(bestCompletion);
+      } else if (validSequences.length > 0) {
+         logStep(`  - ❌ ${athName} failed duration limit (Limit: ${durationHoursLimit}h).`);
       }
     }
 
