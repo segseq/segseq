@@ -103,16 +103,25 @@ export default async function handler(req, res) {
 
           let dateFilter = "";
           if (lastEffortDb.length > 0 && lastEffortDb[0].last_date) {
-            // Add 1 second to the last known effort so we don't fetch it again
             const lastDate = new Date(lastEffortDb[0].last_date);
+            
+            // On ajoute 1 seconde pour ne pas récupérer le même effort
             lastDate.setSeconds(lastDate.getSeconds() + 1);
-            // Correction: supprimer les milliseconds et encoder l'URL
-			const formattedDate = lastDate.toISOString().split('.')[0] + 'Z';
-			dateFilter = `&start_date_local=${encodeURIComponent(formattedDate)}`;
-			logStep(`  - Incremental sync: Only fetching efforts after ${formattedDate}`);
-          } else { 
+            
+            // Formatage de la date de début (sans millisecondes)
+            const startDateStr = lastDate.toISOString().split('.')[0] + 'Z';
+            
+            // CRÉATION DE LA DATE DE FIN (Obligatoire pour Strava)
+            const endDate = new Date();
+            const endDateStr = endDate.toISOString().split('.')[0] + 'Z';
+            
+            // Ajout des DEUX paramètres encodés dans l'URL
+            dateFilter = `&start_date_local=${encodeURIComponent(startDateStr)}&end_date_local=${encodeURIComponent(endDateStr)}`;
+            
+            logStep(`  - Incremental sync: Fetching efforts between ${startDateStr} and ${endDateStr}`);
+          } else {
             logStep(`  - First time sync: Fetching full history...`);
-           }
+          }
           // -----------------------------------------------------------
 
           let page = 1;
