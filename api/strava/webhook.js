@@ -1,12 +1,10 @@
 import { query } from "../../db.js";
+// ATTENTION: Ajuste le chemin relatif ci-dessous selon la structure de tes dossiers
+import { calculateLeaderboard } from "../segseq/leaderboards.js"; 
 
-// A secret string you invent to verify Strava is the one calling your API
 const VERIFY_TOKEN = process.env.STRAVA_VERIFY_TOKEN || "segseq_secure_webhook_123";
 
 export default async function handler(req, res) {
-  // ==========================================================
-  // 1. WEBHOOK SUBSCRIPTION VALIDATION (Strava Setup Check)
-  // ==========================================================
   if (req.method === 'GET') {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
@@ -22,18 +20,10 @@ export default async function handler(req, res) {
     }
     return res.status(400).send('Bad Request');
   } 
-  
-  // ==========================================================
-  // 2. RECEIVE INCOMING ACTIVITY EVENTS
-  // ==========================================================
   else if (req.method === 'POST') {
     const event = req.body;
-    console.log("Strava webhook event received:", event);
+    res.status(200).send('EVENT_RECEIVED'); // Ack immédiat
 
-    // We must acknowledge receipt immediately (HTTP 200) so Strava doesn't retry
-    res.status(200).send('EVENT_RECEIVED');
-
-    // Only process NEW activities (ignore updates/deletes for now to save processing)
     if (event.object_type === 'activity' && event.aspect_type === 'create') {
       try {
         await processActivity(event.owner_id, event.object_id);
@@ -46,21 +36,15 @@ export default async function handler(req, res) {
   }
 }
 
-// ==========================================================
-// 3. BACKGROUND PROCESSING LOGIC
-// ==========================================================
 async function processActivity(athleteId, activityId) {
-  // 1. Check if this athlete is registered in our database
   const athletes = await query(`SELECT firstname, lastname, access_token, refresh_token, expires_at FROM athletes WHERE id = $1`, [athleteId]);
   if (athletes.length === 0) return; 
   
   let athlete = athletes[0];
   const athleteName = `${athlete.firstname} ${athlete.lastname}`.trim();
 
-  // 2. Ensure token is valid (Refresh if expired)
   const nowUnix = Math.floor(Date.now() / 1000);
   if (athlete.expires_at < nowUnix) {
-    console.log(`Token expired for ${athleteName}. Refreshing in background...`);
     const tokenRes = await fetch("https://www.strava.com/oauth/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -74,18 +58,11 @@ async function processActivity(athleteId, activityId) {
     
     if (tokenRes.ok) {
       const newTokens = await tokenRes.json();
-      await query(`
-        UPDATE athletes SET access_token = $1, refresh_token = $2, expires_at = $3 WHERE id = $4
-      `, [newTokens.access_token, newTokens.refresh_token, newTokens.expires_at, athleteId]);
-      
-      athlete.access_token = newTokens.access_token; // Use new token for the next step
-    } else {
-      console.error(`Failed to refresh token for ${athleteName}`);
-      return;
-    }
+      await query(`UPDATE athletes SET access_token = $1, refresh_token = $2, expires_at = $3 WHERE id = $4`, [newTokens.access_token, newTokens.refresh_token, newTokens.expires_at, athleteId]);
+      athlete.access_token = newTokens.access_token;
+    } else return;
   }
 
-  // 3. Fetch the specific activity from Strava (Costs exactly 1 API call)
   const response = await fetch(`https://www.strava.com/api/v3/activities/${activityId}?include_all_efforts=true`, {
     headers: { Authorization: `Bearer ${athlete.access_token}` }
   });
@@ -94,12 +71,12 @@ async function processActivity(athleteId, activityId) {
   const activity = await response.json();
   if (!activity.segment_efforts) return;
 
-  // 4. Get all segments that are part of ANY active challenge in our app
   const activeSegments = await query(`SELECT DISTINCT segment_id FROM challenge_segments`);
   const activeSegIds = new Set(activeSegments.map(s => s.segment_id.toString()));
 
-  // 5. Check if the athlete ran any of our challenge segments today
   let inserted = 0;
+  let impactedSegments = []; // Pour tracker les segments touchés
+
   for (const effort of activity.segment_efforts) {
     if (activeSegIds.has(effort.segment.id.toString())) {
       await query(`
@@ -108,10 +85,30 @@ async function processActivity(athleteId, activityId) {
         ON CONFLICT (segment_id, athlete_name, start_date) DO NOTHING
       `, [effort.segment.id, athleteName, effort.start_date_local, effort.elapsed_time]);
       inserted++;
+      impactedSegments.push(effort.segment.id);
     }
   }
 
   if (inserted > 0) {
-    console.log(`✅ Webhook Success: Saved ${inserted} challenge efforts for ${athleteName}`);
+    console.log(`✅ Webhook: Saved ${inserted} efforts for ${athleteName}`);
+    
+    // === NOUVEAU: DÉCLENCHEMENT DU CALCUL ===
+    try {
+      // Trouver tous les challenges impactés par ces nouveaux segments
+      const affectedChallenges = await query(`
+        SELECT DISTINCT challenge_id 
+        FROM challenge_segments 
+        WHERE segment_id = ANY($1::bigint[])
+      `, [impactedSegments]);
+
+      // Lancer le recalcul pour chaque challenge en arrière-plan
+      for (const row of affectedChallenges) {
+        console.log(`🔄 Webhook: Recalcul du challenge ${row.challenge_id} en arrière-plan...`);
+        // On passe une fonction vide pour les logs pour ne pas polluer la console
+        await calculateLeaderboard(row.challenge_id, () => {}); 
+      }
+    } catch (err) {
+      console.error("Erreur lors du recalcul via Webhook:", err);
+    }
   }
 }
