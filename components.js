@@ -9,6 +9,7 @@ async function injectComponents() {
           <div class="dropdown-content">
             <a href="explore.html">Explore</a>
             <a href="create.html">Create</a>
+			<a href="terms.html">Terms / Privacy</a>
           </div>
         </div>
       </div>
