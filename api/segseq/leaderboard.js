@@ -222,16 +222,33 @@ export default async function handler(req, res) {
 
     for (const [athName, athEfforts] of Object.entries(athletes)) {
       
-      // Step 2: Did they complete ALL segments at least once?
-      const uniqueSegs = new Set(athEfforts.map(e => e.segment_id));
-      if (uniqueSegs.size < reqSegIds.length) continue; 
-      completedAllCount++;
-
-      // Group their efforts by segment and sort chronologically
+      // Group their efforts by segment
       const effortsBySeg = {};
       reqSegIds.forEach(id => effortsBySeg[id] = []);
-      athEfforts.forEach(e => effortsBySeg[e.segment_id].push(e));
+      athEfforts.forEach(e => {
+        if (effortsBySeg[e.segment_id]) {
+          effortsBySeg[e.segment_id].push(e);
+        }
+      });
+
+      // Step 2 (CORRIGÉ) : Ont-ils le nombre d'efforts requis pour CHAQUE segment ?
+      const requiredCounts = {};
+      reqSegIds.forEach(id => {
+        requiredCounts[id] = (requiredCounts[id] || 0) + 1;
+      });
+
+      let hasEnoughEfforts = true;
+      for (const id in requiredCounts) {
+        if (effortsBySeg[id].length < requiredCounts[id]) {
+          hasEnoughEfforts = false; // Il manque un ou plusieurs passages sur ce segment
+          break;
+        }
+      }
       
+      if (!hasEnoughEfforts) continue; // On passe à l'athlète suivant
+      completedAllCount++;
+
+      // Sort chronologically
       for (const id in effortsBySeg) {
         effortsBySeg[id].sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
       }
