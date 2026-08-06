@@ -34,6 +34,25 @@
     </div>
   </div>
 
+<section class="section waitlist">
+
+<div class="container">
+
+<h2 class="section-title">Thinking of leaving?</h2>
+
+<p style="text-align: center;">
+We'd be really sorry to see you go! :( <br><br> Deleting your account is permanent and connot be undone. All your created challenges and profile data will be erased from Segseq forever. <br> Your Strava connection will also be securely revoked.
+</p>
+
+<div class="cta">
+      <a href="#" class="btn btn-primary" onclick="deleteAccount()">Permanently delete my account</a>
+    </div>
+
+</div>
+</div>
+
+</section>
+
   <div id="footer-placeholder"></div>
 
   <script src="components.js"></script>
@@ -55,6 +74,32 @@
       }
     }
     loadProfile();
+	
+	//suppression du compte
+	async function deleteAccount() {
+  const confirmDelete = confirm("Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Toutes vos données et challenges créés seront perdus.");
+  
+  if (!confirmDelete) return;
+
+  try {
+    const response = await fetch('/api/segseq/delete-account', {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      alert("Votre compte a été supprimé avec succès.");
+      // Redirection vers la page d'accueil
+      window.location.href = "/"; 
+    } else {
+      const data = await response.json();
+      alert("Erreur : " + (data.error || "Impossible de supprimer le compte."));
+    }
+  } catch (err) {
+    console.error("Erreur réseau :", err);
+    alert("Une erreur réseau est survenue.");
+  }
+}
+	
   </script>
 </body>
 </html>
