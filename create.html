@@ -77,7 +77,6 @@
       // Validations de base
       if (!id) return alert("Veuillez entrer un ID de segment.");
       if (segments.length >= 5) return alert("Maximum 5 segments autorisés.");
-      if (segments.some(s => s.id === id)) return alert("Ce segment est déjà dans la liste.");
 
       // UI : Mode chargement
       btn.innerHTML = "⏳";
