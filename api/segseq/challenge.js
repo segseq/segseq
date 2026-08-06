@@ -1,13 +1,25 @@
 import { query } from "../../db.js";
-import { parse } from "cookie-es"; // Needed to read the user's cookie
+import { parse } from "cookie-es";
+import jwt from "jsonwebtoken"; // NOUVEL IMPORT
 
 export default async function handler(req, res) {
   const { method } = req;
   const id = req.query.id;
 
-  // Parse cookies to get the current logged-in user
+  // Récupération et vérification sécurisée du cookie
   const cookies = parse(req.headers.cookie || "");
-  const currentAthleteId = cookies.athlete_id;
+  const sessionToken = cookies.session;
+  let currentAthleteId = null;
+
+  if (sessionToken) {
+    try {
+      const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET);
+      currentAthleteId = decoded.athleteId; // L'ID est garanti authentique
+    } catch (err) {
+      console.error("Token de session invalide :", err.message);
+      // On ne bloque pas ici car les requêtes GET (lecture) peuvent être publiques
+    }
+  }
 
   try {
     // ==========================================

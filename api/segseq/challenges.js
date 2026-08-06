@@ -7,25 +7,34 @@ export const config = {
 
 // --- IMPORTS ---
 import { query } from "../../db.js";
-import { parse } from "cookie-es";   // compatible Vercel (CJS + ESM)
+import { parse } from "cookie-es";
+import jwt from "jsonwebtoken"; // NOUVEL IMPORT
 
 // --- HANDLER ---
 export default async function handler(req, res) {
   console.log("REQ BODY:", req.body);
-  console.log("REQ COOKIES RAW:", req.headers.cookie);
-
+  
   // --- METHOD CHECK ---
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // --- COOKIE PARSING ---
+  // --- COOKIE PARSING & SECURITY CHECK ---
   const cookies = parse(req.headers.cookie || "");
-  const creatorId = cookies.athlete_id;
+  const sessionToken = cookies.session;
+  let creatorId = null;
 
-  if (!creatorId) {
-    console.error("Missing athlete_id cookie");
-    return res.status(401).json({ error: "Not authenticated" });
+  if (!sessionToken) {
+    return res.status(401).json({ error: "Not authenticated: Missing session" });
+  }
+
+  try {
+    // Vérification cryptographique de l'identité
+    const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET);
+    creatorId = decoded.athleteId;
+  } catch (err) {
+    console.error("Invalid session:", err.message);
+    return res.status(401).json({ error: "Not authenticated: Invalid or expired session" });
   }
 
   // --- PAYLOAD EXTRACTION ---
