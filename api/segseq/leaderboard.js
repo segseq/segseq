@@ -123,7 +123,8 @@ export default async function handler(req, res) {
           while (hasMorePages && page <= MAX_PAGES) {
             // Append the dateFilter to the Strava URL
             const stravaUrl = `https://www.strava.com/api/v3/segments/${segId}/all_efforts?per_page=200&page=${page}${dateFilter}`;
-            
+            // debug API error 400
+			console.log("STRAVA URL CALLED:",stravaUrl);
             const lbRes = await fetch(stravaUrl, {
               headers: { Authorization: `Bearer ${athlete.access_token}` }
             });
