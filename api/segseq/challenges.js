@@ -29,7 +29,7 @@ export default async function handler(req, res) {
   }
 
   // --- PAYLOAD EXTRACTION ---
-  const { name, description, sport, duration, segments } = req.body;
+  const { name, description, sport, duration, strict_sequence, segments } = req.body;
 
   // --- VALIDATION ---
   if (!name || !sport || !duration || !Array.isArray(segments) || segments.length < 2) {
@@ -39,10 +39,10 @@ export default async function handler(req, res) {
   try {
     // --- INSERT CHALLENGE ---
     const rows = await query(
-      `INSERT INTO challenges (creator_id, name, description, sport, duration_hours)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO challenges (creator_id, name, description, sport, duration_hours, strict_sequence)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id`,
-      [creatorId, name, description, sport, duration]
+      [creatorId, name, description, sport, duration, strict_sequence]
     );
 
     const challengeId = rows[0].id;

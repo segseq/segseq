@@ -20,19 +20,31 @@
       <label>Description</label>
       <textarea id="description" placeholder="Describe your challenge..." style="min-height:120px; resize:vertical;"></textarea>
       
-      <label>Sport</label>
-      <select id="sport">
-        <option value="run">Running</option>
-        <option value="ride">Cycling</option>
+      <div style="display: flex; gap: 20px;">
+        <div style="flex: 1;">
+          <label>Sport</label>
+          <select id="sport">
+            <option value="run">Running</option>
+            <option value="ride">Cycling</option>
+          </select>
+        </div>
+        <div style="flex: 1;">
+          <label>Duration (hours, max 120)</label>
+          <input id="duration" type="number" min="1" max="120" placeholder="48">
+        </div>
+      </div>
+
+      <!-- NOUVEAU : Option de séquence -->
+      <label>Ordre des segments</label>
+      <select id="strict-sequence">
+        <option value="true">Séquence stricte (Ordre obligatoire)</option>
+        <option value="false">Ordre libre (N'importe quel ordre)</option>
       </select>
-      
-      <label>Duration (hours, max 120)</label>
-      <input id="duration" type="number" min="1" max="120" placeholder="48">
       
       <label>Add 2 to 5 Strava segments ID</label>
       <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
-        <input id="segment-input" placeholder="Ex: 1234567" style="flex:1;">
-        <button onclick="addSegment()" type="button" style="background:none; border:none; font-size:2rem; color:var(--orange); cursor:pointer; padding:0 10px;">∿</button>
+        <input id="segment-input" type="number" placeholder="Ex: 1234567" style="flex:1;">
+        <button id="add-seg-btn" onclick="addSegment()" type="button" style="background:none; border:none; font-size:2rem; color:var(--orange); cursor:pointer; padding:0 10px; width: 50px;">∿</button>
         <span style="color:#777; font-size:.9rem;">Add</span>
       </div>
       
@@ -49,19 +61,44 @@
 
   <script src="components.js"></script>
   <script>
+    // On stocke maintenant des objets {id, name} au lieu de juste l'ID
     let segments = [];
 
-    function addSegment() {
+    async function addSegment() {
       const input = document.getElementById("segment-input");
       const id = input.value.trim();
-      if (!id) return;
-      if (segments.length >= 5) {
-        alert("Maximum 5 segments");
-        return;
+      const btn = document.getElementById("add-seg-btn");
+
+      // Validations de base
+      if (!id) return alert("Veuillez entrer un ID de segment.");
+      if (segments.length >= 5) return alert("Maximum 5 segments autorisés.");
+      if (segments.some(s => s.id === id)) return alert("Ce segment est déjà dans la liste.");
+
+      // UI : Mode chargement
+      btn.innerHTML = "⏳";
+      btn.disabled = true;
+      input.disabled = true;
+
+      try {
+        // Appel au backend pour valider le segment via l'API Strava
+        const res = await fetch(`/api/segseq/validate-segment?id=${id}`);
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.error || "Segment introuvable ou privé sur Strava.");
+        
+        // Succès : on ajoute le segment avec son vrai nom Strava
+        segments.push({ id: id, name: data.name });
+        renderSegments();
+        input.value = "";
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        // UI : Retour à la normale
+        btn.innerHTML = "∿";
+        btn.disabled = false;
+        input.disabled = false;
+        input.focus();
       }
-      segments.push(id);
-      renderSegments();
-      input.value = "";
     }
 
     function removeSegment(index) {
@@ -72,13 +109,13 @@
     function renderSegments() {
       const list = document.getElementById("segments");
       list.innerHTML = "";
-      segments.forEach((id, i) => {
+      segments.forEach((seg, i) => {
         const item = document.createElement("div");
         item.className = "segment-item";
         item.innerHTML = `
           <div style="display:flex; align-items:center; gap:12px;">
             <span style="font-size:1.2rem; color:var(--orange);">${i + 1}.</span>
-            <span>Segment #${id}</span>
+            <span><strong>${seg.name}</strong> <br/><small style="color:#777;">ID: ${seg.id}</small></span>
           </div>
           <button onclick="removeSegment(${i})" style="background:none; border:none; color:var(--orange); font-size:1.4rem; cursor:pointer;">×</button>
         `;
@@ -89,15 +126,27 @@
     async function publishChallenge() {
       const name = document.getElementById("challenge-name").value.trim();
       const description = document.getElementById("description").value.trim();
-      const sport = document.getElementById("sport").value.trim();
-      const duration = parseInt(document.getElementById("duration").value, 10);
+      const sport = document.getElementById("sport").value;
+      const durationStr = document.getElementById("duration").value;
+      const strictSequence = document.getElementById("strict-sequence").value === "true";
       
-      if (segments.length < 2) {
-        alert("Tu dois ajouter au moins 2 segments.");
-        return;
-      }
+      // 2a) Validations précises
+      if (!name) return alert("Veuillez donner un nom à votre challenge.");
+      if (!description) return alert("Veuillez ajouter une description.");
+      if (!durationStr || parseInt(durationStr, 10) < 1) return alert("Veuillez définir une durée valide (min 1 heure).");
+      if (segments.length < 2) return alert("Vous devez ajouter au moins 2 segments validés.");
       
-      const payload = { name, description, sport, duration, segments };
+      // On ne renvoie que les IDs au backend pour ne pas casser ton API existante
+      const segmentIds = segments.map(s => s.id);
+      
+      const payload = { 
+        name, 
+        description, 
+        sport, 
+        duration: parseInt(durationStr, 10), 
+        strict_sequence: strictSequence, // Nouvelle donnée
+        segments: segmentIds 
+      };
       
       try {
         const res = await fetch("/api/segseq/challenges", {
@@ -109,13 +158,15 @@
         const data = await res.json();
         
         if (!res.ok) {
-          alert("Erreur: " + data.error);
+          // 2b) Si le backend renvoie une erreur (ex: Nom déjà pris)
+          alert("Erreur: " + (data.error || "Impossible de créer le challenge."));
           return;
         }
+        // Succès !
         window.location.href = `/challenge.html?id=${data.id}&force=1`;
       } catch (err) {
         console.error(err);
-        alert("Erreur réseau");
+        alert("Erreur réseau. Veuillez vérifier votre connexion.");
       }
     }
   </script>

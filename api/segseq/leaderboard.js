@@ -15,6 +15,152 @@ export function formatTime(sec) {
 export async function calculateLeaderboard(challengeId, logStep = console.log) {
   logStep(`📊 --- ÉVALUATION DU CLASSEMENT ---`);
   
+  // 1. AJOUT : On récupère aussi strict_sequence
+  const challengeRows = await query(`SELECT duration_hours, strict_sequence FROM challenges WHERE id = $1`, [challengeId]);
+  if (challengeRows.length === 0) return [];
+  const durationHoursLimit = challengeRows[0].duration_hours;
+  const isStrictSequence = challengeRows[0].strict_sequence !== false; // true par défaut
+
+  const segmentsRows = await query(`SELECT segment_id FROM challenge_segments WHERE challenge_id = $1 ORDER BY order_index ASC`, [challengeId]);
+  if (segmentsRows.length === 0) return [];
+  const reqSegIds = segmentsRows.map(s => s.segment_id);
+
+  const efforts = await query(`SELECT segment_id, athlete_name, start_date, elapsed_time FROM segment_efforts WHERE segment_id = ANY($1::bigint[])`, [reqSegIds]);
+
+  const athletes = {};
+  efforts.forEach(e => {
+    if (!athletes[e.athlete_name]) athletes[e.athlete_name] = [];
+    athletes[e.athlete_name].push(e);
+  });
+
+  let finalLeaderboard = [];
+
+  for (const [athName, athEfforts] of Object.entries(athletes)) {
+    const effortsBySeg = {};
+    reqSegIds.forEach(id => effortsBySeg[id] = []);
+    athEfforts.forEach(e => { if (effortsBySeg[e.segment_id]) effortsBySeg[e.segment_id].push(e); });
+
+    const requiredCounts = {};
+    reqSegIds.forEach(id => { requiredCounts[id] = (requiredCounts[id] || 0) + 1; });
+
+    let hasEnoughEfforts = true;
+    for (const id in requiredCounts) {
+      if (effortsBySeg[id].length < requiredCounts[id]) {
+        hasEnoughEfforts = false; break;
+      }
+    }
+    if (!hasEnoughEfforts) continue;
+
+    for (const id in effortsBySeg) {
+      effortsBySeg[id].sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+    }
+
+    let validSequences = [];
+    
+    // 2. MODIFICATION : La fonction récursive gère maintenant les deux modes
+    function findSequences(currentSeq, usedIndices) {
+      if (usedIndices.length === reqSegIds.length) {
+        validSequences.push([...currentSeq]);
+        return;
+      }
+      
+      const lastEffort = currentSeq[currentSeq.length - 1];
+      const prevEndTimeMs = new Date(lastEffort.start_date).getTime() + (Number(lastEffort.elapsed_time) * 1000);
+      
+      if (isStrictSequence) {
+        // MODE STRICT : On cherche uniquement le segment suivant dans l'ordre
+        const nextIndex = usedIndices.length;
+        const nextSegId = reqSegIds[nextIndex];
+        const possibleNextEfforts = effortsBySeg[nextSegId].filter(e => new Date(e.start_date).getTime() >= prevEndTimeMs);
+        
+        for (const nextEffort of possibleNextEfforts) {
+          currentSeq.push(nextEffort);
+          usedIndices.push(nextIndex);
+          findSequences(currentSeq, usedIndices);
+          usedIndices.pop();
+          currentSeq.pop();
+        }
+      } else {
+        // MODE LIBRE : On peut aller vers n'importe quel segment pas encore visité
+        for (let i = 0; i < reqSegIds.length; i++) {
+          if (usedIndices.includes(i)) continue; // Ce segment (index) a déjà été fait
+          
+          const nextSegId = reqSegIds[i];
+          const possibleNextEfforts = effortsBySeg[nextSegId].filter(e => new Date(e.start_date).getTime() >= prevEndTimeMs);
+          
+          for (const nextEffort of possibleNextEfforts) {
+            currentSeq.push(nextEffort);
+            usedIndices.push(i);
+            findSequences(currentSeq, usedIndices);
+            usedIndices.pop();
+            currentSeq.pop();
+          }
+        }
+      }
+    }
+
+    // 3. MODIFICATION : Lancement de la recherche
+    if (isStrictSequence) {
+      const firstSegId = reqSegIds[0];
+      for (const startEffort of effortsBySeg[firstSegId]) {
+        findSequences([startEffort], [0]); // 0 est l'index du premier segment
+      }
+    } else {
+      // En mode libre, le TOUT PREMIER segment de la course peut être n'importe lequel
+      for (let i = 0; i < reqSegIds.length; i++) {
+        const firstSegId = reqSegIds[i];
+        for (const startEffort of effortsBySeg[firstSegId]) {
+          findSequences([startEffort], [i]);
+        }
+      }
+    }
+
+    // (La suite reste identique : calcul du bestCompletion, etc.)
+    let bestCompletion = null;
+    for (const seq of validSequences) {
+      const startEffort = seq[0];
+      const endEffort = seq[seq.length - 1];
+      const startTimeMs = new Date(startEffort.start_date).getTime();
+      const endTimeMs = new Date(endEffort.start_date).getTime() + (Number(endEffort.elapsed_time) * 1000);
+      const totalTimeSeconds = Math.floor((endTimeMs - startTimeMs) / 1000);
+      const durationHours = totalTimeSeconds / 3600;
+
+      if (durationHours <= Number(durationHoursLimit)) {
+        const movingSeconds = seq.reduce((sum, e) => sum + Number(e.elapsed_time), 0);
+        if (!bestCompletion || movingSeconds < bestCompletion.moving_seconds) {
+          bestCompletion = {
+            athlete: athName,
+            moving_seconds: movingSeconds,
+            moving_time_human: formatTime(movingSeconds),
+            total_time_human: formatTime(totalTimeSeconds),
+            start_date: new Date(startTimeMs).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+          };
+        }
+      }
+    }
+
+    if (bestCompletion) {
+      logStep(`  - ✅ ${athName} passed! Moving Time: ${bestCompletion.moving_time_human}`);
+      finalLeaderboard.push(bestCompletion);
+    }
+  }
+
+  finalLeaderboard.sort((a, b) => a.moving_seconds - b.moving_seconds);
+  finalLeaderboard.forEach((row, idx) => row.rank = idx + 1);
+
+  await query(`DELETE FROM challenge_results WHERE challenge_id = $1`, [challengeId]);
+  for (const row of finalLeaderboard) {
+    await query(`
+      INSERT INTO challenge_results (challenge_id, athlete_name, rank, start_date, total_time_human, moving_time_human, moving_seconds, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+    `, [challengeId, row.athlete, row.rank, row.start_date, row.total_time_human, row.moving_time_human, row.moving_seconds]);
+  }
+  return finalLeaderboard;
+}
+
+
+  logStep(`📊 --- ÉVALUATION DU CLASSEMENT ---`);
+  
   const challengeRows = await query(`SELECT duration_hours FROM challenges WHERE id = $1`, [challengeId]);
   if (challengeRows.length === 0) return [];
   const durationHoursLimit = challengeRows[0].duration_hours;
