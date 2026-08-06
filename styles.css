@@ -106,6 +106,43 @@ body {
   display: block;
 }
 
+/* Conteneur du bouton de rafraîchissement */
+.refresh-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+/* Bouton discret (Orange et Blanc) */
+.btn-refresh {
+  background-color: var(--orange);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.btn-refresh:hover {
+  opacity: 0.85;
+  transform: scale(1.05); /* Léger grossissement au survol */
+}
+
+/* Animation de rotation pour l'icône SVG */
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
 
 /* Profile Photo in Header */
 .nav-profile-pic {

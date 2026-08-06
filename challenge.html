@@ -41,7 +41,14 @@
         <tbody id="leaderboard"></tbody>
       </table>
       
-      <button id="refresh-btn" class="btn btn-primary" style="margin-top:20px;">Force Sync Strava Data & Recalculate</button>
+	  <div class="refresh-container">
+  <button id="refresh-btn" class="btn-refresh" title="Force synchro with Strava & Recalculate">
+    <svg id="refresh-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+  </button>
+</div>
     </div>
     
     <div class="cta">
@@ -136,6 +143,9 @@
     document.getElementById("refresh-btn").addEventListener("click", async () => {
       const lb = document.getElementById("leaderboard");
       const debugLog = document.getElementById("debug-log");
+      const icon = document.getElementById("refresh-icon"); // On cible l'icône
+      
+      icon.classList.add("spinning"); // Démarre l'animation
       lb.innerHTML = `<tr><td colspan="5" style="text-align:center;">Refreshing from Strava API... Please wait.</td></tr>`;
       debugLog.innerHTML = "> Initiating Force Sync with Strava API...<br/>> This may take a few seconds...";
       
@@ -144,11 +154,14 @@
         const lbData = await lbRes.json();
         if(!lbRes.ok) {
           debugLog.innerHTML += `<br/><span style="color:red">> Error: ${lbData.error}</span>`;
+          icon.classList.remove("spinning"); // Arrête l'animation en cas d'erreur
           return;
         }
         renderLeaderboardData(lbData);
       } catch (err) {
         console.error(err);
+      } finally {
+        icon.classList.remove("spinning"); // Arrête l'animation quand c'est fini
       }
     });
   </script>
