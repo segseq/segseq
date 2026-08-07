@@ -85,4 +85,3 @@ const footerHTML = `
 }
 
 document.addEventListener("DOMContentLoaded", injectComponents);
-

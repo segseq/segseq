@@ -24,6 +24,17 @@
       </div>
     </div>
 
+    <!-- NOUVEAU : Barre de contrôles (Recherche & Tri) -->
+    <div style="display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;">
+      <input type="text" id="search-input" class="lang-element" data-placeholder-en="Search by name or sport..." data-placeholder-fr="Rechercher par nom ou sport..." placeholder="Search by name or sport..." style="flex: 2; min-width: 200px; margin-top: 0;">
+      
+      <select id="sort-select" style="flex: 1; min-width: 150px; margin-top: 0; cursor: pointer;">
+        <option value="newest" class="lang-element" data-en="Sort: Newest first" data-fr="Tri : Plus récents">Sort: Newest first</option>
+        <option value="name" class="lang-element" data-en="Sort: Name (A-Z)" data-fr="Tri : Nom (A-Z)">Sort: Name (A-Z)</option>
+        <option value="duration" class="lang-element" data-en="Sort: Duration (Shortest)" data-fr="Tri : Durée (Plus courte)">Sort: Duration (Shortest)</option>
+      </select>
+    </div>
+
     <div class="challenge-list" id="challenges-container">
       <p style="text-align: center;" class="lang-element" data-en="Loading challenges..." data-fr="Chargement des défis...">Loading challenges...</p>
     </div>
@@ -40,52 +51,22 @@
   <script src="components.js"></script>
   
   <script>
+    // Variable globale pour stocker les défis une seule fois
+    let allChallenges = [];
+
     async function loadChallenges() {
-      const lang = localStorage.getItem('userLang') || 'en';
       const container = document.getElementById("challenges-container");
+      const lang = localStorage.getItem('userLang') || 'en';
       
       try {
         const res = await fetch("/api/segseq/challenge", { credentials: "include" });
         const data = await res.json();
+        
         if (!res.ok) throw new Error(data.error || "Failed to load");
         
-        if (data.length === 0) {
-          const noChallengesMsg = lang === 'fr' ? "Aucun défi trouvé." : "No challenges found.";
-          const createOneMsg = lang === 'fr' ? "Créez-en un !" : "Create one!";
-          container.innerHTML = `<p style="text-align: center;">${noChallengesMsg} <a href="create.html" style="color:var(--orange);">${createOneMsg}</a></p>`;
-          return;
-        }
-        
-        container.innerHTML = "";
-        
-        // Textes traduits pour les cartes
-        const sportLabel = lang === 'fr' ? "Sport :" : "Sport:";
-        const durationLabel = lang === 'fr' ? "Durée :" : "Duration:";
-        const viewBtnText = lang === 'fr' ? "Voir" : "View";
-        const deleteBtnText = lang === 'fr' ? "Supprimer" : "Delete";
+        allChallenges = data; // On stocke les données
+        applySearchAndSort(); // On affiche avec le tri par défaut
 
-        data.forEach(challenge => {
-          const card = document.createElement("div");
-          card.className = "challenge-card";
-          card.id = `challenge-${challenge.id}`;
-          
-          let deleteBtnHtml = "";
-          if (challenge.can_delete) {
-            deleteBtnHtml = `<button onclick="deleteChallenge(${challenge.id})" class="btn-delete">${deleteBtnText}</button>`;
-          }
-          
-          card.innerHTML = `
-            <div>
-              <h3 style="color: var(--navy); font-size: 1.5rem; margin-bottom: 8px;">${challenge.name}</h3>
-              <p style="color: #555;"><strong>${sportLabel}</strong> ${challenge.sport.toUpperCase()} | <strong>${durationLabel}</strong> ${challenge.duration_hours}h</p>
-            </div>
-            <div style="display: flex; gap: 10px;">
-              <a href="challenge.html?id=${challenge.id}" class="btn-view-feature" style="color: white; background: var(--navy-light); border:none;">${viewBtnText}</a>
-              ${deleteBtnHtml}
-            </div>
-          `;
-          container.appendChild(card);
-        });
       } catch (err) {
         console.error(err);
         const errorMsg = lang === 'fr' ? "Erreur lors du chargement des défis." : "Error loading challenges.";
@@ -93,9 +74,82 @@
       }
     }
 
+    // NOUVELLE FONCTION : Filtre et trie les défis avant de les afficher
+    function applySearchAndSort() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const sortValue = document.getElementById('sort-select').value;
+      
+      // 1. Filtrage (Recherche)
+      let filteredChallenges = allChallenges.filter(c => {
+        return c.name.toLowerCase().includes(searchTerm) || 
+               c.sport.toLowerCase().includes(searchTerm);
+      });
+
+      // 2. Tri
+      filteredChallenges.sort((a, b) => {
+        if (sortValue === 'newest') {
+          return b.id - a.id; // L'ID le plus grand est le plus récent
+        } else if (sortValue === 'name') {
+          return a.name.localeCompare(b.name); // Ordre alphabétique
+        } else if (sortValue === 'duration') {
+          return a.duration_hours - b.duration_hours; // Du plus court au plus long
+        }
+        return 0;
+      });
+
+      // 3. Affichage
+      renderChallenges(filteredChallenges);
+    }
+
+    // Fonction d'affichage extraite pour être réutilisée
+    function renderChallenges(challengesToRender) {
+      const lang = localStorage.getItem('userLang') || 'en';
+      const container = document.getElementById("challenges-container");
+      
+      if (challengesToRender.length === 0) {
+        const noChallengesMsg = lang === 'fr' ? "Aucun défi trouvé." : "No challenges found.";
+        const createOneMsg = lang === 'fr' ? "Créez-en un !" : "Create one!";
+        container.innerHTML = `<p style="text-align: center;">${noChallengesMsg} <a href="create.html" style="color:var(--orange);">${createOneMsg}</a></p>`;
+        return;
+      }
+      
+      container.innerHTML = "";
+      
+      const sportLabel = lang === 'fr' ? "Sport :" : "Sport:";
+      const durationLabel = lang === 'fr' ? "Durée :" : "Duration:";
+      const viewBtnText = lang === 'fr' ? "Voir" : "View";
+      const deleteBtnText = lang === 'fr' ? "Supprimer" : "Delete";
+
+      challengesToRender.forEach(challenge => {
+        const card = document.createElement("div");
+        card.className = "challenge-card";
+        card.id = `challenge-${challenge.id}`;
+        
+        let deleteBtnHtml = "";
+        if (challenge.can_delete) {
+          deleteBtnHtml = `<button onclick="deleteChallenge(${challenge.id})" class="btn-delete">${deleteBtnText}</button>`;
+        }
+        
+        card.innerHTML = `
+          <div>
+            <h3 style="color: var(--navy); font-size: 1.5rem; margin-bottom: 8px;">${challenge.name}</h3>
+            <p style="color: #555;"><strong>${sportLabel}</strong> ${challenge.sport.toUpperCase()} | <strong>${durationLabel}</strong> ${challenge.duration_hours}h</p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <a href="challenge.html?id=${challenge.id}" class="btn-view-feature" style="color: white; background: var(--navy-light); border:none;">${viewBtnText}</a>
+            ${deleteBtnHtml}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Écouteurs d'événements pour la recherche et le tri
+    document.getElementById('search-input').addEventListener('input', applySearchAndSort);
+    document.getElementById('sort-select').addEventListener('change', applySearchAndSort);
+
     async function deleteChallenge(id) {
       const lang = localStorage.getItem('userLang') || 'en';
-      
       const confirmMsg = lang === 'fr' 
         ? "Êtes-vous sûr de vouloir supprimer ce défi ? Cette action est irréversible." 
         : "Are you sure you want to delete this challenge? This action cannot be undone.";
@@ -107,7 +161,9 @@
         const data = await res.json();
         
         if (res.ok) {
-          document.getElementById(`challenge-${id}`).remove();
+          // Supprimer du tableau global et réafficher
+          allChallenges = allChallenges.filter(c => c.id !== id);
+          applySearchAndSort();
         } else {
           const errorPrefix = lang === 'fr' ? "Erreur : " : "Error: ";
           alert(errorPrefix + data.error);
