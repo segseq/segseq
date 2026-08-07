@@ -188,9 +188,17 @@
             // mousedown est utilisé car il s'exécute AVANT le focusout de l'input
             item.addEventListener('mousedown', function(event) {
               event.preventDefault(); 
-              input.value = seg.id;
-              updateSegmentId(index, seg.id); // Met à jour le tableau JS
-              dropdown.style.display = 'none';
+              
+              // MAGIE : Puisqu'on sait que c'est un vrai segment Strava, 
+              // on le valide automatiquement sans avoir besoin de cliquer sur "Check" !
+              segments[index] = { 
+                id: String(seg.id), 
+                name: seg.name, 
+                isValidated: true 
+              };
+              
+              // On redessine l'interface : la ligne devient instantanément validée
+              renderSegments(); 
             });
             
             dropdown.appendChild(item);
