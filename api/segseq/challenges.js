@@ -38,20 +38,20 @@ export default async function handler(req, res) {
   }
 
   // --- PAYLOAD EXTRACTION ---
-  const { name, description, sport, duration, strict_sequence, segments } = req.body;
+  const { name, description, duration, strict_sequence, segments } = req.body;
 
   // --- VALIDATION ---
-  if (!name || !sport || !duration || !Array.isArray(segments) || segments.length < 2) {
+  if (!name || !duration || !Array.isArray(segments) || segments.length < 2) {
     return res.status(400).json({ error: "Invalid payload" });
   }
 
   try {
     // --- INSERT CHALLENGE ---
     const rows = await query(
-      `INSERT INTO challenges (creator_id, name, description, sport, duration_hours, strict_sequence)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO challenges (creator_id, name, description, duration_hours, strict_sequence)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id`,
-      [creatorId, name, description, sport, duration, strict_sequence]
+      [creatorId, name, description, duration, strict_sequence]
     );
 
     const challengeId = rows[0].id;

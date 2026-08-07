@@ -81,8 +81,7 @@
       
       // 1. Filtrage (Recherche)
       let filteredChallenges = allChallenges.filter(c => {
-        return c.name.toLowerCase().includes(searchTerm) || 
-               c.sport.toLowerCase().includes(searchTerm);
+        return c.name.toLowerCase().includes(searchTerm);
       });
 
       // 2. Tri
@@ -115,7 +114,6 @@
       
       container.innerHTML = "";
       
-      const sportLabel = lang === 'fr' ? "Sport :" : "Sport:";
       const durationLabel = lang === 'fr' ? "Durée :" : "Duration:";
       const viewBtnText = lang === 'fr' ? "Voir" : "View";
       const deleteBtnText = lang === 'fr' ? "Supprimer" : "Delete";
@@ -133,7 +131,7 @@
         card.innerHTML = `
           <div>
             <h3 style="color: var(--navy); font-size: 1.5rem; margin-bottom: 8px;">${challenge.name}</h3>
-            <p style="color: #555;"><strong>${sportLabel}</strong> ${challenge.sport.toUpperCase()} | <strong>${durationLabel}</strong> ${challenge.duration_hours}h</p>
+            <p style="color: #555;"><strong>${durationLabel}</strong> ${challenge.duration_hours}h</p>
           </div>
           <div style="display: flex; gap: 10px;">
             <a href="challenge.html?id=${challenge.id}" class="btn-view-feature" style="color: white; background: var(--navy-light); border:none;">${viewBtnText}</a>

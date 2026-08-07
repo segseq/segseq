@@ -1,6 +1,6 @@
 import { query } from "../../db.js";
 import { parse } from "cookie-es";
-import jwt from "jsonwebtoken"; // NOUVEL IMPORT
+import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -29,8 +29,9 @@ export default async function handler(req, res) {
       
       // 1A. GET ALL CHALLENGES (For Explore Page)
       if (!id) {
+        // MODIFICATION : Suppression de 'sport' de la requête
         const rows = await query(`
-          SELECT id, creator_id, name, sport, duration_hours, created_at
+          SELECT id, creator_id, name, duration_hours, created_at
           FROM challenges
           ORDER BY created_at DESC
         `);
@@ -46,8 +47,9 @@ export default async function handler(req, res) {
       
       // 1B. GET SINGLE CHALLENGE (For Challenge Details Page)
       else {
+        // MODIFICATION : Suppression de 'sport' et ajout de 'strict_sequence'
         const challengeRows = await query(
-          `SELECT id, creator_id, name, description, sport, duration_hours
+          `SELECT id, creator_id, name, description, duration_hours, strict_sequence
            FROM challenges
            WHERE id = $1`,
           [id]
@@ -67,7 +69,6 @@ export default async function handler(req, res) {
           [id]
         );
 
-        // --- NOUVEAU : Récupération des détails Strava ---
         const creatorDb = await query(`SELECT access_token FROM athletes WHERE id = $1`, [challenge.creator_id]);
         const token = creatorDb.length > 0 ? creatorDb[0].access_token : null;
 
@@ -75,7 +76,8 @@ export default async function handler(req, res) {
         let totalElevation = 0;
         
         const enrichedSegments = await Promise.all(segmentRows.map(async (s) => {
-          let extraData = { name: null, distance: 0, elevation: 0 };
+          // MODIFICATION : Initialisation des nouvelles variables
+          let extraData = { name: null, distance: 0, elevation: 0, activity_type: null, average_grade: null };
           
           if (token) {
             try {
@@ -84,10 +86,13 @@ export default async function handler(req, res) {
               });
               if (stravaRes.ok) {
                 const data = await stravaRes.json();
+                // MODIFICATION : Extraction du sport et de la pente depuis Strava
                 extraData = {
                   name: data.name,
                   distance: data.distance || 0,
-                  elevation: data.total_elevation_gain || 0
+                  elevation: data.total_elevation_gain || 0,
+                  activity_type: data.activity_type, // NOUVEAU
+                  average_grade: data.average_grade  // NOUVEAU
                 };
                 totalDistance += extraData.distance;
                 totalElevation += extraData.elevation;
@@ -95,24 +100,28 @@ export default async function handler(req, res) {
             } catch (e) { console.error("Strava fetch error:", e); }
           }
 
+          // MODIFICATION : Renvoi des nouvelles données
           return {
             id: s.segment_id,
             order: s.order_index,
             name: extraData.name,
             distance: extraData.distance,
-            elevation: extraData.elevation
+            elevation: extraData.elevation,
+            activity_type: extraData.activity_type, // NOUVEAU
+            average_grade: extraData.average_grade  // NOUVEAU
           };
         }));
 
         enrichedSegments.sort((a, b) => a.order - b.order);
 
+        // MODIFICATION : Nettoyage du JSON final
         return res.status(200).json({
           id: challenge.id,
           creator_id: challenge.creator_id,
           name: challenge.name,
           description: challenge.description,
-          sport: challenge.sport,
           duration: challenge.duration_hours,
+          strict_sequence: challenge.strict_sequence, // NOUVEAU (Pour le frontend)
           total_distance: totalDistance,
           total_elevation: totalElevation,
           segments: enrichedSegments
@@ -132,7 +141,6 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "You must be logged in to delete a challenge." });
       }
 
-      // SECURITY CHECK: Verify the user requesting the delete is the creator
       const checkOwner = await query(`SELECT creator_id FROM challenges WHERE id = $1`, [id]);
       
       if (checkOwner.length === 0) {
@@ -143,7 +151,6 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: "Forbidden: You can only delete challenges you created." });
       }
 
-      // If we pass the security check, proceed with deletion
       await query(`DELETE FROM challenge_results WHERE challenge_id = $1`, [id]);
       await query(`DELETE FROM challenge_segments WHERE challenge_id = $1`, [id]);
       const result = await query(`DELETE FROM challenges WHERE id = $1 RETURNING id`, [id]);
@@ -151,9 +158,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, deleted_id: id });
     }
 
-    // ==========================================
-    // METHOD NOT ALLOWED
-    // ==========================================
     else {
       return res.status(405).json({ error: "Method not allowed" });
     }

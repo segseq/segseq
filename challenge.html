@@ -27,7 +27,6 @@
       <!-- Section enveloppée pour pouvoir la masquer si le défi n'existe pas -->
       <div id="challenge-details-section">
         <h3 class="lang-element" data-en="Details" data-fr="Détails" style="color:var(--navy); margin-bottom: 10px;">Details</h3>
-        <p><strong class="lang-element" data-en="Sport:" data-fr="Sport :">Sport:</strong> <span id="challenge-sport" style="text-transform: capitalize;"></span></p>
         <p><strong class="lang-element" data-en="Duration:" data-fr="Durée :">Duration:</strong> <span id="challenge-duration"></span> <span class="lang-element" data-en="hours" data-fr="heures">hours</span></p>
         <p><strong class="lang-element" data-en="Distance:" data-fr="Distance :">Distance:</strong> <span id="challenge-distance"></span> km</p>
         <p><strong class="lang-element" data-en="Elevation:" data-fr="Dénivelé :">Elevation:</strong> <span id="challenge-elevation"></span> m</p>
@@ -140,11 +139,7 @@
         
         document.getElementById("challenge-description").textContent = data.description;
         document.getElementById("challenge-description").classList.remove('lang-element');
-        
-        const sportTranslated = lang === 'fr' && data.sport === 'run' ? 'Course à pied' : 
-                                lang === 'fr' && data.sport === 'ride' ? 'Cyclisme' : data.sport;
-        document.getElementById("challenge-sport").textContent = sportTranslated;
-        
+               
         document.getElementById("challenge-duration").textContent = data.duration;
         document.getElementById("challenge-distance").textContent = (data.total_distance / 1000).toFixed(2);
         document.getElementById("challenge-elevation").textContent = Math.round(data.total_elevation);
@@ -161,17 +156,35 @@
         data.segments.forEach(seg => {
           const div = document.createElement("div");
           div.className = "segment-item";
+          
           const segmentLabel = lang === 'fr' ? "Segment" : "Segment";
           const displayName = seg.name ? seg.name : `${segmentLabel} #${seg.id}`;
-          const details = seg.distance ? `(${(seg.distance / 1000).toFixed(2)} km, +${Math.round(seg.elevation)} m)` : '';
+          
+          // 1. Traduction basique du sport (Strava renvoie généralement 'Ride' ou 'Run')
+          let sportName = seg.activity_type || seg.sport || "N/A";
+          if (lang === 'fr') {
+            if (sportName.toLowerCase() === 'run') sportName = 'Course à pied';
+            if (sportName.toLowerCase() === 'ride') sportName = 'Cyclisme';
+            if (sportName.toLowerCase() === 'virtualride') sportName = 'Vélo Virtuel';
+          }
+
+          // 2. Formatage des métriques
+          const distanceStr = seg.distance ? `${(seg.distance / 1000).toFixed(2)} km` : '-';
+          const elevationStr = seg.elevation != null ? `+${Math.round(seg.elevation)}m` : '-';
+          const gradeStr = seg.average_grade != null ? `${seg.average_grade}%` : '-';
           
           div.innerHTML = `
             <div style="display:flex; align-items:center; gap:12px;">
               <span style="font-size:1.2rem; color:var(--orange);">${seg.order}.</span>
-              <span><strong>${displayName}</strong> <br/><small style="color:#777;">${details}</small></span>
+              <span>
+                <strong style="color: var(--navy); font-size: 1.05rem;">${displayName}</strong> <br/>
+                <small style="color:#777; line-height: 1.5; display: inline-block; margin-top: 4px;">
+                  ID: ${seg.id} • <strong>${sportName}</strong> <br/>
+                  ${distanceStr} • ${elevationStr} • ${gradeStr}
+                </small>
+              </span>
             </div>
             <a href="https://www.strava.com/segments/${seg.id}" target="_blank" rel="noopener noreferrer" class="strava-link-icon" title="${viewStravaText}">
-              <!-- Icône "External Link" standard -->
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                 <polyline points="15 3 21 3 21 9"></polyline>

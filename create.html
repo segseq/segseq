@@ -24,18 +24,9 @@
       
       <div class="mobile-stack" style="display: flex; gap: 20px;">
         <div style="flex: 1;">
-          <label class="lang-element" data-en="Sport" data-fr="Sport">Sport</label>
-          <select id="sport">
-            <option value="run" class="lang-element" data-en="Running" data-fr="Course à pied">Running</option>
-            <option value="ride" class="lang-element" data-en="Cycling" data-fr="Cyclisme">Cycling</option>
-          </select>
-        </div>
-        <div style="flex: 1;">
           <label class="lang-element" data-en="Duration (hours, max 120)" data-fr="Durée (heures, max 120)">Duration (hours, max 120)</label>
           <input id="duration" type="number" min="1" max="120" placeholder="48">
         </div>
-      </div>
-
       <!-- Option de séquence -->
       <div style="display: flex; align-items: center; gap: 15px; margin: 20px 0;">
         <label class="switch">
@@ -47,6 +38,7 @@
           <small class="lang-element" data-en="If enabled, segments must be completed in exact sequence" data-fr="Si activé, les segments doivent être complétés dans l'ordre exact" style="color: #777;">If enabled, segments must be completed in exact sequence</small>
         </div>
       </div>
+	  </div>
       
       <label class="lang-element" data-en="Add 2 to 5 Strava segments ID" data-fr="Ajouter de 2 à 5 ID de segments Strava">Add 2 to 5 Strava segments ID</label>
       <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
@@ -136,7 +128,6 @@
       const lang = localStorage.getItem('userLang') || 'en';
       const name = document.getElementById("challenge-name").value.trim();
       const description = document.getElementById("description").value.trim();
-      const sport = document.getElementById("sport").value;
       const durationStr = document.getElementById("duration").value;
       const strictSequence = document.getElementById("strict-sequence").checked;
       
