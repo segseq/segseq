@@ -262,13 +262,13 @@ export default async function handler(req, res) {
         const lastEffortDb = await query(`SELECT MAX(start_date) as last_date FROM segment_efforts WHERE segment_id = $1 AND athlete_name = $2`, [segId, athleteName]);
         
         let dateFilter = "";
-       /* deep scan  if (lastEffortDb.length > 0 && lastEffortDb[0].last_date) {
+       if (lastEffortDb.length > 0 && lastEffortDb[0].last_date) {
           const lastDate = new Date(lastEffortDb[0].last_date);
           lastDate.setSeconds(lastDate.getSeconds() + 1);
           const startDateStr = lastDate.toISOString().split('.')[0] + 'Z';
           const endDateStr = new Date().toISOString().split('.')[0] + 'Z';
           dateFilter = `&start_date_local=${encodeURIComponent(startDateStr)}&end_date_local=${encodeURIComponent(endDateStr)}`;
-        } */
+        }
 
         // NOUVEAU : Pagination augmentée à 10 pages max (2000 efforts)
         let page = 1, hasMorePages = true, totalInsertedForSegment = 0;
