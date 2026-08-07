@@ -65,7 +65,7 @@ export default async function handler(req, res) {
          expires_at = EXCLUDED.expires_at`,
       [
         athleteId, athlete.firstname || null, athlete.lastname || null,
-        athlete.profile || null, athlete.country || null,
+        athlete.profile || null, athlete.country || null, athlete.sex || null,
         data.access_token, data.refresh_token, data.expires_at
       ]
     );
