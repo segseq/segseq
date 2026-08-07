@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SegSeq - Profile</title>
+  
+  <title class="lang-element" data-en="SegSeq - Profile" data-fr="SegSeq - Profil">SegSeq - Profile</title>
+  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,92 +16,119 @@
     <div class="profile-card">
       <div style="text-align:center; margin-bottom:40px;">
         <img id="athlete-photo" class="profile-photo" src="https://via.placeholder.com/140" alt="Athlete photo">
-        <div id="welcome" style="margin-top:20px; font-size:2rem; color:var(--navy); font-weight:800;">Loading...</div>
+        <!-- Ce texte est remplacé par le JS, on le traduit initialement pour le "flash" visuel -->
+        <div id="welcome" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="margin-top:20px; font-size:2rem; color:var(--navy); font-weight:800;">Loading...</div>
       </div>
       <div class="info-grid">
         <div class="info-box">
-          <div style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Name</div>
-          <div id="name" style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
+          <div class="lang-element" data-en="Name" data-fr="Nom" style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Name</div>
+          <div id="name" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
         </div>
         <div class="info-box">
-          <div style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Country</div>
-          <div id="country" style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
+          <div class="lang-element" data-en="Country" data-fr="Pays" style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Country</div>
+          <div id="country" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
         </div>
       </div>
     </div>
 
     <div class="cta">
-      <a href="create.html" class="btn btn-primary">Create a challenge</a>
-      <a href="explore.html" class="btn btn-primary" style="margin-left: 10px;">Explore challenges</a>
+      <a href="create.html" class="btn btn-primary lang-element" data-en="Create a challenge" data-fr="Créer un défi">Create a challenge</a>
+      <a href="explore.html" class="btn btn-primary lang-element" data-en="Explore challenges" data-fr="Explorer les défis" style="margin-left: 10px;">Explore challenges</a>
     </div>
   </div>
 
 <section class="section waitlist">
+  <div class="container">
+    <h2 class="section-title lang-element" data-en="Thinking of leaving?" data-fr="Vous pensez à nous quitter ?">Thinking of leaving?</h2>
 
-<div class="container">
+    <!-- Le texte est découpé en span pour ne pas écraser les <br> lors de la traduction -->
+    <p style="text-align: center;">
+      <span class="lang-element" data-en="We'd be really sorry to see you go! :(" data-fr="Nous serions vraiment désolés de vous voir partir ! :(">We'd be really sorry to see you go! :(</span>
+      <br><br> 
+      <span class="lang-element" data-en="Deleting your account is permanent and cannot be undone. All your created challenges and profile data will be erased from Segseq forever." data-fr="La suppression de votre compte est définitive et ne peut être annulée. Tous vos défis créés et vos données de profil seront effacés de SegSeq pour toujours.">Deleting your account is permanent and cannot be undone. All your created challenges and profile data will be erased from Segseq forever.</span>
+      <br> 
+      <span class="lang-element" data-en="Your Strava connection will also be securely revoked." data-fr="Votre connexion Strava sera également révoquée en toute sécurité.">Your Strava connection will also be securely revoked.</span>
+    </p>
 
-<h2 class="section-title">Thinking of leaving?</h2>
-
-<p style="text-align: center;">
-We'd be really sorry to see you go! :( <br><br> Deleting your account is permanent and connot be undone. All your created challenges and profile data will be erased from Segseq forever. <br> Your Strava connection will also be securely revoked.
-</p>
-
-<div class="cta">
-      <a href="#" class="btn btn-primary" onclick="deleteAccount()">Permanently delete my account</a>
+    <div class="cta">
+      <a href="#" class="btn btn-delete lang-element" data-en="Permanently delete my account" data-fr="Supprimer définitivement mon compte" onclick="deleteAccount()">Permanently delete my account</a>
     </div>
-
-</div>
-</div>
-
+  </div>
 </section>
 
   <div id="footer-placeholder"></div>
 
+  <!-- Ordre des scripts respecté -->
+  <script src="language.js"></script>
   <script src="components.js"></script>
+  
   <script>
     async function loadProfile() {
+      // On récupère la langue actuelle pour traduire le contenu dynamique
+      const lang = localStorage.getItem('userLang') || 'en';
+      
       try {
         const athleteRes = await fetch("/api/strava/me", { credentials: "include" });
         if (!athleteRes.ok) {
-          document.getElementById("welcome").textContent = "Not authenticated";
+          document.getElementById("welcome").textContent = lang === 'fr' ? "Non authentifié" : "Not authenticated";
+          // On retire la classe lang-element pour que language.js n'écrase pas notre texte dynamique
+          document.getElementById("welcome").classList.remove('lang-element');
           return;
         }
         const athlete = await athleteRes.json();
         document.getElementById("athlete-photo").src = athlete.profile;
-        document.getElementById("welcome").textContent = `Welcome back, ${athlete.firstname}!`;
+        
+        // Traduction dynamique du message de bienvenue
+        document.getElementById("welcome").textContent = lang === 'fr' ? `Bon retour, ${athlete.firstname} !` : `Welcome back, ${athlete.firstname}!`;
+        document.getElementById("welcome").classList.remove('lang-element');
+
         document.getElementById("name").textContent = athlete.firstname + " " + athlete.lastname;
-        document.getElementById("country").textContent = athlete.country || "N/A";
+        document.getElementById("name").classList.remove('lang-element');
+        
+        // Traduction de "N/A"
+        document.getElementById("country").textContent = athlete.country || (lang === 'fr' ? "N/D" : "N/A");
+        document.getElementById("country").classList.remove('lang-element');
+
       } catch (err) {
         console.error(err);
       }
     }
     loadProfile();
 	
-	//suppression du compte
-	async function deleteAccount() {
-  const confirmDelete = confirm("Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Toutes vos données et challenges créés seront perdus.");
-  
-  if (!confirmDelete) return;
+    // Suppression du compte
+    async function deleteAccount() {
+      const lang = localStorage.getItem('userLang') || 'en';
+      
+      // Traduction de la pop-up de confirmation
+      const confirmMsg = lang === 'fr' 
+        ? "Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Toutes vos données et challenges créés seront perdus." 
+        : "Are you sure you want to permanently delete your account? All your data and created challenges will be lost.";
+        
+      const confirmDelete = confirm(confirmMsg);
+      
+      if (!confirmDelete) return;
 
-  try {
-    const response = await fetch('/api/segseq/delete-account', {
-      method: 'DELETE'
-    });
+      try {
+        const response = await fetch('/api/segseq/delete-account', {
+          method: 'DELETE'
+        });
 
-    if (response.ok) {
-      alert("Votre compte a été supprimé avec succès.");
-      // Redirection vers la page d'accueil
-      window.location.href = "/"; 
-    } else {
-      const data = await response.json();
-      alert("Erreur : " + (data.error || "Impossible de supprimer le compte."));
+        if (response.ok) {
+          const successMsg = lang === 'fr' ? "Votre compte a été supprimé avec succès." : "Your account has been successfully deleted.";
+          alert(successMsg);
+          window.location.href = "/"; 
+        } else {
+          const data = await response.json();
+          const defaultError = lang === 'fr' ? "Impossible de supprimer le compte." : "Unable to delete account.";
+          const errorPrefix = lang === 'fr' ? "Erreur : " : "Error: ";
+          alert(errorPrefix + (data.error || defaultError));
+        }
+      } catch (err) {
+        console.error("Erreur réseau :", err);
+        const networkError = lang === 'fr' ? "Une erreur réseau est survenue." : "A network error occurred.";
+        alert(networkError);
+      }
     }
-  } catch (err) {
-    console.error("Erreur réseau :", err);
-    alert("Une erreur réseau est survenue.");
-  }
-}
-	
   </script>
 </body>
 </html>

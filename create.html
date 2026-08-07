@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SegSeq - Create Challenge</title>
+  
+  <title class="lang-element" data-en="SegSeq - Create Challenge" data-fr="SegSeq - Créer un défi">SegSeq - Create Challenge</title>
+  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -12,71 +14,74 @@
 
   <div class="container" style="max-width:900px;">
     <div class="form-card">
-      <h2>Create a Challenge</h2>
+      <h2 class="lang-element" data-en="Create a Challenge" data-fr="Créer un défi">Create a Challenge</h2>
       
-      <label>Challenge Name</label>
-      <input id="challenge-name" maxlength="40" placeholder="Ex: UTMB 4-Day Challenge">
+      <label class="lang-element" data-en="Challenge Name" data-fr="Nom du défi">Challenge Name</label>
+      <input id="challenge-name" maxlength="40" class="lang-element" data-placeholder-en="Ex: UTMB 4-Day Challenge" data-placeholder-fr="Ex: Défi UTMB en 4 jours" placeholder="Ex: UTMB 4-Day Challenge">
       
-      <label>Description</label>
-      <textarea id="description" placeholder="Describe your challenge..." style="min-height:120px; resize:vertical;"></textarea>
+      <label class="lang-element" data-en="Description" data-fr="Description">Description</label>
+      <textarea id="description" class="lang-element" data-placeholder-en="Describe your challenge..." data-placeholder-fr="Décrivez votre défi..." placeholder="Describe your challenge..." style="min-height:120px; resize:vertical;"></textarea>
       
       <div style="display: flex; gap: 20px;">
         <div style="flex: 1;">
-          <label>Sport</label>
+          <label class="lang-element" data-en="Sport" data-fr="Sport">Sport</label>
           <select id="sport">
-            <option value="run">Running</option>
-            <option value="ride">Cycling</option>
+            <option value="run" class="lang-element" data-en="Running" data-fr="Course à pied">Running</option>
+            <option value="ride" class="lang-element" data-en="Cycling" data-fr="Cyclisme">Cycling</option>
           </select>
         </div>
         <div style="flex: 1;">
-          <label>Duration (hours, max 120)</label>
+          <label class="lang-element" data-en="Duration (hours, max 120)" data-fr="Durée (heures, max 120)">Duration (hours, max 120)</label>
           <input id="duration" type="number" min="1" max="120" placeholder="48">
         </div>
       </div>
 
-      <!-- NOUVEAU : Option de séquence -->
-    <div style="display: flex; align-items: center; gap: 15px; margin: 20px 0;">
+      <!-- Option de séquence -->
+      <div style="display: flex; align-items: center; gap: 15px; margin: 20px 0;">
         <label class="switch">
           <input type="checkbox" id="strict-sequence" checked>
           <span class="slider"></span>
         </label>
         <div>
-          <strong style="display: block; color: var(--navy);">Strict sequence</strong>
-          <small style="color: #777;">If enabled, segments must be completed in exact sequence</small>
+          <strong class="lang-element" data-en="Strict sequence" data-fr="Séquence stricte" style="display: block; color: var(--navy);">Strict sequence</strong>
+          <small class="lang-element" data-en="If enabled, segments must be completed in exact sequence" data-fr="Si activé, les segments doivent être complétés dans l'ordre exact" style="color: #777;">If enabled, segments must be completed in exact sequence</small>
         </div>
       </div>
       
-      <label>Add 2 to 5 Strava segments ID</label>
+      <label class="lang-element" data-en="Add 2 to 5 Strava segments ID" data-fr="Ajouter de 2 à 5 ID de segments Strava">Add 2 to 5 Strava segments ID</label>
       <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
-        <input id="segment-input" type="number" placeholder="Ex: 1234567" style="flex:1;">
+        <input id="segment-input" type="number" class="lang-element" data-placeholder-en="Ex: 1234567" data-placeholder-fr="Ex: 1234567" placeholder="Ex: 1234567" style="flex:1;">
         <button id="add-seg-btn" onclick="addSegment()" type="button" style="background:none; border:none; font-size:2rem; color:var(--orange); cursor:pointer; padding:0 10px; width: 50px;">∿</button>
-        <span style="color:#777; font-size:.9rem;">Add</span>
+        <span class="lang-element" data-en="Add" data-fr="Ajouter" style="color:#777; font-size:.9rem;">Add</span>
       </div>
       
       <div id="segments" style="margin-top: 20px;"></div>
     </div>
     
     <div class="cta">
-      <a href="#" class="btn btn-primary" onclick="publishChallenge()">Publish challenge</a>
-      <a href="explore.html" class="btn btn-primary">Explore challenges</a>
+      <a href="#" class="btn btn-primary lang-element" data-en="Publish challenge" data-fr="Publier le défi" onclick="publishChallenge()">Publish challenge</a>
+      <a href="explore.html" class="btn btn-primary lang-element" data-en="Explore challenges" data-fr="Explorer les défis">Explore challenges</a>
     </div>
   </div>
 
   <div id="footer-placeholder"></div>
 
+  <!-- Scripts dans le bon ordre -->
+  <script src="language.js"></script>
   <script src="components.js"></script>
+  
   <script>
-    // On stocke maintenant des objets {id, name} au lieu de juste l'ID
     let segments = [];
 
     async function addSegment() {
+      const lang = localStorage.getItem('userLang') || 'en';
       const input = document.getElementById("segment-input");
       const id = input.value.trim();
       const btn = document.getElementById("add-seg-btn");
 
-      // Validations de base
-      if (!id) return alert("Veuillez entrer un ID de segment.");
-      if (segments.length >= 5) return alert("Maximum 5 segments autorisés.");
+      // Traductions des alertes
+      if (!id) return alert(lang === 'fr' ? "Veuillez entrer un ID de segment." : "Please enter a segment ID.");
+      if (segments.length >= 5) return alert(lang === 'fr' ? "Maximum 5 segments autorisés." : "Maximum 5 segments allowed.");
 
       // UI : Mode chargement
       btn.innerHTML = "⏳";
@@ -84,20 +89,20 @@
       input.disabled = true;
 
       try {
-        // Appel au backend pour valider le segment via l'API Strava
         const res = await fetch(`/api/segseq/validate-segment?id=${id}`);
         const data = await res.json();
         
-        if (!res.ok) throw new Error(data.error || "Segment introuvable ou privé sur Strava.");
+        if (!res.ok) {
+            const defaultErr = lang === 'fr' ? "Segment introuvable ou privé sur Strava." : "Segment not found or private on Strava.";
+            throw new Error(data.error || defaultErr);
+        }
         
-        // Succès : on ajoute le segment avec son vrai nom Strava
         segments.push({ id: id, name: data.name });
         renderSegments();
         input.value = "";
       } catch (err) {
         alert(err.message);
       } finally {
-        // UI : Retour à la normale
         btn.innerHTML = "∿";
         btn.disabled = false;
         input.disabled = false;
@@ -128,19 +133,19 @@
     }
 
     async function publishChallenge() {
+      const lang = localStorage.getItem('userLang') || 'en';
       const name = document.getElementById("challenge-name").value.trim();
       const description = document.getElementById("description").value.trim();
       const sport = document.getElementById("sport").value;
       const durationStr = document.getElementById("duration").value;
-	  const strictSequence = document.getElementById("strict-sequence").checked;
+      const strictSequence = document.getElementById("strict-sequence").checked;
       
-      // 2a) Validations précises
-      if (!name) return alert("Veuillez donner un nom à votre challenge.");
-      if (!description) return alert("Veuillez ajouter une description.");
-      if (!durationStr || parseInt(durationStr, 10) < 1) return alert("Veuillez définir une durée valide (min 1 heure).");
-      if (segments.length < 2) return alert("Vous devez ajouter au moins 2 segments validés.");
+      // Traductions des alertes de validation
+      if (!name) return alert(lang === 'fr' ? "Veuillez donner un nom à votre défi." : "Please give your challenge a name.");
+      if (!description) return alert(lang === 'fr' ? "Veuillez ajouter une description." : "Please add a description.");
+      if (!durationStr || parseInt(durationStr, 10) < 1) return alert(lang === 'fr' ? "Veuillez définir une durée valide (min 1 heure)." : "Please set a valid duration (min 1 hour).");
+      if (segments.length < 2) return alert(lang === 'fr' ? "Vous devez ajouter au moins 2 segments validés." : "You must add at least 2 validated segments.");
       
-      // On ne renvoie que les IDs au backend pour ne pas casser ton API existante
       const segmentIds = segments.map(s => s.id);
       
       const payload = { 
@@ -148,7 +153,7 @@
         description, 
         sport, 
         duration: parseInt(durationStr, 10), 
-        strict_sequence: strictSequence, // Nouvelle donnée
+        strict_sequence: strictSequence,
         segments: segmentIds 
       };
       
@@ -162,15 +167,16 @@
         const data = await res.json();
         
         if (!res.ok) {
-          // 2b) Si le backend renvoie une erreur (ex: Nom déjà pris)
-          alert("Erreur: " + (data.error || "Impossible de créer le challenge."));
+          const errorPrefix = lang === 'fr' ? "Erreur : " : "Error: ";
+          const defaultError = lang === 'fr' ? "Impossible de créer le défi." : "Unable to create challenge.";
+          alert(errorPrefix + (data.error || defaultError));
           return;
         }
-        // Succès !
+        
         window.location.href = `/challenge.html?id=${data.id}&force=1`;
       } catch (err) {
         console.error(err);
-        alert("Erreur réseau. Veuillez vérifier votre connexion.");
+        alert(lang === 'fr' ? "Erreur réseau. Veuillez vérifier votre connexion." : "Network error. Please check your connection.");
       }
     }
   </script>

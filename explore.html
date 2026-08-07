@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SegSeq - Explore Challenges</title>
+  
+  <title class="lang-element" data-en="SegSeq - Explore Challenges" data-fr="SegSeq - Explorer les défis">SegSeq - Explore Challenges</title>
+  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,40 +16,54 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-value" id="stat-athletes">-</div>
-        <div class="stat-label">Athlètes Inscrits</div>
+        <div class="stat-label lang-element" data-en="Registered Athletes" data-fr="Athlètes Inscrits">Registered Athletes</div>
       </div>
       <div class="stat-card">
         <div class="stat-value" id="stat-challenges">-</div>
-        <div class="stat-label">Challenges Créés</div>
+        <div class="stat-label lang-element" data-en="Created Challenges" data-fr="Défis Créés">Created Challenges</div>
       </div>
     </div>
 
     <div class="challenge-list" id="challenges-container">
-      <p style="text-align: center;">Loading challenges...</p>
+      <p style="text-align: center;" class="lang-element" data-en="Loading challenges..." data-fr="Chargement des défis...">Loading challenges...</p>
     </div>
 
     <div class="cta">
-      <a href="create.html" class="btn btn-primary">Create a challenge</a>
+      <a href="create.html" class="btn btn-primary lang-element" data-en="Create a challenge" data-fr="Créer un défi">Create a challenge</a>
     </div>
   </div>
 
   <div id="footer-placeholder"></div>
 
+  <!-- Ordre des scripts respecté -->
+  <script src="language.js"></script>
   <script src="components.js"></script>
+  
   <script>
     async function loadChallenges() {
+      const lang = localStorage.getItem('userLang') || 'en';
       const container = document.getElementById("challenges-container");
+      
       try {
         const res = await fetch("/api/segseq/challenge", { credentials: "include" });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to load");
         
         if (data.length === 0) {
-          container.innerHTML = `<p style="text-align: center;">No challenges found. <a href="create.html" style="color:var(--orange);">Create one!</a></p>`;
+          const noChallengesMsg = lang === 'fr' ? "Aucun défi trouvé." : "No challenges found.";
+          const createOneMsg = lang === 'fr' ? "Créez-en un !" : "Create one!";
+          container.innerHTML = `<p style="text-align: center;">${noChallengesMsg} <a href="create.html" style="color:var(--orange);">${createOneMsg}</a></p>`;
           return;
         }
         
         container.innerHTML = "";
+        
+        // Textes traduits pour les cartes
+        const sportLabel = lang === 'fr' ? "Sport :" : "Sport:";
+        const durationLabel = lang === 'fr' ? "Durée :" : "Duration:";
+        const viewBtnText = lang === 'fr' ? "Voir" : "View";
+        const deleteBtnText = lang === 'fr' ? "Supprimer" : "Delete";
+
         data.forEach(challenge => {
           const card = document.createElement("div");
           card.className = "challenge-card";
@@ -55,16 +71,16 @@
           
           let deleteBtnHtml = "";
           if (challenge.can_delete) {
-            deleteBtnHtml = `<button onclick="deleteChallenge(${challenge.id})" class="btn-delete">Delete</button>`;
+            deleteBtnHtml = `<button onclick="deleteChallenge(${challenge.id})" class="btn-delete">${deleteBtnText}</button>`;
           }
           
           card.innerHTML = `
             <div>
               <h3 style="color: var(--navy); font-size: 1.5rem; margin-bottom: 8px;">${challenge.name}</h3>
-              <p style="color: #555;"><strong>Sport:</strong> ${challenge.sport.toUpperCase()} | <strong>Duration:</strong> ${challenge.duration_hours}h</p>
+              <p style="color: #555;"><strong>${sportLabel}</strong> ${challenge.sport.toUpperCase()} | <strong>${durationLabel}</strong> ${challenge.duration_hours}h</p>
             </div>
             <div style="display: flex; gap: 10px;">
-              <a href="challenge.html?id=${challenge.id}" class="btn-view-feature" style="color: white; background: var(--navy-light); border:none;">View</a>
+              <a href="challenge.html?id=${challenge.id}" class="btn-view-feature" style="color: white; background: var(--navy-light); border:none;">${viewBtnText}</a>
               ${deleteBtnHtml}
             </div>
           `;
@@ -72,23 +88,34 @@
         });
       } catch (err) {
         console.error(err);
-        container.innerHTML = `<p style="text-align: center; color: red;">Error loading challenges.</p>`;
+        const errorMsg = lang === 'fr' ? "Erreur lors du chargement des défis." : "Error loading challenges.";
+        container.innerHTML = `<p style="text-align: center; color: red;">${errorMsg}</p>`;
       }
     }
 
     async function deleteChallenge(id) {
-      if (!confirm("Are you sure you want to delete this challenge? This action cannot be undone.")) return;
+      const lang = localStorage.getItem('userLang') || 'en';
+      
+      const confirmMsg = lang === 'fr' 
+        ? "Êtes-vous sûr de vouloir supprimer ce défi ? Cette action est irréversible." 
+        : "Are you sure you want to delete this challenge? This action cannot be undone.";
+        
+      if (!confirm(confirmMsg)) return;
+      
       try {
         const res = await fetch(`/api/segseq/challenge?id=${id}`, { method: "DELETE", credentials: "include" });
         const data = await res.json();
+        
         if (res.ok) {
           document.getElementById(`challenge-${id}`).remove();
         } else {
-          alert("Error: " + data.error);
+          const errorPrefix = lang === 'fr' ? "Erreur : " : "Error: ";
+          alert(errorPrefix + data.error);
         }
       } catch (err) {
         console.error(err);
-        alert("Network error occurred.");
+        const networkError = lang === 'fr' ? "Une erreur réseau est survenue." : "Network error occurred.";
+        alert(networkError);
       }
     }
 
