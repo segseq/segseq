@@ -97,12 +97,25 @@
       if (lbData.leaderboard && lbData.leaderboard.length > 0) {
         lbData.leaderboard.forEach(row => {
           const tr = document.createElement("tr");
+          
+          // 1) Crown Icon for the best athlete (Rank 1)
+          const rankDisplay = row.rank === 1 
+            ? `<img src="segseq-crown.jpeg" alt="1" style="width: 24px; height: 24px; vertical-align: middle;">` 
+            : row.rank;
+
+          // 2) Athlete Picture
+          // Note: Adjust 'row.profile' to whatever property your API uses for the image URL (e.g., row.avatar, row.profile_medium)
+          const avatarUrl = row.profile || 'https://via.placeholder.com/32'; // Fallback if no image exists
+
           tr.innerHTML = `
-            <td>${row.rank}</td>
-            <td>${row.athlete}</td>
-            <td>${row.start_date}</td>
-            <td>${row.total_time_human}</td>
-            <td><strong style="color:var(--orange);">${row.moving_time_human}</strong></td>
+            <td style="text-align: center; vertical-align: middle;">${rankDisplay}</td>
+            <td style="display: flex; align-items: center; gap: 10px;">
+              <img src="${avatarUrl}" alt="${row.athlete}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
+              <span>${row.athlete}</span>
+            </td>
+            <td style="vertical-align: middle;">${row.start_date}</td>
+            <td style="vertical-align: middle;">${row.total_time_human}</td>
+            <td style="vertical-align: middle;"><strong style="color:var(--orange);">${row.moving_time_human}</strong></td>
           `;
           lb.appendChild(tr);
         });
