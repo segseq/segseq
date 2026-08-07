@@ -31,6 +31,7 @@
         <p><strong class="lang-element" data-en="Duration:" data-fr="Durée :">Duration:</strong> <span id="challenge-duration"></span> <span class="lang-element" data-en="hours" data-fr="heures">hours</span></p>
         <p><strong class="lang-element" data-en="Distance:" data-fr="Distance :">Distance:</strong> <span id="challenge-distance"></span> km</p>
         <p><strong class="lang-element" data-en="Elevation:" data-fr="Dénivelé :">Elevation:</strong> <span id="challenge-elevation"></span> m</p>
+		<p><strong class="lang-element" data-en="Sequence:" data-fr="Séquence :">Sequence:</strong> <span id="challenge-sequence"></span></p>
         
         <h3 class="lang-element" data-en="Segments" data-fr="Segments" style="color:var(--navy); margin: 30px 0 10px;">Segments</h3>
         <div id="segments-list"></div>
@@ -147,7 +148,11 @@
         document.getElementById("challenge-duration").textContent = data.duration;
         document.getElementById("challenge-distance").textContent = (data.total_distance / 1000).toFixed(2);
         document.getElementById("challenge-elevation").textContent = Math.round(data.total_elevation);
-        
+        const isStrict = data.strict_sequence !== false; // true par défaut
+        const seqTextEn = isStrict ? "Strict (Must follow order)" : "Free (Any order)";
+        const seqTextFr = isStrict ? "Stricte (Dans l'ordre exact)" : "Libre (Dans n'importe quel ordre)";
+        document.getElementById("challenge-sequence").textContent = lang === 'fr' ? seqTextFr : seqTextEn;
+		
         const segList = document.getElementById("segments-list");
         segList.innerHTML = "";
         

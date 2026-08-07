@@ -12,7 +12,8 @@ export function formatTime(sec) {
 }
 
 // === LE MOTEUR DE CALCUL ===
-export async function calculateLeaderboard(challengeId, logStep = console.log) {
+// NOUVEAU : On passe "allAthletes" en paramètre pour forcer l'évaluation de tout le monde
+export async function calculateLeaderboard(challengeId, allAthletes, logStep = console.log) {
   logStep(`📊 --- STARTING LEADERBOARD CALCULATION ---`);
   
   const challengeRows = await query(`SELECT duration_hours, strict_sequence FROM challenges WHERE id = $1`, [challengeId]);
@@ -29,17 +30,26 @@ export async function calculateLeaderboard(challengeId, logStep = console.log) {
   const segmentsRows = await query(`SELECT segment_id FROM challenge_segments WHERE challenge_id = $1 ORDER BY order_index ASC`, [challengeId]);
   if (segmentsRows.length === 0) return [];
   
-  // On force en String pour éviter les bugs de typage avec les gros IDs Strava
   const reqSegIds = segmentsRows.map(s => String(s.segment_id));
   logStep(`📍 Required Segments (${reqSegIds.length}): ${reqSegIds.join(' ➔ ')}`);
 
   const efforts = await query(`SELECT segment_id, athlete_name, start_date, elapsed_time FROM segment_efforts WHERE segment_id = ANY($1::bigint[])`, [reqSegIds]);
   logStep(`📥 Retrieved ${efforts.length} raw efforts from database.`);
 
+  // NOUVEAU : On initialise le dictionnaire avec TOUS les athlètes de la plateforme
   const athletes = {};
+  allAthletes.forEach(a => {
+    const name = `${a.firstname} ${a.lastname}`.trim();
+    athletes[name] = [];
+  });
+
+  // On remplit avec les efforts trouvés
   efforts.forEach(e => {
-    if (!athletes[e.athlete_name]) athletes[e.athlete_name] = [];
-    athletes[e.athlete_name].push(e);
+    if (athletes[e.athlete_name]) {
+      athletes[e.athlete_name].push(e);
+    } else {
+      athletes[e.athlete_name] = [e]; // Sécurité au cas où
+    }
   });
 
   let finalLeaderboard = [];
@@ -54,7 +64,6 @@ export async function calculateLeaderboard(challengeId, logStep = console.log) {
       if (effortsBySeg[sId]) effortsBySeg[sId].push(e); 
     });
 
-    // Vérification basique : l'athlète a-t-il au moins 1 effort par segment ?
     let hasEnoughEfforts = true;
     for (const id of reqSegIds) {
       const count = effortsBySeg[id].length;
@@ -70,7 +79,6 @@ export async function calculateLeaderboard(challengeId, logStep = console.log) {
     let bestMovingSeconds = Infinity;
     let bestSequence = null;
 
-    // Déterminer les efforts de départ possibles
     let startingEfforts = [];
     if (isStrictSequence) {
       startingEfforts = effortsBySeg[reqSegIds[0]];
@@ -80,12 +88,10 @@ export async function calculateLeaderboard(challengeId, logStep = console.log) {
       }
     }
 
-    // Tester chaque effort de départ possible
     for (const startEffort of startingEfforts) {
       const windowStartMs = new Date(startEffort.start_date).getTime();
       const windowEndMs = windowStartMs + (durationHoursLimit * 3600 * 1000);
 
-      // OPTIMISATION : On filtre les efforts qui rentrent strictement dans la fenêtre de temps
       let possibleEffortsBySeg = {};
       let hasAllInWindow = true;
       
@@ -98,16 +104,15 @@ export async function calculateLeaderboard(challengeId, logStep = console.log) {
         
         if (effortsInWindow.length === 0) {
           hasAllInWindow = false;
-          break; // Il manque un segment dans cette fenêtre de temps, on abandonne
+          break; 
         }
         possibleEffortsBySeg[segId] = effortsInWindow;
       }
 
       if (!hasAllInWindow) continue;
 
-      // Fonction récursive pour trouver la meilleure séquence non-chevauchante
       function search(currentSeq, usedSegIds, prevEndMs, currentMovingSecs) {
-        if (currentMovingSecs >= bestMovingSeconds) return; // On a déjà trouvé mieux, on coupe court
+        if (currentMovingSecs >= bestMovingSeconds) return; 
 
         if (currentSeq.length === reqSegIds.length) {
           bestMovingSeconds = currentMovingSecs;
@@ -149,7 +154,6 @@ export async function calculateLeaderboard(challengeId, logStep = console.log) {
     }
 
     if (bestSequence) {
-      // Recalcul final du temps total (du début du premier segment à la fin du dernier)
       const firstE = bestSequence[0];
       const lastE = bestSequence[bestSequence.length - 1];
       const totalTimeSeconds = Math.floor((new Date(lastE.start_date).getTime() + Number(lastE.elapsed_time)*1000 - new Date(firstE.start_date).getTime()) / 1000);
@@ -199,6 +203,9 @@ export default async function handler(req, res) {
       debugSteps.push(`> ${msg}`);
     };
 
+    // On a besoin de allAthletes dans les deux cas maintenant
+    const allAthletes = await query(`SELECT id, firstname, lastname, access_token, refresh_token, expires_at FROM athletes WHERE access_token IS NOT NULL`);
+
     if (!force) {
       const results = await query(`
         SELECT athlete_name as athlete, rank, start_date, total_time_human, moving_time_human 
@@ -213,7 +220,6 @@ export default async function handler(req, res) {
 
     logStep("🔄 Force refresh requested. Fetching from Strava API...");
     const reqSegIds = (await query(`SELECT segment_id FROM challenge_segments WHERE challenge_id = $1`, [challengeId])).map(s => String(s.segment_id));
-    const allAthletes = await query(`SELECT id, firstname, lastname, access_token, refresh_token, expires_at FROM athletes WHERE access_token IS NOT NULL`); 
     
     let rateLimitHit = false; 
     
@@ -254,9 +260,10 @@ export default async function handler(req, res) {
           dateFilter = `&start_date_local=${encodeURIComponent(startDateStr)}&end_date_local=${encodeURIComponent(endDateStr)}`;
         }
 
+        // NOUVEAU : Pagination augmentée à 10 pages max (2000 efforts)
         let page = 1, hasMorePages = true, totalInsertedForSegment = 0;
         
-        while (hasMorePages && page <= 3) {
+        while (hasMorePages && page <= 10) {
           const stravaUrl = `https://www.strava.com/api/v3/segments/${segId}/all_efforts?per_page=200&page=${page}${dateFilter}`;
           const lbRes = await fetch(stravaUrl, { headers: { Authorization: `Bearer ${athlete.access_token}` } });
           
@@ -280,7 +287,8 @@ export default async function handler(req, res) {
       }
     }
 
-    const finalLeaderboard = await calculateLeaderboard(challengeId, logStep);
+    // On passe la liste de tous les athlètes au moteur de calcul
+    const finalLeaderboard = await calculateLeaderboard(challengeId, allAthletes, logStep);
 
     return res.status(200).json({ leaderboard: finalLeaderboard, debug_steps: debugSteps });
 
