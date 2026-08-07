@@ -13,30 +13,28 @@ export function formatTime(sec) {
 
 // === LE MOTEUR DE CALCUL ===
 export async function calculateLeaderboard(challengeId, logStep = console.log) {
-  logStep(`📊 --- DÉBUT DU CALCUL DU CLASSEMENT ---`);
+  logStep(`📊 --- STARTING LEADERBOARD CALCULATION ---`);
   
   const challengeRows = await query(`SELECT duration_hours, strict_sequence FROM challenges WHERE id = $1`, [challengeId]);
   if (challengeRows.length === 0) {
-    logStep(`❌ Erreur : Challenge ${challengeId} introuvable en base.`);
+    logStep(`❌ Error: Challenge ${challengeId} not found in DB.`);
     return [];
   }
   
-  const durationHoursLimit = challengeRows[0].duration_hours;
+  const durationHoursLimit = Number(challengeRows[0].duration_hours);
   const isStrictSequence = challengeRows[0].strict_sequence !== false;
   
-  logStep(`⚙️ Règles : Limite de ${durationHoursLimit}h | Séquence stricte : ${isStrictSequence ? 'OUI' : 'NON'}`);
+  logStep(`⚙️ Rules: Max Duration = ${durationHoursLimit}h | Strict Sequence = ${isStrictSequence ? 'YES' : 'NO'}`);
 
   const segmentsRows = await query(`SELECT segment_id FROM challenge_segments WHERE challenge_id = $1 ORDER BY order_index ASC`, [challengeId]);
-  if (segmentsRows.length === 0) {
-    logStep(`❌ Erreur : Aucun segment défini pour ce challenge.`);
-    return [];
-  }
+  if (segmentsRows.length === 0) return [];
   
-  const reqSegIds = segmentsRows.map(s => s.segment_id);
-  logStep(`📍 Segments requis (${reqSegIds.length}) : ${reqSegIds.join(' ➔ ')}`);
+  // On force en String pour éviter les bugs de typage avec les gros IDs Strava
+  const reqSegIds = segmentsRows.map(s => String(s.segment_id));
+  logStep(`📍 Required Segments (${reqSegIds.length}): ${reqSegIds.join(' ➔ ')}`);
 
   const efforts = await query(`SELECT segment_id, athlete_name, start_date, elapsed_time FROM segment_efforts WHERE segment_id = ANY($1::bigint[])`, [reqSegIds]);
-  logStep(`📥 ${efforts.length} efforts bruts récupérés en base pour ces segments.`);
+  logStep(`📥 Retrieved ${efforts.length} raw efforts from database.`);
 
   const athletes = {};
   efforts.forEach(e => {
@@ -47,136 +45,134 @@ export async function calculateLeaderboard(challengeId, logStep = console.log) {
   let finalLeaderboard = [];
 
   for (const [athName, athEfforts] of Object.entries(athletes)) {
-    logStep(`\n👤 Évaluation de l'athlète : ${athName}`);
+    logStep(`\n👤 Evaluating athlete: ${athName}`);
     
     const effortsBySeg = {};
     reqSegIds.forEach(id => effortsBySeg[id] = []);
-    athEfforts.forEach(e => { if (effortsBySeg[e.segment_id]) effortsBySeg[e.segment_id].push(e); });
+    athEfforts.forEach(e => { 
+      const sId = String(e.segment_id);
+      if (effortsBySeg[sId]) effortsBySeg[sId].push(e); 
+    });
 
-    const requiredCounts = {};
-    reqSegIds.forEach(id => { requiredCounts[id] = (requiredCounts[id] || 0) + 1; });
-
+    // Vérification basique : l'athlète a-t-il au moins 1 effort par segment ?
     let hasEnoughEfforts = true;
-    for (const id in requiredCounts) {
+    for (const id of reqSegIds) {
       const count = effortsBySeg[id].length;
-      logStep(`  - Seg ${id} : ${count} effort(s) trouvé(s)`);
-      if (count < requiredCounts[id]) {
-        hasEnoughEfforts = false; 
-      }
+      logStep(`  - Seg ${id}: ${count} effort(s)`);
+      if (count === 0) hasEnoughEfforts = false; 
     }
     
     if (!hasEnoughEfforts) {
-      logStep(`  ❌ Échec : Il manque des efforts sur un ou plusieurs segments.`);
+      logStep(`  ❌ Failed: Missing efforts on one or more segments.`);
       continue;
     }
 
-    for (const id in effortsBySeg) {
-      effortsBySeg[id].sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+    let bestMovingSeconds = Infinity;
+    let bestSequence = null;
+
+    // Déterminer les efforts de départ possibles
+    let startingEfforts = [];
+    if (isStrictSequence) {
+      startingEfforts = effortsBySeg[reqSegIds[0]];
+    } else {
+      for (const segId of reqSegIds) {
+        startingEfforts = startingEfforts.concat(effortsBySeg[segId]);
+      }
     }
 
-    let validSequences = [];
-    
-    function findSequences(currentSeq, usedIndices) {
-      if (usedIndices.length === reqSegIds.length) {
-        validSequences.push([...currentSeq]);
-        return;
-      }
+    // Tester chaque effort de départ possible
+    for (const startEffort of startingEfforts) {
+      const windowStartMs = new Date(startEffort.start_date).getTime();
+      const windowEndMs = windowStartMs + (durationHoursLimit * 3600 * 1000);
+
+      // OPTIMISATION : On filtre les efforts qui rentrent strictement dans la fenêtre de temps
+      let possibleEffortsBySeg = {};
+      let hasAllInWindow = true;
       
-      const firstEffort = currentSeq[0];
-      const lastEffort = currentSeq[currentSeq.length - 1];
-      
-      const currentStartTimeMs = new Date(firstEffort.start_date).getTime();
-      const prevEndTimeMs = new Date(lastEffort.start_date).getTime() + (Number(lastEffort.elapsed_time) * 1000);
-      
-      // OPTIMISATION MAJEURE : On calcule la date limite absolue pour cette séquence
-      const maxEndTimeMs = currentStartTimeMs + (durationHoursLimit * 3600 * 1000);
-      
-      if (isStrictSequence) {
-        const nextIndex = usedIndices.length;
-        const nextSegId = reqSegIds[nextIndex];
-        
-        // On ne garde que les efforts qui commencent APRÈS le segment précédent, mais AVANT la limite de temps du challenge
-        const possibleNextEfforts = effortsBySeg[nextSegId].filter(e => {
-          const eStart = new Date(e.start_date).getTime();
-          return eStart >= prevEndTimeMs && eStart <= maxEndTimeMs;
+      for (const segId of reqSegIds) {
+        const effortsInWindow = effortsBySeg[segId].filter(e => {
+          const tStart = new Date(e.start_date).getTime();
+          const tEnd = tStart + (Number(e.elapsed_time) * 1000);
+          return tStart >= windowStartMs && tEnd <= windowEndMs;
         });
         
-        for (const nextEffort of possibleNextEfforts) {
-          currentSeq.push(nextEffort);
-          usedIndices.push(nextIndex);
-          findSequences(currentSeq, usedIndices);
-          usedIndices.pop();
-          currentSeq.pop();
+        if (effortsInWindow.length === 0) {
+          hasAllInWindow = false;
+          break; // Il manque un segment dans cette fenêtre de temps, on abandonne
         }
-      } else {
-        for (let i = 0; i < reqSegIds.length; i++) {
-          if (usedIndices.includes(i)) continue; 
-          
-          const nextSegId = reqSegIds[i];
-          const possibleNextEfforts = effortsBySeg[nextSegId].filter(e => {
-            const eStart = new Date(e.start_date).getTime();
-            return eStart >= prevEndTimeMs && eStart <= maxEndTimeMs;
-          });
-          
-          for (const nextEffort of possibleNextEfforts) {
-            currentSeq.push(nextEffort);
-            usedIndices.push(i);
-            findSequences(currentSeq, usedIndices);
-            usedIndices.pop();
-            currentSeq.pop();
+        possibleEffortsBySeg[segId] = effortsInWindow;
+      }
+
+      if (!hasAllInWindow) continue;
+
+      // Fonction récursive pour trouver la meilleure séquence non-chevauchante
+      function search(currentSeq, usedSegIds, prevEndMs, currentMovingSecs) {
+        if (currentMovingSecs >= bestMovingSeconds) return; // On a déjà trouvé mieux, on coupe court
+
+        if (currentSeq.length === reqSegIds.length) {
+          bestMovingSeconds = currentMovingSecs;
+          bestSequence = [...currentSeq];
+          return;
+        }
+
+        if (isStrictSequence) {
+          const nextSegId = reqSegIds[currentSeq.length];
+          for (const e of possibleEffortsBySeg[nextSegId]) {
+            const tStart = new Date(e.start_date).getTime();
+            if (tStart >= prevEndMs) {
+              currentSeq.push(e);
+              search(currentSeq, usedSegIds, tStart + Number(e.elapsed_time)*1000, currentMovingSecs + Number(e.elapsed_time));
+              currentSeq.pop();
+            }
+          }
+        } else {
+          for (const segId of reqSegIds) {
+            if (usedSegIds.has(segId)) continue;
+            for (const e of possibleEffortsBySeg[segId]) {
+              const tStart = new Date(e.start_date).getTime();
+              if (tStart >= prevEndMs) {
+                currentSeq.push(e);
+                usedSegIds.add(segId);
+                search(currentSeq, usedSegIds, tStart + Number(e.elapsed_time)*1000, currentMovingSecs + Number(e.elapsed_time));
+                usedSegIds.delete(segId);
+                currentSeq.pop();
+              }
+            }
           }
         }
       }
+
+      const startSegId = String(startEffort.segment_id);
+      const startEndMs = windowStartMs + Number(startEffort.elapsed_time)*1000;
+      const used = new Set([startSegId]);
+      search([startEffort], used, startEndMs, Number(startEffort.elapsed_time));
     }
 
-    if (isStrictSequence) {
-      const firstSegId = reqSegIds[0];
-      for (const startEffort of effortsBySeg[firstSegId]) {
-        findSequences([startEffort], [0]); 
-      }
-    } else {
-      for (let i = 0; i < reqSegIds.length; i++) {
-        const firstSegId = reqSegIds[i];
-        for (const startEffort of effortsBySeg[firstSegId]) {
-          findSequences([startEffort], [i]);
-        }
-      }
-    }
-
-    logStep(`  🔍 Séquences valides dans le temps imparti : ${validSequences.length}`);
-
-    let bestCompletion = null;
-    for (const seq of validSequences) {
-      const startEffort = seq[0];
-      const endEffort = seq[seq.length - 1];
-      const startTimeMs = new Date(startEffort.start_date).getTime();
-      const endTimeMs = new Date(endEffort.start_date).getTime() + (Number(endEffort.elapsed_time) * 1000);
-      const totalTimeSeconds = Math.floor((endTimeMs - startTimeMs) / 1000);
-
-      const movingSeconds = seq.reduce((sum, e) => sum + Number(e.elapsed_time), 0);
-      if (!bestCompletion || movingSeconds < bestCompletion.moving_seconds) {
-        bestCompletion = {
-          athlete: athName,
-          moving_seconds: movingSeconds,
-          moving_time_human: formatTime(movingSeconds),
-          total_time_human: formatTime(totalTimeSeconds),
-          start_date: new Date(startTimeMs).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-        };
-      }
-    }
-
-    if (bestCompletion) {
-      logStep(`  ✅ Succès ! Meilleur temps de mouvement : ${bestCompletion.moving_time_human}`);
+    if (bestSequence) {
+      // Recalcul final du temps total (du début du premier segment à la fin du dernier)
+      const firstE = bestSequence[0];
+      const lastE = bestSequence[bestSequence.length - 1];
+      const totalTimeSeconds = Math.floor((new Date(lastE.start_date).getTime() + Number(lastE.elapsed_time)*1000 - new Date(firstE.start_date).getTime()) / 1000);
+      
+      const bestCompletion = {
+        athlete: athName,
+        moving_seconds: bestMovingSeconds,
+        moving_time_human: formatTime(bestMovingSeconds),
+        total_time_human: formatTime(totalTimeSeconds),
+        start_date: new Date(firstE.start_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+      };
+      
+      logStep(`  ✅ Success! Best moving time: ${bestCompletion.moving_time_human} (Total time: ${bestCompletion.total_time_human})`);
       finalLeaderboard.push(bestCompletion);
     } else {
-      logStep(`  ❌ Échec : Aucune combinaison ne respecte la limite de ${durationHoursLimit}h.`);
+      logStep(`  ❌ Failed: No valid sequence fits within the ${durationHoursLimit}h window.`);
     }
   }
 
   finalLeaderboard.sort((a, b) => a.moving_seconds - b.moving_seconds);
   finalLeaderboard.forEach((row, idx) => row.rank = idx + 1);
 
-  logStep(`\n🏆 Classement généré avec ${finalLeaderboard.length} athlète(s). Mise à jour de la DB...`);
+  logStep(`\n🏆 Leaderboard generated with ${finalLeaderboard.length} athlete(s). Updating DB...`);
   
   await query(`DELETE FROM challenge_results WHERE challenge_id = $1`, [challengeId]);
   for (const row of finalLeaderboard) {
@@ -189,7 +185,6 @@ export async function calculateLeaderboard(challengeId, logStep = console.log) {
   return finalLeaderboard;
 }
 
-
 // === L'API PRINCIPALE ===
 export default async function handler(req, res) {
   const challengeId = req.query.id;
@@ -200,8 +195,8 @@ export default async function handler(req, res) {
   try {
     let debugSteps = [];
     const logStep = (msg) => {
-      console.log(msg); // Log serveur
-      debugSteps.push(`> ${msg}`); // Log renvoyé au client HTML
+      console.log(msg);
+      debugSteps.push(`> ${msg}`);
     };
 
     if (!force) {
@@ -212,12 +207,12 @@ export default async function handler(req, res) {
       
       return res.status(200).json({
         leaderboard: results,
-        debug_steps: ["> ⚡ Chargement instantané depuis le cache de la base de données (Pas d'appel API).", "> Cliquez sur le bouton de rafraîchissement pour forcer la synchronisation avec Strava."]
+        debug_steps: ["> ⚡ Loaded instantly from database cache (No API calls).", "> Click the refresh button to force Strava synchronization."]
       });
     }
 
-    logStep("🔄 Rafraîchissement forcé demandé. Interrogation de l'API Strava...");
-    const reqSegIds = (await query(`SELECT segment_id FROM challenge_segments WHERE challenge_id = $1`, [challengeId])).map(s => s.segment_id);
+    logStep("🔄 Force refresh requested. Fetching from Strava API...");
+    const reqSegIds = (await query(`SELECT segment_id FROM challenge_segments WHERE challenge_id = $1`, [challengeId])).map(s => String(s.segment_id));
     const allAthletes = await query(`SELECT id, firstname, lastname, access_token, refresh_token, expires_at FROM athletes WHERE access_token IS NOT NULL`); 
     
     let rateLimitHit = false; 
@@ -225,11 +220,11 @@ export default async function handler(req, res) {
     for (const athlete of allAthletes) { 
       if (rateLimitHit) break; 
       const athleteName = `${athlete.firstname} ${athlete.lastname}`.trim(); 
-      logStep(`\n📡 Sync API pour l'athlète : ${athleteName}`);
+      logStep(`\n📡 API Sync for athlete: ${athleteName}`);
       
       const nowUnix = Math.floor(Date.now() / 1000);
       if (athlete.expires_at < nowUnix) {
-        logStep(`  - Token expiré, rafraîchissement en cours...`);
+        logStep(`  - Token expired, refreshing...`);
         try {
           const tokenRes = await fetch("https://www.strava.com/oauth/token", {
             method: "POST", headers: { "Content-Type": "application/json" },
@@ -240,7 +235,7 @@ export default async function handler(req, res) {
             await query(`UPDATE athletes SET access_token = $1, refresh_token = $2, expires_at = $3 WHERE id = $4`, [newTokens.access_token, newTokens.refresh_token, newTokens.expires_at, athlete.id]);
             athlete.access_token = newTokens.access_token;
           } else {
-            logStep(`  - Échec du rafraîchissement du token.`);
+            logStep(`  - Token refresh failed.`);
             continue;
           }
         } catch (err) { continue; }
@@ -275,13 +270,13 @@ export default async function handler(req, res) {
               if (lbData.length === 200) page++; else hasMorePages = false;
             } else hasMorePages = false;
           } else if (lbRes.status === 429) {
-            logStep(`🛑 ALERTE : Limite de requêtes Strava atteinte (Rate Limit).`);
+            logStep(`🛑 ALERT: Strava Rate Limit Exceeded.`);
             hasMorePages = false; rateLimitHit = true; 
           } else { 
             hasMorePages = false; 
           }
         }
-        logStep(`  - Seg ${segId} : ${totalInsertedForSegment} NOUVEAUX efforts sauvegardés.`);
+        logStep(`  - Seg ${segId}: ${totalInsertedForSegment} NEW efforts saved.`);
       }
     }
 
