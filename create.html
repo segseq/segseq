@@ -33,7 +33,6 @@
 
         <!-- Colonne Droite : Séquence -->
         <div style="flex: 1; display: flex; align-items: center;">
-          <!-- Le margin-top: 28px permet d'aligner le switch exactement au niveau de l'input -->
           <div style="display: flex; align-items: center; gap: 15px; margin-top: 28px;">
             <label class="switch" style="margin: 0; flex-shrink: 0;">
               <input type="checkbox" id="strict-sequence" checked>
@@ -53,7 +52,7 @@
       <!-- Conteneur de la liste glisser-déposer -->
       <div id="segments-list" style="margin-top: 10px;"></div>
       
-      <!-- Bouton pour ajouter une 3e, 4e ou 5e ligne -->
+      <!-- Bouton pour ajouter une ligne -->
       <button id="btn-add-row" class="btn-add-row" onclick="addEmptySegment()">
         + <span class="lang-element" data-en="Add another segment" data-fr="Ajouter un autre segment">Add another segment</span>
       </button>
@@ -72,7 +71,21 @@
   <script src="components.js"></script>
   
   <script>
-  // État initial : 2 lignes vides par défaut
+    // --- NOUVEAU : Chargement des favoris ---
+    let starredSegments = [];
+    async function fetchStarredSegments() {
+      try {
+        const res = await fetch('/api/strava/starred_segments');
+        if (res.ok) {
+          starredSegments = await res.json();
+        }
+      } catch (err) {
+        console.error("Erreur de chargement des favoris", err);
+      }
+    }
+    fetchStarredSegments();
+
+    // État initial : 2 lignes vides par défaut
     let segments = [
       { id: '', name: '', isValidated: false },
       { id: '', name: '', isValidated: false }
@@ -100,11 +113,11 @@
         row.addEventListener('dragleave', handleDragLeave);
 
         const checkText = lang === 'fr' ? "Valider" : "Check";
-        const placeholderText = lang === 'fr' ? "ID du Segment (ex: 123456)" : "Segment ID (ex: 123456)";
+        // NOUVEAU : Placeholder mis à jour pour indiquer la recherche
+        const placeholderText = lang === 'fr' ? "ID ou Favori (ex: 12345 ou 'Mont Royal')" : "ID or Favorite (ex: 12345 or 'Mont Royal')";
 
         let contentHtml = '';
         
-        // Si le segment est validé (on affiche le nom)
         if (seg.isValidated) {
           contentHtml = `
             <div class="segment-content" style="justify-content: space-between;">
@@ -116,19 +129,22 @@
             </div>
           `;
         } 
-        // Si le segment est vide ou non validé (on affiche l'input)
         else {
+          // NOUVEAU : Remplacement de l'input simple par le wrapper d'autocomplétion
+          // L'input est maintenant type="text" pour permettre la recherche par nom
           contentHtml = `
             <div class="segment-content">
               <span style="font-size:1.2rem; color:var(--orange); font-weight:bold;">${index + 1}.</span>
-              <input type="number" id="seg-input-${index}" value="${seg.id}" placeholder="${placeholderText}" oninput="updateSegmentId(${index}, this.value)" style="flex:1;">
+              <div class="autocomplete-wrapper" style="flex:1; margin: 0 10px;">
+                <input type="text" id="seg-input-${index}" class="segment-input" value="${seg.id}" placeholder="${placeholderText}" oninput="updateSegmentId(${index}, this.value)" autocomplete="off">
+                <div class="autocomplete-dropdown"></div>
+              </div>
               <button id="btn-val-${index}" onclick="validateSegment(${index})" class="btn btn-primary" style="padding:12px 20px;">${checkText}</button>
               <button onclick="removeOrClearSegment(${index})" style="background:none; border:none; color:var(--danger); font-size:1.5rem; cursor:pointer; padding: 0 10px;" title="Remove">×</button>
             </div>
           `;
         }
 
-        // Icône Grip (6 points) conventionnelle pour le Drag & Drop
         row.innerHTML = `
           <div class="drag-handle" title="Drag to reorder">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -141,9 +157,59 @@
         list.appendChild(row);
       });
 
-      // Gérer l'affichage du bouton "Ajouter une ligne" (Max 5)
       document.getElementById("btn-add-row").style.display = segments.length < 5 ? "block" : "none";
     }
+
+    // --- NOUVEAU : LOGIQUE D'AUTOCOMPLÉTION (Event Delegation) ---
+    const segmentsListContainer = document.getElementById("segments-list");
+
+    segmentsListContainer.addEventListener('input', function(e) {
+      if (e.target.classList.contains('segment-input')) {
+        const input = e.target;
+        const dropdown = input.nextElementSibling;
+        const query = input.value.toLowerCase().trim();
+        const index = input.closest('.segment-row').dataset.index;
+
+        // Si vide ou que des chiffres (ID manuel), on cache le menu
+        if (query.length === 0 || /^\d+$/.test(query)) {
+          dropdown.style.display = 'none';
+          return;
+        }
+
+        const matches = starredSegments.filter(seg => seg.name.toLowerCase().includes(query));
+        
+        dropdown.innerHTML = '';
+        if (matches.length > 0) {
+          matches.forEach(seg => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.innerHTML = `<strong>${seg.name}</strong> <br><small style="color:#777;">ID: ${seg.id} | ${(seg.distance/1000).toFixed(2)} km</small>`;
+            
+            // mousedown est utilisé car il s'exécute AVANT le focusout de l'input
+            item.addEventListener('mousedown', function(event) {
+              event.preventDefault(); 
+              input.value = seg.id;
+              updateSegmentId(index, seg.id); // Met à jour le tableau JS
+              dropdown.style.display = 'none';
+            });
+            
+            dropdown.appendChild(item);
+          });
+          dropdown.style.display = 'block';
+        } else {
+          const noResultText = localStorage.getItem('userLang') === 'fr' ? "Aucun favori trouvé..." : "No favorites found...";
+          dropdown.innerHTML = `<div class="autocomplete-item" style="color:#999;">${noResultText}</div>`;
+          dropdown.style.display = 'block';
+        }
+      }
+    });
+
+    // Cacher le menu quand on clique ailleurs
+    segmentsListContainer.addEventListener('focusout', function(e) {
+      if (e.target.classList.contains('segment-input')) {
+        e.target.nextElementSibling.style.display = 'none';
+      }
+    });
 
     // --- FONCTIONS LOGIQUES ---
     function updateSegmentId(index, value) {
@@ -160,9 +226,9 @@
 
     function removeOrClearSegment(index) {
       if (segments.length > 2) {
-        segments.splice(index, 1); // Supprime la ligne si on en a plus de 2
+        segments.splice(index, 1);
       } else {
-        segments[index] = { id: '', name: '', isValidated: false }; // Vide la ligne si on est au minimum de 2
+        segments[index] = { id: '', name: '', isValidated: false };
       }
       renderSegments();
     }
@@ -203,7 +269,7 @@
     }
 
     function handleDragOver(e) {
-      e.preventDefault(); // Nécessaire pour autoriser le drop
+      e.preventDefault(); 
       return false;
     }
 
@@ -221,7 +287,6 @@
       const dragEndIndex = +this.dataset.index;
       
       if (dragStartIndex !== dragEndIndex && dragStartIndex !== null) {
-        // Déplace l'élément dans le tableau
         const draggedItem = segments.splice(dragStartIndex, 1)[0];
         segments.splice(dragEndIndex, 0, draggedItem);
         renderSegments();
@@ -239,12 +304,10 @@
       const durationStr = document.getElementById("duration").value;
       const strictSequence = document.getElementById("strict-sequence").checked;
       
-      // Vérifications globales
       if (!name) return alert(lang === 'fr' ? "Veuillez donner un nom à votre défi." : "Please give your challenge a name.");
       if (!description) return alert(lang === 'fr' ? "Veuillez ajouter une description." : "Please add a description.");
       if (!durationStr || parseInt(durationStr, 10) < 1) return alert(lang === 'fr' ? "Veuillez définir une durée valide (min 1 heure)." : "Please set a valid duration (min 1 hour).");
       
-      // Vérification des segments (tous doivent être validés)
       const validSegments = segments.filter(s => s.isValidated);
       if (validSegments.length < 2) return alert(lang === 'fr' ? "Vous devez valider au moins 2 segments." : "You must validate at least 2 segments.");
       if (validSegments.length !== segments.length) return alert(lang === 'fr' ? "Veuillez valider ou supprimer les lignes de segments vides." : "Please validate or remove empty segment rows.");
@@ -290,7 +353,6 @@
       }
     }
 
-    // Initialisation au chargement de la page
     document.addEventListener("DOMContentLoaded", renderSegments);
   </script>
 </body>
