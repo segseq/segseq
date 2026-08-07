@@ -52,13 +52,14 @@ export default async function handler(req, res) {
 
     // --- 2. UPSERT dans la base ---
     await query(
-      `INSERT INTO athletes (id, firstname, lastname, profile, country, access_token, refresh_token, expires_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO athletes (id, firstname, lastname, profile, country, sex, access_token, refresh_token, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        ON CONFLICT (id) DO UPDATE SET 
          firstname = COALESCE(EXCLUDED.firstname, athletes.firstname),
          lastname = COALESCE(EXCLUDED.lastname, athletes.lastname),
          profile = COALESCE(EXCLUDED.profile, athletes.profile),
          country = COALESCE(EXCLUDED.country, athletes.country),
+		 sex = COALESCE(EXCLUDED.sex, athletes.sex),
          access_token = EXCLUDED.access_token,
          refresh_token = EXCLUDED.refresh_token,
          expires_at = EXCLUDED.expires_at`,

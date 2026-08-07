@@ -42,6 +42,12 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
     const name = `${a.firstname} ${a.lastname}`.trim();
     athletes[name] = [];
   });
+  
+  const athleteDetails = {};
+  allAthletes.forEach(a => {
+    const name = `${a.firstname} ${a.lastname}`.trim();
+    athleteDetails[name] = { profile: a.profile, sex: a.sex };
+  });
 
   // On remplit avec les efforts trouvés
   efforts.forEach(e => {
@@ -160,6 +166,8 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
       
       const bestCompletion = {
         athlete: athName,
+        profile: athleteDetails[athName]?.profile || null,
+        sex: athleteDetails[athName]?.sex || null,
         moving_seconds: bestMovingSeconds,
         moving_time_human: formatTime(bestMovingSeconds),
         total_time_human: formatTime(totalTimeSeconds),
@@ -204,12 +212,14 @@ export default async function handler(req, res) {
     };
 
     // On a besoin de allAthletes dans les deux cas maintenant
-    const allAthletes = await query(`SELECT id, firstname, lastname, access_token, refresh_token, expires_at FROM athletes WHERE access_token IS NOT NULL`);
+    const allAthletes = await query(`SELECT id, firstname, lastname, profile, sex, access_token, refresh_token, expires_at FROM athletes WHERE access_token IS NOT NULL`);
 
     if (!force) {
       const results = await query(`
-        SELECT athlete_name as athlete, rank, start_date, total_time_human, moving_time_human 
-        FROM challenge_results WHERE challenge_id = $1 ORDER BY rank ASC
+        SELECT cr.athlete_name as athlete, cr.rank, cr.start_date, cr.total_time_human, cr.moving_time_human, a.profile, a.sex 
+        FROM challenge_results cr
+        LEFT JOIN athletes a ON TRIM(a.firstname || ' ' || a.lastname) = cr.athlete_name
+        WHERE cr.challenge_id = $1 ORDER BY cr.rank ASC
       `, [challengeId]);
       
       return res.status(200).json({
