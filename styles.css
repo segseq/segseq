@@ -593,3 +593,15 @@ footer {
     gap: 10px !important;
   }
 }
+
+.strava-btn {
+  height: 48px;
+  display: block;
+  margin: 0 auto;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.strava-btn:hover {
+  opacity: 0.85;
+}
