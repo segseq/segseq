@@ -17,6 +17,13 @@
       <h2 id="challenge-name" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size: 2rem; margin-bottom: 20px;">Loading...</h2>
       <p id="challenge-description" class="lang-element" data-en="Loading description..." data-fr="Chargement de la description..." style="opacity:.8; line-height:1.6; margin-bottom: 30px;">Loading description...</p>
       
+	  <!-- NOUVEAU : Bloc d'erreur caché par défaut -->
+      <div id="challenge-error-section" style="display: none; text-align: center; padding: 30px 0;">
+        <h2 class="lang-element" data-en="Challenge not found" data-fr="Défi introuvable" style="font-size: 2rem; margin-bottom: 15px; color: var(--danger);">Challenge not found</h2>
+        <p class="lang-element" data-en="This challenge doesn't exist or was deleted." data-fr="Ce défi n'existe pas ou a été supprimé." style="margin-bottom: 25px; color: #777;">This challenge doesn't exist or was deleted.</p>
+        <a href="create.html" class="btn btn-primary lang-element" data-en="Create your own!" data-fr="Créez le vôtre !">Create your own!</a>
+      </div>
+	  
       <!-- Section enveloppée pour pouvoir la masquer si le défi n'existe pas -->
       <div id="challenge-details-section">
         <h3 class="lang-element" data-en="Details" data-fr="Détails" style="color:var(--navy); margin-bottom: 10px;">Details</h3>
@@ -32,7 +39,9 @@
         <div id="debug-log" class="debug-console lang-element" data-en="Awaiting execution..." data-fr="En attente d'exécution...">Awaiting execution...</div>
         
         <h3 class="lang-element" data-en="Leaderboard" data-fr="Classement" style="color:var(--navy); margin: 30px 0 10px;">Leaderboard</h3>
-        <table>
+        
+		<div class="table-responsive">
+		<table>
           <thead>
             <tr>
               <th>#</th>
@@ -44,6 +53,7 @@
           </thead>
           <tbody id="leaderboard"></tbody>
         </table>
+		</div>
         
         <div class="refresh-container">
           <button id="refresh-btn" class="btn-refresh lang-element" data-title-en="Force synchro with Strava & Recalculate" data-title-fr="Forcer la synchro Strava et recalculer" title="Force synchro with Strava & Recalculate">
@@ -111,19 +121,15 @@
         
         if (!res.ok) {
           // GESTION DU DÉFI INTROUVABLE
-          const notFoundTitle = lang === 'fr' ? "Défi introuvable" : "Challenge not found";
-          const notFoundDesc = lang === 'fr' 
-            ? "Ce défi n'existe pas ou a été supprimé. <br><br> <a href='create.html' class='btn btn-primary'>Créez le vôtre !</a>" 
-            : "This challenge doesn't exist or was deleted. <br><br> <a href='create.html' class='btn btn-primary'>Create your own!</a>";
+          // 1. On masque les textes de chargement normaux
+          document.getElementById("challenge-name").style.display = "none";
+          document.getElementById("challenge-description").style.display = "none";
           
-          document.getElementById("challenge-name").textContent = notFoundTitle;
-          document.getElementById("challenge-name").classList.remove('lang-element'); // On retire la classe pour éviter que language.js n'écrase le texte
-          
-          document.getElementById("challenge-description").innerHTML = notFoundDesc;
-          document.getElementById("challenge-description").classList.remove('lang-element');
-          
-          // On masque toute la section des détails
+          // 2. On masque la section des détails
           document.getElementById("challenge-details-section").style.display = "none";
+          
+          // 3. On affiche notre beau bloc d'erreur pré-traduit !
+          document.getElementById("challenge-error-section").style.display = "block";
           return;
         }
         
