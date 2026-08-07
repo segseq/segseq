@@ -48,14 +48,15 @@
 
       </div>
       
-      <label class="lang-element" data-en="Add 2 to 5 Strava segments ID" data-fr="Ajouter de 2 à 5 ID de segments Strava">Add 2 to 5 Strava segments ID</label>
-      <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
-        <input id="segment-input" type="number" class="lang-element" data-placeholder-en="Ex: 1234567" data-placeholder-fr="Ex: 1234567" placeholder="Ex: 1234567" style="flex:1;">
-        <button id="add-seg-btn" onclick="addSegment()" type="button" style="background:none; border:none; font-size:2rem; color:var(--orange); cursor:pointer; padding:0 10px; width: 50px;">∿</button>
-        <span class="lang-element" data-en="Add" data-fr="Ajouter" style="color:#777; font-size:.9rem;">Add</span>
-      </div>
+      <label class="lang-element" data-en="Segments (Drag to reorder)" data-fr="Segments (Glissez pour réorganiser)" style="margin-top: 30px;">Segments (Drag to reorder)</label>
       
-      <div id="segments" style="margin-top: 20px;"></div>
+      <!-- Conteneur de la liste glisser-déposer -->
+      <div id="segments-list" style="margin-top: 10px;"></div>
+      
+      <!-- Bouton pour ajouter une 3e, 4e ou 5e ligne -->
+      <button id="btn-add-row" class="btn-add-row" onclick="addEmptySegment()">
+        + <span class="lang-element" data-en="Add another segment" data-fr="Ajouter un autre segment">Add another segment</span>
+      </button>
     </div>
     
     <div class="cta">
@@ -71,19 +72,109 @@
   <script src="components.js"></script>
   
   <script>
-    let segments = [];
+  // État initial : 2 lignes vides par défaut
+    let segments = [
+      { id: '', name: '', isValidated: false },
+      { id: '', name: '', isValidated: false }
+    ];
 
-    async function addSegment() {
+    let dragStartIndex = null;
+
+    // --- FONCTIONS D'AFFICHAGE ---
+    function renderSegments() {
+      const list = document.getElementById("segments-list");
+      list.innerHTML = "";
       const lang = localStorage.getItem('userLang') || 'en';
-      const input = document.getElementById("segment-input");
-      const id = input.value.trim();
-      const btn = document.getElementById("add-seg-btn");
 
-      // Traductions des alertes
-      if (!id) return alert(lang === 'fr' ? "Veuillez entrer un ID de segment." : "Please enter a segment ID.");
-      if (segments.length >= 5) return alert(lang === 'fr' ? "Maximum 5 segments autorisés." : "Maximum 5 segments allowed.");
+      segments.forEach((seg, index) => {
+        const row = document.createElement("div");
+        row.className = "segment-row";
+        row.draggable = true;
+        row.dataset.index = index;
 
-      // UI : Mode chargement
+        // Événements Drag & Drop
+        row.addEventListener('dragstart', handleDragStart);
+        row.addEventListener('dragover', handleDragOver);
+        row.addEventListener('drop', handleDrop);
+        row.addEventListener('dragenter', handleDragEnter);
+        row.addEventListener('dragleave', handleDragLeave);
+
+        const checkText = lang === 'fr' ? "Valider" : "Check";
+        const placeholderText = lang === 'fr' ? "ID du Segment (ex: 123456)" : "Segment ID (ex: 123456)";
+
+        let contentHtml = '';
+        
+        // Si le segment est validé (on affiche le nom)
+        if (seg.isValidated) {
+          contentHtml = `
+            <div class="segment-content" style="justify-content: space-between;">
+              <div>
+                <span style="font-size:1.2rem; color:var(--orange); font-weight:bold; margin-right:8px;">${index + 1}.</span>
+                <strong style="color: var(--navy);">${seg.name}</strong> <small style="color:#777; margin-left:8px;">ID: ${seg.id}</small>
+              </div>
+              <button onclick="removeOrClearSegment(${index})" style="background:none; border:none; color:var(--danger); font-size:1.5rem; cursor:pointer;" title="Remove">×</button>
+            </div>
+          `;
+        } 
+        // Si le segment est vide ou non validé (on affiche l'input)
+        else {
+          contentHtml = `
+            <div class="segment-content">
+              <span style="font-size:1.2rem; color:var(--orange); font-weight:bold;">${index + 1}.</span>
+              <input type="number" id="seg-input-${index}" value="${seg.id}" placeholder="${placeholderText}" oninput="updateSegmentId(${index}, this.value)" style="flex:1;">
+              <button id="btn-val-${index}" onclick="validateSegment(${index})" class="btn btn-primary" style="padding:12px 20px;">${checkText}</button>
+              <button onclick="removeOrClearSegment(${index})" style="background:none; border:none; color:var(--danger); font-size:1.5rem; cursor:pointer; padding: 0 10px;" title="Remove">×</button>
+            </div>
+          `;
+        }
+
+        // Icône Grip (6 points) conventionnelle pour le Drag & Drop
+        row.innerHTML = `
+          <div class="drag-handle" title="Drag to reorder">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="12" r="1.5"></circle><circle cx="9" cy="5" r="1.5"></circle><circle cx="9" cy="19" r="1.5"></circle>
+              <circle cx="15" cy="12" r="1.5"></circle><circle cx="15" cy="5" r="1.5"></circle><circle cx="15" cy="19" r="1.5"></circle>
+            </svg>
+          </div>
+          ${contentHtml}
+        `;
+        list.appendChild(row);
+      });
+
+      // Gérer l'affichage du bouton "Ajouter une ligne" (Max 5)
+      document.getElementById("btn-add-row").style.display = segments.length < 5 ? "block" : "none";
+    }
+
+    // --- FONCTIONS LOGIQUES ---
+    function updateSegmentId(index, value) {
+      segments[index].id = value;
+      segments[index].isValidated = false;
+    }
+
+    function addEmptySegment() {
+      if (segments.length < 5) {
+        segments.push({ id: '', name: '', isValidated: false });
+        renderSegments();
+      }
+    }
+
+    function removeOrClearSegment(index) {
+      if (segments.length > 2) {
+        segments.splice(index, 1); // Supprime la ligne si on en a plus de 2
+      } else {
+        segments[index] = { id: '', name: '', isValidated: false }; // Vide la ligne si on est au minimum de 2
+      }
+      renderSegments();
+    }
+
+    async function validateSegment(index) {
+      const id = segments[index].id.trim();
+      const btn = document.getElementById(`btn-val-${index}`);
+      const input = document.getElementById(`seg-input-${index}`);
+      const lang = localStorage.getItem('userLang') || 'en';
+
+      if (!id) return alert(lang === 'fr' ? "Veuillez entrer un ID." : "Please enter an ID.");
+
       btn.innerHTML = "⏳";
       btn.disabled = true;
       input.disabled = true;
@@ -92,60 +183,78 @@
         const res = await fetch(`/api/segseq/validate-segment?id=${id}`);
         const data = await res.json();
         
-        if (!res.ok) {
-            const defaultErr = lang === 'fr' ? "Segment introuvable ou privé sur Strava." : "Segment not found or private on Strava.";
-            throw new Error(data.error || defaultErr);
-        }
+        if (!res.ok) throw new Error(data.error || (lang === 'fr' ? "Segment introuvable." : "Segment not found."));
         
-        segments.push({ id: id, name: data.name });
+        segments[index] = { id: id, name: data.name, isValidated: true };
         renderSegments();
-        input.value = "";
       } catch (err) {
         alert(err.message);
-      } finally {
-        btn.innerHTML = "∿";
+        btn.innerHTML = lang === 'fr' ? "Valider" : "Check";
         btn.disabled = false;
         input.disabled = false;
-        input.focus();
       }
     }
 
-    function removeSegment(index) {
-      segments.splice(index, 1);
-      renderSegments();
+    // --- LOGIQUE DRAG & DROP ---
+    function handleDragStart(e) {
+      dragStartIndex = +this.dataset.index;
+      e.dataTransfer.effectAllowed = 'move';
+      this.classList.add('dragging');
     }
 
-    function renderSegments() {
-      const list = document.getElementById("segments");
-      list.innerHTML = "";
-      segments.forEach((seg, i) => {
-        const item = document.createElement("div");
-        item.className = "segment-item";
-        item.innerHTML = `
-          <div style="display:flex; align-items:center; gap:12px;">
-            <span style="font-size:1.2rem; color:var(--orange);">${i + 1}.</span>
-            <span><strong>${seg.name}</strong> <br/><small style="color:#777;">ID: ${seg.id}</small></span>
-          </div>
-          <button onclick="removeSegment(${i})" style="background:none; border:none; color:var(--orange); font-size:1.4rem; cursor:pointer;">×</button>
-        `;
-        list.appendChild(item);
-      });
+    function handleDragOver(e) {
+      e.preventDefault(); // Nécessaire pour autoriser le drop
+      return false;
     }
 
-    async function publishChallenge() {
+    function handleDragEnter(e) {
+      this.classList.add('over');
+    }
+
+    function handleDragLeave(e) {
+      this.classList.remove('over');
+    }
+
+    function handleDrop(e) {
+      e.stopPropagation();
+      this.classList.remove('over');
+      const dragEndIndex = +this.dataset.index;
+      
+      if (dragStartIndex !== dragEndIndex && dragStartIndex !== null) {
+        // Déplace l'élément dans le tableau
+        const draggedItem = segments.splice(dragStartIndex, 1)[0];
+        segments.splice(dragEndIndex, 0, draggedItem);
+        renderSegments();
+      }
+      return false;
+    }
+
+    // --- SOUMISSION FINALE ---
+    async function publishChallenge(event) {
+      if (event) event.preventDefault(); 
       const lang = localStorage.getItem('userLang') || 'en';
+      
       const name = document.getElementById("challenge-name").value.trim();
       const description = document.getElementById("description").value.trim();
       const durationStr = document.getElementById("duration").value;
       const strictSequence = document.getElementById("strict-sequence").checked;
       
-      // Traductions des alertes de validation
+      // Vérifications globales
       if (!name) return alert(lang === 'fr' ? "Veuillez donner un nom à votre défi." : "Please give your challenge a name.");
       if (!description) return alert(lang === 'fr' ? "Veuillez ajouter une description." : "Please add a description.");
       if (!durationStr || parseInt(durationStr, 10) < 1) return alert(lang === 'fr' ? "Veuillez définir une durée valide (min 1 heure)." : "Please set a valid duration (min 1 hour).");
-      if (segments.length < 2) return alert(lang === 'fr' ? "Vous devez ajouter au moins 2 segments validés." : "You must add at least 2 validated segments.");
       
-      const segmentIds = segments.map(s => s.id);
+      // Vérification des segments (tous doivent être validés)
+      const validSegments = segments.filter(s => s.isValidated);
+      if (validSegments.length < 2) return alert(lang === 'fr' ? "Vous devez valider au moins 2 segments." : "You must validate at least 2 segments.");
+      if (validSegments.length !== segments.length) return alert(lang === 'fr' ? "Veuillez valider ou supprimer les lignes de segments vides." : "Please validate or remove empty segment rows.");
+      
+      const publishBtn = document.getElementById("publish-btn");
+      const originalText = publishBtn.textContent;
+      publishBtn.style.pointerEvents = "none";
+      publishBtn.textContent = lang === 'fr' ? "Création en cours..." : "Publishing...";
+
+      const segmentIds = validSegments.map(s => s.id);
       
       const payload = { 
         name, 
@@ -165,18 +274,24 @@
         const data = await res.json();
         
         if (!res.ok) {
-          const errorPrefix = lang === 'fr' ? "Erreur : " : "Error: ";
-          const defaultError = lang === 'fr' ? "Impossible de créer le défi." : "Unable to create challenge.";
-          alert(errorPrefix + (data.error || defaultError));
+          alert((lang === 'fr' ? "Erreur : " : "Error: ") + (data.error || "Unable to create challenge."));
+          publishBtn.style.pointerEvents = "auto";
+          publishBtn.textContent = originalText;
           return;
         }
         
         window.location.href = `/challenge.html?id=${data.id}&force=1`;
+        
       } catch (err) {
         console.error(err);
-        alert(lang === 'fr' ? "Erreur réseau. Veuillez vérifier votre connexion." : "Network error. Please check your connection.");
+        alert(lang === 'fr' ? "Erreur réseau." : "Network error.");
+        publishBtn.style.pointerEvents = "auto";
+        publishBtn.textContent = originalText;
       }
     }
+
+    // Initialisation au chargement de la page
+    document.addEventListener("DOMContentLoaded", renderSegments);
   </script>
 </body>
 </html>

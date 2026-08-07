@@ -624,3 +624,74 @@ footer {
   background: rgba(255, 107, 26, 0.1); /* Léger fond orange au survol */
   transform: translateY(-2px);
 }
+
+
+/* --- DRAG & DROP SEGMENTS --- */
+.segment-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #F5F8FC;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid transparent;
+}
+
+/* État quand on survole la ligne avec un élément en cours de glissement */
+.segment-row.over {
+  border: 1px dashed var(--orange);
+  background: #fff3eb;
+}
+
+/* État de l'élément qu'on est en train de glisser */
+.segment-row.dragging {
+  opacity: 0.4;
+}
+
+.drag-handle {
+  cursor: grab;
+  color: #999;
+  display: flex;
+  align-items: center;
+  padding: 5px;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.segment-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.segment-content input {
+  margin-top: 0;
+  padding: 12px;
+}
+
+/* Bouton pour ajouter une ligne */
+.btn-add-row {
+  background: transparent;
+  border: 2px dashed #ccc;
+  color: #777;
+  width: 100%;
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+
+.btn-add-row:hover {
+  border-color: var(--orange);
+  color: var(--orange);
+  background: rgba(255, 107, 26, 0.05);
+}
+
+
