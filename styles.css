@@ -605,3 +605,22 @@ footer {
 .strava-btn:hover {
   opacity: 0.85;
 }
+
+/* --- ICÔNE LIEN EXTERNE (STRAVA) --- */
+.strava-link-icon {
+  color: var(--navy-light);
+  opacity: 0.5;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px; /* Zone de clic confortable pour mobile */
+  border-radius: 50%;
+}
+
+.strava-link-icon:hover {
+  opacity: 1;
+  color: var(--orange);
+  background: rgba(255, 107, 26, 0.1); /* Léger fond orange au survol */
+  transform: translateY(-2px);
+}
