@@ -156,7 +156,7 @@
         document.getElementById("challenge-duration").textContent = data.duration;
         document.getElementById("challenge-distance").textContent = (data.total_distance / 1000).toFixed(2);
         document.getElementById("challenge-elevation").textContent = Math.round(data.total_elevation);
-        const isStrict = data.strict_sequence !== false; // true par défaut
+        const isStrict = data.strict_sequence !== false && data.strict_sequence !== false && data.strict_sequence !== 0; // vérifier si explicitement false // true par défaut
         const seqTextEn = isStrict ? "Strict (Must follow order)" : "Free (Any order)";
         const seqTextFr = isStrict ? "Stricte (Dans l'ordre exact)" : "Libre (Dans n'importe quel ordre)";
         document.getElementById("challenge-sequence").textContent = lang === 'fr' ? seqTextFr : seqTextEn;
