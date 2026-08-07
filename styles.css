@@ -695,3 +695,22 @@ footer {
 }
 
 
+.btn-filter {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  padding: 6px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #555;
+  transition: all 0.2s;
+}
+.btn-filter:hover {
+  background: #e4e4e4;
+}
+.btn-filter.active {
+  background: var(--navy, #001f3f);
+  color: white;
+  border-color: var(--navy, #001f3f);
+  font-weight: 600;
+}

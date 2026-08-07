@@ -40,6 +40,13 @@
         
         <h3 class="lang-element" data-en="Leaderboard" data-fr="Classement" style="color:var(--navy); margin: 30px 0 10px;">Leaderboard</h3>
         
+		 <!-- NOUVEAU : Filtre par genre -->
+        <div class="gender-filter" style="margin-bottom: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button id="btn-filter-all" class="btn-filter active lang-element" data-en="All" data-fr="Tous" onclick="applyFilter('all')">Tous</button>
+          <button id="btn-filter-M" class="btn-filter lang-element" data-en="Men" data-fr="Hommes" onclick="applyFilter('M')">Hommes</button>
+          <button id="btn-filter-F" class="btn-filter lang-element" data-en="Women" data-fr="Femmes" onclick="applyFilter('F')">Femmes</button>
+        </div>
+		
 		<div class="table-responsive">
 		<table>
           <thead>
@@ -82,30 +89,46 @@
     const params = new URLSearchParams(window.location.search);
     const challengeId = params.get("id");
 
-    function renderLeaderboardData(lbData) {
+    // Variables globales pour stocker les données et le filtre actuel
+    let fullLeaderboard = [];
+    let currentGenderFilter = 'all';
+
+    // Fonction appelée par les boutons HTML
+    function applyFilter(gender) {
+      currentGenderFilter = gender;
+      
+      // Mettre à jour l'apparence des boutons
+      document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('btn-filter-' + gender).classList.add('active');
+      
+      renderTable();
+    }
+
+    // Fonction qui dessine le tableau en fonction du filtre
+    function renderTable() {
       const lang = localStorage.getItem('userLang') || 'en';
-      const debugLog = document.getElementById("debug-log");
-      
-      if (lbData.debug_steps) {
-        debugLog.innerHTML = lbData.debug_steps.join("<br/>");
-        debugLog.scrollTop = debugLog.scrollHeight;
-      }
-      
       const lb = document.getElementById("leaderboard");
       lb.innerHTML = "";
       
-      if (lbData.leaderboard && lbData.leaderboard.length > 0) {
-        lbData.leaderboard.forEach(row => {
+      // Filtrer les données
+      let filteredData = fullLeaderboard;
+      if (currentGenderFilter !== 'all') {
+        filteredData = fullLeaderboard.filter(row => row.sex === currentGenderFilter);
+      }
+      
+      if (filteredData && filteredData.length > 0) {
+        // On utilise l'index de la boucle pour le nouveau rang filtré
+        filteredData.forEach((row, index) => {
           const tr = document.createElement("tr");
           
-          // 1) Crown Icon for the best athlete (Rank 1)
-          const rankDisplay = row.rank === 1 
-            ? `<img src="segseq-crown.png" alt="1" style="width: 24px; height: 24px; vertical-align: middle;">` 
-            : row.rank;
+          // Le rang dynamique (1, 2, 3...) basé sur la vue filtrée
+          const currentRank = index + 1;
+          
+          const rankDisplay = currentRank === 1 
+            ? `<img src="segseq-crown.png" alt="1" style="width: 24px; height: 24px; vertical-align: middle; mix-blend-mode: multiply;">` 
+            : currentRank;
 
-          // 2) Athlete Picture
-          // Note: Adjust 'row.profile' to whatever property your API uses for the image URL (e.g., row.avatar, row.profile_medium)
-          const avatarUrl = row.profile || 'https://via.placeholder.com/32'; // Fallback if no image exists
+          const avatarUrl = row.profile || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.athlete)}&background=random&color=fff&size=32`;
 
           tr.innerHTML = `
             <td style="text-align: center; vertical-align: middle;">${rankDisplay}</td>
@@ -120,11 +143,25 @@
           lb.appendChild(tr);
         });
       } else {
-        const noDataMsg = lang === 'fr' ? "Aucune participation valide trouvée." : "No valid completions found.";
+        const noDataMsg = lang === 'fr' ? "Aucune participation trouvée pour ce filtre." : "No completions found for this filter.";
         lb.innerHTML = `<tr><td colspan="5" style="text-align:center;">${noDataMsg}</td></tr>`;
       }
     }
 
+    // Fonction principale qui gère la réception des données de l'API
+    function processApiData(lbData) {
+      const debugLog = document.getElementById("debug-log");
+      if (lbData.debug_steps) {
+        debugLog.innerHTML = lbData.debug_steps.join("<br/>");
+        debugLog.scrollTop = debugLog.scrollHeight;
+      }
+      
+      // On sauvegarde les données en mémoire globale
+      fullLeaderboard = lbData.leaderboard || [];
+      
+      // On dessine le tableau en conservant le filtre actuellement sélectionné
+      renderTable();
+    }
     async function loadChallenge() {
       const lang = localStorage.getItem('userLang') || 'en';
       
@@ -215,7 +252,7 @@
         } else {
           const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}`);
           const lbData = await lbRes.json();
-          renderLeaderboardData(lbData);
+          processApiData(lbData);
         }
       } catch (err) {
         console.error(err);
@@ -248,7 +285,7 @@
           icon.classList.remove("spinning"); 
           return;
         }
-        renderLeaderboardData(lbData);
+        processApiData(lbData);
       } catch (err) {
         console.error(err);
       } finally {
