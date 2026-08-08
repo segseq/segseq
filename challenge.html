@@ -62,7 +62,8 @@
         </table>
 		</div>
         
-        <div class="refresh-container">
+        <!-- On ajoute un ID et display: none -->
+        <div class="refresh-container" id="admin-refresh-section" style="display: none;">
           <button id="refresh-btn" class="btn-refresh lang-element" data-title-en="Force synchro with Strava & Recalculate" data-title-fr="Forcer la synchro Strava et recalculer" title="Force synchro with Strava & Recalculate">
             <svg id="refresh-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="23 4 23 10 17 10"></polyline>
@@ -70,6 +71,7 @@
             </svg>
           </button>
         </div>
+		
       </div>
     </div>
     
@@ -143,8 +145,27 @@
           lb.appendChild(tr);
         });
       } else {
-        const noDataMsg = lang === 'fr' ? "Aucune participation trouvée pour ce filtre." : "No completions found for this filter.";
-        lb.innerHTML = `<tr><td colspan="5" style="text-align:center;">${noDataMsg}</td></tr>`;
+		if (filteredData && filteredData.length > 0) {
+        // ... (Gardez votre code existant pour afficher les lignes) ...
+        filteredData.forEach((row, index) => {
+          // ...
+        });
+      } else {
+        // NOUVEAU : Message intelligent si le tableau est vide
+        const isNew = true; // On assume que si c'est vide, c'est en cours de calcul
+        let noDataMsg = "";
+        
+        if (lang === 'fr') {
+          noDataMsg = "Aucun résultat. Si vous venez de créer ce défi, le calcul des historiques Strava est en cours en arrière-plan. Cliquez sur le bouton Rafraîchir dans quelques secondes.";
+        } else {
+          noDataMsg = "No results. If you just created this challenge, Strava history is being calculated in the background. Click the Refresh button in a few seconds.";
+        }
+        
+        lb.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px 20px; color: #666; line-height: 1.5;">
+          <div class="spinner" style="margin-bottom: 15px;">⏳</div>
+          ${noDataMsg}
+        </td></tr>`;
+      }
       }
     }
 
@@ -166,7 +187,7 @@
       const lang = localStorage.getItem('userLang') || 'en';
       
       try {
-        const res = await fetch(`/api/segseq/challenge?id=${challengeId}`);
+        const res = await fetch(`/api/segseq/challenges?id=${challengeId}`);
         const data = await res.json();
         
         if (!res.ok) {
@@ -197,6 +218,10 @@
         const seqTextEn = isStrict ? "Strict (Must follow order)" : "Free (Any order)";
         const seqTextFr = isStrict ? "Stricte (Dans l'ordre exact)" : "Libre (Dans n'importe quel ordre)";
         document.getElementById("challenge-sequence").textContent = lang === 'fr' ? seqTextFr : seqTextEn;
+		// Afficher le bouton de rafraîchissement si admin
+        if (data.is_admin === true) {
+          document.getElementById("admin-refresh-section").style.display = "block";
+        }
 		
         const segList = document.getElementById("segments-list");
         segList.innerHTML = "";

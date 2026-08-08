@@ -12,7 +12,6 @@ export function formatTime(sec) {
 }
 
 // === LE MOTEUR DE CALCUL ===
-// NOUVEAU : On passe "allAthletes" en paramètre pour forcer l'évaluation de tout le monde
 export async function calculateLeaderboard(challengeId, allAthletes, logStep = console.log) {
   logStep(`📊 --- STARTING LEADERBOARD CALCULATION ---`);
   
@@ -33,39 +32,34 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
   const reqSegIds = segmentsRows.map(s => String(s.segment_id));
   logStep(`📍 Required Segments (${reqSegIds.length}): ${reqSegIds.join(' ➔ ')}`);
 
-  const efforts = await query(`SELECT segment_id, athlete_name, start_date, elapsed_time FROM segment_efforts WHERE segment_id = ANY($1::bigint[])`, [reqSegIds]);
+  const efforts = await query(`SELECT segment_id, athlete_id, athlete_name, start_date, elapsed_time FROM segment_efforts WHERE segment_id = ANY($1::bigint[])`, [reqSegIds]);
   logStep(`📥 Retrieved ${efforts.length} raw efforts from database.`);
 
-  // NOUVEAU : On initialise le dictionnaire avec TOUS les athlètes de la plateforme
-  const athletes = {};
+  const athletesMap = {};
   allAthletes.forEach(a => {
-    const name = `${a.firstname} ${a.lastname}`.trim();
-    athletes[name] = [];
-  });
-  
-  const athleteDetails = {};
-  allAthletes.forEach(a => {
-    const name = `${a.firstname} ${a.lastname}`.trim();
-    athleteDetails[name] = { profile: a.profile, sex: a.sex };
+    athletesMap[a.id] = {
+      name: `${a.firstname} ${a.lastname}`.trim(),
+      profile: a.profile,
+      sex: a.sex,
+      efforts: []
+    };
   });
 
-  // On remplit avec les efforts trouvés
   efforts.forEach(e => {
-    if (athletes[e.athlete_name]) {
-      athletes[e.athlete_name].push(e);
-    } else {
-      athletes[e.athlete_name] = [e]; // Sécurité au cas où
+    if (athletesMap[e.athlete_id]) {
+      athletesMap[e.athlete_id].efforts.push(e);
     }
   });
 
   let finalLeaderboard = [];
 
-  for (const [athName, athEfforts] of Object.entries(athletes)) {
-    logStep(`\n👤 Evaluating athlete: ${athName}`);
+  for (const [athId, athData] of Object.entries(athletesMap)) {
+    const athName = athData.name;
+    logStep(`\n👤 Evaluating athlete: ${athName} (ID: ${athId})`);
     
     const effortsBySeg = {};
     reqSegIds.forEach(id => effortsBySeg[id] = []);
-    athEfforts.forEach(e => { 
+    athData.efforts.forEach(e => { 
       const sId = String(e.segment_id);
       if (effortsBySeg[sId]) effortsBySeg[sId].push(e); 
     });
@@ -165,9 +159,10 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
       const totalTimeSeconds = Math.floor((new Date(lastE.start_date).getTime() + Number(lastE.elapsed_time)*1000 - new Date(firstE.start_date).getTime()) / 1000);
       
       const bestCompletion = {
+        athlete_id: athId, // NOUVEAU
         athlete: athName,
-        profile: athleteDetails[athName]?.profile || null,
-        sex: athleteDetails[athName]?.sex || null,
+        profile: athData.profile || null,
+        sex: athData.sex || null,
         moving_seconds: bestMovingSeconds,
         moving_time_human: formatTime(bestMovingSeconds),
         total_time_human: formatTime(totalTimeSeconds),
@@ -188,10 +183,11 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
   
   await query(`DELETE FROM challenge_results WHERE challenge_id = $1`, [challengeId]);
   for (const row of finalLeaderboard) {
+    // MODIFICATION : Insertion de athlete_id
     await query(`
-      INSERT INTO challenge_results (challenge_id, athlete_name, rank, start_date, total_time_human, moving_time_human, moving_seconds, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-    `, [challengeId, row.athlete, row.rank, row.start_date, row.total_time_human, row.moving_time_human, row.moving_seconds]);
+      INSERT INTO challenge_results (challenge_id, athlete_id, athlete_name, rank, start_date, total_time_human, moving_time_human, moving_seconds, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+    `, [challengeId, row.athlete_id, row.athlete, row.rank, row.start_date, row.total_time_human, row.moving_time_human, row.moving_seconds]);
   }
   
   return finalLeaderboard;
@@ -211,14 +207,14 @@ export default async function handler(req, res) {
       debugSteps.push(`> ${msg}`);
     };
 
-    // On a besoin de allAthletes dans les deux cas maintenant
     const allAthletes = await query(`SELECT id, firstname, lastname, profile, sex, access_token, refresh_token, expires_at FROM athletes WHERE access_token IS NOT NULL`);
 
     if (!force) {
+      // MODIFICATION : Jointure ultra-rapide et sécurisée via l'ID
       const results = await query(`
         SELECT cr.athlete_name as athlete, cr.rank, cr.start_date, cr.total_time_human, cr.moving_time_human, a.profile, a.sex 
         FROM challenge_results cr
-        LEFT JOIN athletes a ON TRIM(a.firstname || ' ' || a.lastname) = cr.athlete_name
+        LEFT JOIN athletes a ON a.id = cr.athlete_id
         WHERE cr.challenge_id = $1 ORDER BY cr.rank ASC
       `, [challengeId]);
       
@@ -259,10 +255,10 @@ export default async function handler(req, res) {
       
       for (const segId of reqSegIds) { 
         if (rateLimitHit) break;
-        const lastEffortDb = await query(`SELECT MAX(start_date) as last_date FROM segment_efforts WHERE segment_id = $1 AND athlete_name = $2`, [segId, athleteName]);
+        const lastEffortDb = await query(`SELECT MAX(start_date) as last_date FROM segment_efforts WHERE segment_id = $1 AND athlete_id = $2`, [segId, athlete.id]);
         
         let dateFilter = "";
-       if (lastEffortDb.length > 0 && lastEffortDb[0].last_date) {
+        if (lastEffortDb.length > 0 && lastEffortDb[0].last_date) {
           const lastDate = new Date(lastEffortDb[0].last_date);
           lastDate.setSeconds(lastDate.getSeconds() + 1);
           const startDateStr = lastDate.toISOString().split('.')[0] + 'Z';
@@ -270,18 +266,22 @@ export default async function handler(req, res) {
           dateFilter = `&start_date_local=${encodeURIComponent(startDateStr)}&end_date_local=${encodeURIComponent(endDateStr)}`;
         }
 
-        // NOUVEAU : Pagination augmentée à 10 pages max (2000 efforts)
         let page = 1, hasMorePages = true, totalInsertedForSegment = 0;
         
         while (hasMorePages && page <= 10) {
-          const stravaUrl = `https://www.strava.com/api/v3/segments/${segId}/all_efforts?per_page=200&page=${page}${dateFilter}`;
+          const stravaUrl = `https://www.strava.com/api/v3/segment_efforts?segment_id=${segId}&per_page=200&page=${page}${dateFilter}`;
           const lbRes = await fetch(stravaUrl, { headers: { Authorization: `Bearer ${athlete.access_token}` } });
           
           if (lbRes.ok) {
             const lbData = await lbRes.json();
             if (Array.isArray(lbData) && lbData.length > 0) {
               for (const entry of lbData) {
-                const resDb = await query(`INSERT INTO segment_efforts (segment_id, athlete_name, start_date, elapsed_time) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING RETURNING id;`, [segId, athleteName, entry.start_date_local, entry.elapsed_time]);
+                const resDb = await query(`
+                  INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time) 
+                  VALUES ($1, $2, $3, $4, $5, $6) 
+                  ON CONFLICT (effort_id) DO NOTHING RETURNING id;
+                `, [entry.id, segId, athlete.id, athleteName, entry.start_date_local, entry.elapsed_time]);
+                
                 if (resDb.length > 0) totalInsertedForSegment++;
               }
               if (lbData.length === 200) page++; else hasMorePages = false;
@@ -297,7 +297,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // On passe la liste de tous les athlètes au moteur de calcul
     const finalLeaderboard = await calculateLeaderboard(challengeId, allAthletes, logStep);
 
     return res.status(200).json({ leaderboard: finalLeaderboard, debug_steps: debugSteps });

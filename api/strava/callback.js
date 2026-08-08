@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (!code) return res.status(400).send("Missing authorization code");
 
   try {
-    // --- 1. Échanger le code contre un token Strava ---
+    // --- 1. Échanger le code ---
     const payload = {
       client_id: process.env.STRAVA_CLIENT_ID,
       client_secret: process.env.STRAVA_CLIENT_SECRET,
@@ -18,39 +18,23 @@ export default async function handler(req, res) {
       grant_type: "authorization_code"
     };
     
-    // DEBUG: Let's make sure Vercel is actually reading your variables
-    console.log("Checking Env Vars: Client ID exists?", !!process.env.STRAVA_CLIENT_ID);
-
     const response = await fetch("https://www.strava.com/oauth/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    // NOUVEAU : Lire en texte d'abord pour éviter le crash JSON
     const textResponse = await response.text();
-    
     let data;
-    try {
-      data = JSON.parse(textResponse);
-    } catch (parseError) {
-      // Si Strava renvoie du HTML, on log l'erreur exacte et on arrête
-      console.error("❌ STRAVA RETURNED HTML INSTEAD OF JSON. Raw response:");
-      console.error(textResponse.substring(0, 500)); // Logs the first 500 characters of the HTML
-      return res.status(500).send("Strava API failed. Check Vercel logs for the HTML response.");
-    }
+    try { data = JSON.parse(textResponse); } 
+    catch (e) { return res.status(500).send("Strava API failed (HTML returned)."); }
 
-    if (!data.access_token) {
-      console.error("Strava token error:", data);
-      return res.status(500).json({ error: "Token exchange failed", details: data });
-    }
+    if (!data.access_token || !data.athlete.id) return res.status(500).json({ error: "Auth failed", details: data });
 
-    const athlete = data.athlete || {};
-    const athleteId = athlete.id;
+    const athleteId = data.athlete.id;
+    const athleteName = `${data.athlete.firstname || ''} ${data.athlete.lastname || ''}`.trim();
 
-    if (!athleteId) return res.status(500).send("Strava API error: Missing athlete ID");
-
-    // --- 2. UPSERT dans la base ---
+    // --- 2. UPSERT dans la base (Athlète) ---
     await query(
       `INSERT INTO athletes (id, firstname, lastname, profile, country, sex, access_token, refresh_token, expires_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -59,18 +43,44 @@ export default async function handler(req, res) {
          lastname = COALESCE(EXCLUDED.lastname, athletes.lastname),
          profile = COALESCE(EXCLUDED.profile, athletes.profile),
          country = COALESCE(EXCLUDED.country, athletes.country),
-		 sex = COALESCE(EXCLUDED.sex, athletes.sex),
+         sex = COALESCE(EXCLUDED.sex, athletes.sex),
          access_token = EXCLUDED.access_token,
          refresh_token = EXCLUDED.refresh_token,
          expires_at = EXCLUDED.expires_at`,
       [
-        athleteId, athlete.firstname || null, athlete.lastname || null,
-        athlete.profile || null, athlete.country || null, athlete.sex || null,
+        athleteId, data.athlete.firstname || null, data.athlete.lastname || null,
+        data.athlete.profile || null, data.athlete.country || null, data.athlete.sex || null,
         data.access_token, data.refresh_token, data.expires_at
       ]
     );
 
-    // --- 3. Cookies ---
+    // --- 3. BACKFILL OPTIMISÉ (Performances du nouvel athlète) ---
+    const segmentsDb = await query(`SELECT DISTINCT segment_id FROM challenge_segments`);
+    
+    (async () => {
+      for (const row of segmentsDb) {
+        try {
+          const stravaRes = await fetch(`https://www.strava.com/api/v3/segment_efforts?segment_id=${row.segment_id}`, {
+            headers: { Authorization: `Bearer ${data.access_token}` }
+          });
+          
+          if (stravaRes.ok) {
+            const efforts = await stravaRes.json();
+            for (const effort of efforts) {
+              // Insertion ultra-rapide grâce à la contrainte UNIQUE sur effort_id
+              await query(
+                `INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time)
+                 VALUES ($1, $2, $3, $4, $5, $6)
+                 ON CONFLICT (effort_id) DO NOTHING`,
+                [effort.id, row.segment_id, athleteId, athleteName, effort.start_date, effort.elapsed_time]
+              );
+            }
+          }
+        } catch (e) { console.error(`Erreur backfill callback pour segment ${row.segment_id}:`, e); }
+      }
+    })();
+
+    // --- 4. Cookies & Redirection ---
     const cookieFlags = "Path=/; HttpOnly; Secure; SameSite=None";
     const sessionToken = jwt.sign({ athleteId: athleteId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
@@ -79,7 +89,6 @@ export default async function handler(req, res) {
       `strava_token=${data.access_token}; ${cookieFlags}`
     ]);
 
-    // --- 4. Redirection ---
     return res.redirect("https://segseq.vercel.app/profile.html");
 
   } catch (err) {

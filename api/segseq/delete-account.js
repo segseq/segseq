@@ -33,17 +33,23 @@ export default async function handler(req, res) {
     const athleteName = `${firstname} ${lastname}`.trim();
 
     // --- 3. NETTOYAGE DE LA BASE DE DONNÉES ---
+    
     // A. Supprimer ses participations/efforts
-    await query(`DELETE FROM segment_efforts WHERE athlete_name = $1`, [athleteName]);
-    await query(`DELETE FROM challenge_results WHERE athlete_name = $1`, [athleteName]);
+    // MODIFICATION : On utilise athlete_id pour une sécurité absolue
+    await query(`DELETE FROM segment_efforts WHERE athlete_id = $1`, [athleteId]);
+    
+    // Note : Si vous n'avez pas ajouté athlete_id à challenge_results, on doit garder athleteName ici.
+	await query(`DELETE FROM challenge_results WHERE athlete_id = $1`, [athleteId]);
     
     // B. Supprimer les challenges qu'il a créés (et leurs dépendances)
     const userChallenges = await query(`SELECT id FROM challenges WHERE creator_id = $1`, [athleteId]);
     if (userChallenges.length > 0) {
       const challengeIds = userChallenges.map(c => c.id);
+      
       // On supprime d'abord les enfants pour éviter les erreurs de clés étrangères
-      await query(`DELETE FROM challenge_results WHERE challenge_id = ANY($1::bigint[])`, [challengeIds]);
-      await query(`DELETE FROM challenge_segments WHERE challenge_id = ANY($1::bigint[])`, [challengeIds]);
+      await query(`DELETE FROM challenge_results WHERE challenge_id = ANY($1::int[])`, [challengeIds]);
+      await query(`DELETE FROM leaderboards WHERE challenge_id = ANY($1::int[])`, [challengeIds]); // NOUVEAU : Nettoyage des classements
+      await query(`DELETE FROM challenge_segments WHERE challenge_id = ANY($1::int[])`, [challengeIds]);
       await query(`DELETE FROM challenges WHERE creator_id = $1`, [athleteId]);
     }
 
@@ -55,11 +61,10 @@ export default async function handler(req, res) {
       await fetch("https://www.strava.com/oauth/deauthorize", {
         method: "POST",
         headers: { "Authorization": `Bearer ${access_token}` }
-      }).catch(err => console.error("Erreur révocation Strava:", err)); // On ne bloque pas si Strava échoue
+      }).catch(err => console.error("Erreur révocation Strava:", err));
     }
 
     // --- 5. DESTRUCTION DES COOKIES ---
-    // On définit une date d'expiration dans le passé pour forcer le navigateur à les supprimer
     const pastCookieFlags = "Path=/; HttpOnly; Secure; SameSite=None; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
     res.setHeader("Set-Cookie", [
       `session=; ${pastCookieFlags}`,

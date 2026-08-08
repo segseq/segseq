@@ -198,22 +198,5 @@
 <script src="language.js"></script>
 <script src="components.js"></script>
 
-<script>
-async function loadActivities() {
-  const res = await fetch("https://segseq.vercel.app/api/strava/activities");
-  const data = await res.json();
-
-  const container = document.getElementById("activities");
-
-  if (!container) return;
-
-  container.innerHTML = data
-    .map(act => `<li>${act.name} — ${act.distance}m</li>`)
-    .join("");
-}
-
-loadActivities();
-</script>
-
 </body>
 </html>
