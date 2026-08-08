@@ -30,9 +30,18 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
   if (segmentsRows.length === 0) return [];
   
   const reqSegIds = segmentsRows.map(s => String(s.segment_id));
-  logStep(`📍 Required Segments (${reqSegIds.length}): ${reqSegIds.join(' ➔ ')}`);
+  const uniqueSegIds = [...new Set(reqSegIds)]; // NOUVEAU : Liste des segments uniques
+  
+  logStep(`📍 Required Sequence (${reqSegIds.length} steps): ${reqSegIds.join(' ➔ ')}`);
 
-  const efforts = await query(`SELECT segment_id, athlete_id, athlete_name, start_date, elapsed_time FROM segment_efforts WHERE segment_id = ANY($1::bigint[])`, [reqSegIds]);
+  // NOUVEAU : On calcule combien de fois chaque segment est requis
+  const requiredCounts = {};
+  reqSegIds.forEach(id => {
+    requiredCounts[id] = (requiredCounts[id] || 0) + 1;
+  });
+
+  // MODIFICATION : On inclut effort_id et on utilise uniqueSegIds
+  const efforts = await query(`SELECT effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time FROM segment_efforts WHERE segment_id = ANY($1::bigint[])`, [uniqueSegIds]);
   logStep(`📥 Retrieved ${efforts.length} raw efforts from database.`);
 
   const athletesMap = {};
@@ -58,21 +67,24 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
     logStep(`\n👤 Evaluating athlete: ${athName} (ID: ${athId})`);
     
     const effortsBySeg = {};
-    reqSegIds.forEach(id => effortsBySeg[id] = []);
+    uniqueSegIds.forEach(id => effortsBySeg[id] = []);
     athData.efforts.forEach(e => { 
       const sId = String(e.segment_id);
       if (effortsBySeg[sId]) effortsBySeg[sId].push(e); 
     });
 
+    // NOUVEAU : Vérification stricte des quantités (Laps/Boucles)
     let hasEnoughEfforts = true;
-    for (const id of reqSegIds) {
+    for (const [id, reqCount] of Object.entries(requiredCounts)) {
       const count = effortsBySeg[id].length;
-      logStep(`  - Seg ${id}: ${count} effort(s)`);
-      if (count === 0) hasEnoughEfforts = false; 
+      logStep(`  - Seg ${id}: ${count} effort(s) found (Needs ${reqCount})`);
+      if (count < reqCount) {
+        hasEnoughEfforts = false;
+      }
     }
     
     if (!hasEnoughEfforts) {
-      logStep(`  ❌ Failed: Missing efforts on one or more segments.`);
+      logStep(`  ❌ Failed: Missing efforts for one or more segments.`);
       continue;
     }
 
@@ -83,7 +95,8 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
     if (isStrictSequence) {
       startingEfforts = effortsBySeg[reqSegIds[0]];
     } else {
-      for (const segId of reqSegIds) {
+      // NOUVEAU : Utilisation de uniqueSegIds pour éviter les doublons au départ
+      for (const segId of uniqueSegIds) {
         startingEfforts = startingEfforts.concat(effortsBySeg[segId]);
       }
     }
@@ -95,14 +108,14 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
       let possibleEffortsBySeg = {};
       let hasAllInWindow = true;
       
-      for (const segId of reqSegIds) {
+      for (const segId of uniqueSegIds) {
         const effortsInWindow = effortsBySeg[segId].filter(e => {
           const tStart = new Date(e.start_date).getTime();
           const tEnd = tStart + (Number(e.elapsed_time) * 1000);
           return tStart >= windowStartMs && tEnd <= windowEndMs;
         });
         
-        if (effortsInWindow.length === 0) {
+        if (effortsInWindow.length < requiredCounts[segId]) {
           hasAllInWindow = false;
           break; 
         }
@@ -111,7 +124,7 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
 
       if (!hasAllInWindow) continue;
 
-      function search(currentSeq, usedSegIds, prevEndMs, currentMovingSecs) {
+      function search(currentSeq, usedIndices, prevEndMs, currentMovingSecs) {
         if (currentMovingSecs >= bestMovingSeconds) return; 
 
         if (currentSeq.length === reqSegIds.length) {
@@ -120,26 +133,37 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
           return;
         }
 
+        // NOUVEAU : On garde la trace des efforts physiques déjà utilisés
+        const usedEffortIds = new Set(currentSeq.map(e => e.effort_id));
+
         if (isStrictSequence) {
           const nextSegId = reqSegIds[currentSeq.length];
           for (const e of possibleEffortsBySeg[nextSegId]) {
+            // Empêche de réutiliser la même performance
+            if (usedEffortIds.has(e.effort_id)) continue; 
+
             const tStart = new Date(e.start_date).getTime();
             if (tStart >= prevEndMs) {
               currentSeq.push(e);
-              search(currentSeq, usedSegIds, tStart + Number(e.elapsed_time)*1000, currentMovingSecs + Number(e.elapsed_time));
+              search(currentSeq, usedIndices, tStart + Number(e.elapsed_time)*1000, currentMovingSecs + Number(e.elapsed_time));
               currentSeq.pop();
             }
           }
         } else {
-          for (const segId of reqSegIds) {
-            if (usedSegIds.has(segId)) continue;
+          for (let i = 0; i < reqSegIds.length; i++) {
+            if (usedIndices.has(i)) continue;
+            const segId = reqSegIds[i];
+
             for (const e of possibleEffortsBySeg[segId]) {
+              // Empêche de réutiliser la même performance
+              if (usedEffortIds.has(e.effort_id)) continue;
+
               const tStart = new Date(e.start_date).getTime();
               if (tStart >= prevEndMs) {
                 currentSeq.push(e);
-                usedSegIds.add(segId);
-                search(currentSeq, usedSegIds, tStart + Number(e.elapsed_time)*1000, currentMovingSecs + Number(e.elapsed_time));
-                usedSegIds.delete(segId);
+                usedIndices.add(i);
+                search(currentSeq, usedIndices, tStart + Number(e.elapsed_time)*1000, currentMovingSecs + Number(e.elapsed_time));
+                usedIndices.delete(i);
                 currentSeq.pop();
               }
             }
@@ -149,8 +173,14 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
 
       const startSegId = String(startEffort.segment_id);
       const startEndMs = windowStartMs + Number(startEffort.elapsed_time)*1000;
-      const used = new Set([startSegId]);
-      search([startEffort], used, startEndMs, Number(startEffort.elapsed_time));
+      
+      let startIndex = 0;
+      if (!isStrictSequence) {
+        startIndex = reqSegIds.indexOf(startSegId);
+      }
+
+      const usedIdx = new Set([startIndex]);
+      search([startEffort], usedIdx, startEndMs, Number(startEffort.elapsed_time));
     }
 
     if (bestSequence) {
@@ -159,7 +189,7 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
       const totalTimeSeconds = Math.floor((new Date(lastE.start_date).getTime() + Number(lastE.elapsed_time)*1000 - new Date(firstE.start_date).getTime()) / 1000);
       
       const bestCompletion = {
-        athlete_id: athId, // NOUVEAU
+        athlete_id: athId,
         athlete: athName,
         profile: athData.profile || null,
         sex: athData.sex || null,
@@ -183,7 +213,6 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
   
   await query(`DELETE FROM challenge_results WHERE challenge_id = $1`, [challengeId]);
   for (const row of finalLeaderboard) {
-    // MODIFICATION : Insertion de athlete_id
     await query(`
       INSERT INTO challenge_results (challenge_id, athlete_id, athlete_name, rank, start_date, total_time_human, moving_time_human, moving_seconds, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
@@ -210,7 +239,6 @@ export default async function handler(req, res) {
     const allAthletes = await query(`SELECT id, firstname, lastname, profile, sex, access_token, refresh_token, expires_at FROM athletes WHERE access_token IS NOT NULL`);
 
     if (!force) {
-      // MODIFICATION : Jointure ultra-rapide et sécurisée via l'ID
       const results = await query(`
         SELECT cr.athlete_name as athlete, cr.rank, cr.start_date, cr.total_time_human, cr.moving_time_human, a.profile, a.sex 
         FROM challenge_results cr
@@ -225,7 +253,10 @@ export default async function handler(req, res) {
     }
 
     logStep("🔄 Force refresh requested. Fetching from Strava API...");
-    const reqSegIds = (await query(`SELECT segment_id FROM challenge_segments WHERE challenge_id = $1`, [challengeId])).map(s => String(s.segment_id));
+    
+    // NOUVEAU : On utilise les segments uniques pour l'API Strava
+    const reqSegIds = (await query(`SELECT segment_id FROM challenge_segments WHERE challenge_id = $1 ORDER BY order_index ASC`, [challengeId])).map(s => String(s.segment_id));
+    const uniqueSegIds = [...new Set(reqSegIds)];
     
     let rateLimitHit = false; 
     
@@ -253,7 +284,8 @@ export default async function handler(req, res) {
         } catch (err) { continue; }
       }
       
-      for (const segId of reqSegIds) { 
+      // MODIFICATION : Boucle sur les segments UNIQUES
+      for (const segId of uniqueSegIds) { 
         if (rateLimitHit) break;
         const lastEffortDb = await query(`SELECT MAX(start_date) as last_date FROM segment_efforts WHERE segment_id = $1 AND athlete_id = $2`, [segId, athlete.id]);
         

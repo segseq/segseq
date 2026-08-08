@@ -128,8 +128,24 @@
           return;
         }
         const athlete = await athleteRes.json();
-        document.getElementById("athlete-photo").src = athlete.profile;
+		// Photo
+		// On crée un avatar par défaut avec les initiales si Strava échoue ou si l'image est absente
+        const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.firstname + ' ' + athlete.lastname)}&background=random&color=fff&size=140`;
         
+        const photoEl = document.getElementById("athlete-photo");
+        
+        // Si la base de données contient "avatar/athlete" (le bug de Strava) ou est vide, on met le défaut
+        if (!athlete.profile || athlete.profile.includes("avatar/athlete")) {
+          photoEl.src = defaultAvatar;
+        } else {
+          photoEl.src = athlete.profile;
+        }
+        
+        // La magie : Si l'URL Strava est cassée (Erreur 404), le navigateur déclenche "onerror" et met le défaut !
+        photoEl.onerror = function() {
+          this.onerror = null; // Empêche une boucle infinie
+          this.src = defaultAvatar;
+        };        
         // Traduction dynamique du message de bienvenue
         document.getElementById("welcome").textContent = lang === 'fr' ? `Bon retour, ${athlete.firstname} !` : `Welcome back, ${athlete.firstname}!`;
         document.getElementById("welcome").classList.remove('lang-element');

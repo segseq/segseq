@@ -137,7 +137,7 @@
           tr.innerHTML = `
             <td style="text-align: center; vertical-align: middle;">${rankDisplay}</td>
             <td style="display: flex; align-items: center; gap: 10px;">
-              <img src="${avatarUrl}" alt="${row.athlete}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
+              <img src="${avatarUrl}" alt="${row.athlete}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(row.athlete)}&background=random&color=fff&size=32';" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
               <span>${row.athlete}</span>
             </td>
             <td style="vertical-align: middle;">${row.start_date}</td>
