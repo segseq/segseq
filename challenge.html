@@ -35,9 +35,11 @@
         <h3 class="lang-element" data-en="Segments" data-fr="Segments" style="color:var(--navy); margin: 30px 0 10px;">Segments</h3>
         <div id="segments-list"></div>
         
+		<div id="admin-log" style="display:none;">
         <h3 class="lang-element" data-en="Logic Execution Log" data-fr="Journal d'exécution" style="color:var(--navy); margin: 30px 0 10px;">Logic Execution Log</h3>
         <div id="debug-log" class="debug-console">Awaiting execution...</div>
-        
+        </div>
+		
         <h3 class="lang-element" data-en="Leaderboard" data-fr="Classement" style="color:var(--navy); margin: 30px 0 10px;">Leaderboard</h3>
         
 		 <!-- NOUVEAU : Filtre par genre -->
@@ -156,9 +158,9 @@
         let noDataMsg = "";
         
         if (lang === 'fr') {
-          noDataMsg = "Aucun résultat. Si vous venez de créer ce défi, le calcul des historiques Strava est en cours en arrière-plan. Cliquez sur le bouton Rafraîchir dans quelques secondes.";
+          noDataMsg = "Aucun résultat. Si vous venez de créer ce défi, le calcul des historiques Strava est en cours en arrière-plan.";
         } else {
-          noDataMsg = "No results. If you just created this challenge, Strava history is being calculated in the background. Click the Refresh button in a few seconds.";
+          noDataMsg = "No results. If you just created this challenge, Strava history is being calculated in the background.";
         }
         
         lb.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px 20px; color: #666; line-height: 1.5;">
@@ -221,6 +223,7 @@
 		// Afficher le bouton de rafraîchissement si admin
         if (data.is_admin === true) {
           document.getElementById("admin-refresh-section").style.display = "block";
+		  document.getElementById("admin-log").style.display = "block";
         }
 		
         const segList = document.getElementById("segments-list");

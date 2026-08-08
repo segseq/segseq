@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       return res.status(200).json({
         created: parseInt(createdRes[0].count, 10),
         completed: parseInt(completedRes[0].count, 10),
-        efforts: parseInt(effortsRes[0].count, 10)
+        efforts: parseInt(effortsRes[0].count, 10),
 		victories: parseInt(victoriesRes[0].count, 10),
       });
     } 
