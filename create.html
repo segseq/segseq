@@ -76,7 +76,7 @@
     let starredSegments = [];
     async function fetchStarredSegments() {
       try {
-        const res = await fetch('/api/strava/starred_segments');
+        const res = await fetch('/api/strava?action=getStarredSegments');
         if (res.ok) {
           starredSegments = await res.json();
         }
@@ -255,7 +255,7 @@
       input.disabled = true;
 
       try {
-        const res = await fetch(`/api/segseq/validate-segment?id=${id}`);
+        const res = await fetch(`/api/strava?action=validateSegment&id=${id}`);
         const data = await res.json();
         
         if (!res.ok) throw new Error(data.error || (lang === 'fr' ? "Segment introuvable." : "Segment not found."));

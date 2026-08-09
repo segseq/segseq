@@ -121,7 +121,7 @@
       const lang = localStorage.getItem('userLang') || 'en';
       
       try {
-        const athleteRes = await fetch("/api/strava/me", { credentials: "include" });
+        const athleteRes = await fetch("/api/strava?action=getProfile", { credentials: "include" });
         if (!athleteRes.ok) {
           document.getElementById("welcome").textContent = lang === 'fr' ? "Non authentifié" : "Not authenticated";
           // On retire la classe lang-element pour que language.js n'écrase pas notre texte dynamique

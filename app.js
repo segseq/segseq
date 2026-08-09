@@ -133,7 +133,7 @@ async function injectComponents() {
 
   // 3. Logique d'authentification Strava pour le header
   try {
-    const res = await fetch("/api/strava/me", { credentials: "include" });
+    const res = await fetch("/api/strava?action=getProfile", { credentials: "include" });
     const authSection = document.getElementById('nav-auth-section');
     
     if (res.ok) {
