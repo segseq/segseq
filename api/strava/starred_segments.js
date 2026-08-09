@@ -1,3 +1,7 @@
+/* ------------------------------ */
+/* ./api/strava/starred_segments.js */
+/* ------------------------------ */
+
 export default async function handler(req, res) {
   try {
     // Récupérer le token Strava depuis les cookies

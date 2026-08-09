@@ -1,5 +1,6 @@
-// --- language.js ---
-
+/* ------------------------------ */
+/* language.js */
+/* ------------------------------ */
 // Cette fonction DOIT être globale pour que le onclick="" du HTML la trouve
 function setLanguage(lang) {
     localStorage.setItem('userLang', lang);

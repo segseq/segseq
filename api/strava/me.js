@@ -1,3 +1,7 @@
+/* ------------------------------ */
+/* ./api/strava/me.js */
+/* ------------------------------ */
+
 export default async function handler(req, res) {
   // Lire le cookie manuellement
   const cookieHeader = req.headers.cookie || "";

@@ -1,3 +1,7 @@
+/* ------------------------------ */
+/* ./api/strava/callback.js */
+/* ------------------------------ */
+
 // --- IMPORTS ---
 import { query } from "../../db.js";
 import jwt from "jsonwebtoken";

@@ -1,3 +1,6 @@
+/* ------------------------------ */
+/* ./api/segseq/validate-segment.js */
+/* ------------------------------ */
 import { query } from "../../db.js";
 
 export default async function handler(req, res) {

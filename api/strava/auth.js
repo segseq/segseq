@@ -1,3 +1,7 @@
+/* ------------------------------ */
+/* ./api/strava/auth.js */
+/* ------------------------------ */
+
 export default function handler(req, res) {
   const clientId = process.env.STRAVA_CLIENT_ID;
   const redirectUri = process.env.STRAVA_REDIRECT_URI;

@@ -1,3 +1,7 @@
+/* ------------------------------ */
+/* ./api/segseq/challenges.js */
+/* ------------------------------ */
+
 // --- CONFIG ---
 export const config = { api: { bodyParser: true } };
 

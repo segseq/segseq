@@ -1,3 +1,7 @@
+/* ------------------------------ */
+/* ./api/segseq/leaderboard.js */
+/* ------------------------------ */
+
 import { query } from "../../db.js";
 
 export function formatTime(sec) {

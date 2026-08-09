@@ -1,3 +1,7 @@
+/* ------------------------------ */
+/* ./api/segseq/stats.js */
+/* ------------------------------ */
+
 import { query } from "../../db.js";
 import { parse } from "cookie-es";
 import jwt from "jsonwebtoken";

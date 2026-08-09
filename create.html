@@ -1,3 +1,6 @@
+<!------------------------------>
+<!-- cretae.html -->
+<!------------------------------>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -359,7 +362,7 @@
           return;
         }
         
-        window.location.href = `/challenge.html?id=${data.id}`;
+        window.location.href = `/challenge.html?id=${data.id}&autosync=1`;
         
       } catch (err) {
         console.error(err);
@@ -369,7 +372,7 @@
       }
     }
 
-    // --- NOUVEAU : LOGIQUE D'ÉDITION ---
+    // --- LOGIQUE D'ÉDITION ---
     document.addEventListener("DOMContentLoaded", async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const editId = urlParams.get('edit');

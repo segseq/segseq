@@ -1,3 +1,7 @@
+/* ------------------------------ */
+/* components.js */
+/* ------------------------------ */
+
 async function injectComponents() {
   // 1. Définition des templates
   const headerHTML = `
