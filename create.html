@@ -343,7 +343,7 @@
       if (editId) payload.id = editId;
       
       try {
-        const res = await fetch("/api/segseq/challenges", {
+        const res = await fetch("/api/challenges", {
           method: editId ? "PUT" : "POST", // NOUVEAU : PUT si édition
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -382,7 +382,7 @@
         document.getElementById('publish-btn').textContent = lang === 'fr' ? "Enregistrer les modifications" : "Save changes";
         
         try {
-          const res = await fetch(`/api/segseq/challenges?id=${editId}`);
+          const res = await fetch(`/api/challenges?id=${editId}`);
           if (res.ok) {
             const challenge = await res.json();
             

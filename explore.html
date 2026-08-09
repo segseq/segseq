@@ -60,7 +60,7 @@
       const lang = localStorage.getItem('userLang') || 'en';
       
       try {
-        const res = await fetch("/api/segseq/challenges", { credentials: "include" });
+        const res = await fetch("/api/challenges", { credentials: "include" });
         const data = await res.json();
         
         if (!res.ok) throw new Error(data.error || "Failed to load");
@@ -159,7 +159,7 @@
       if (!confirm(confirmMsg)) return;
       
       try {
-        const res = await fetch(`/api/segseq/challenges?id=${id}`, { method: "DELETE", credentials: "include" });
+        const res = await fetch(`/api/challenges?id=${id}`, { method: "DELETE", credentials: "include" });
         const data = await res.json();
         
         if (res.ok) {
@@ -179,7 +179,7 @@
 
     async function loadStats() {
       try {
-        const res = await fetch("/api/segseq/stats");
+        const res = await fetch("/api/stats");
         if (res.ok) {
           const data = await res.json();
           document.getElementById("stat-athletes").textContent = data.athletes;
