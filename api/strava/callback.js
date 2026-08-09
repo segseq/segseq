@@ -67,7 +67,9 @@ export default async function handler(req, res) {
         const host = req.headers.host;
         const backfillUrl = `${protocol}://${host}/api/segseq/admin-backfill?athlete_id=${athleteId}`;
         
-        fetch(backfillUrl).catch(err => console.error("Erreur lancement backfill:", err));
+        setTimeout(() => {
+			fetch(backfillUrl).catch(err => console.error("Erreur lancement backfill:", err));
+			}, 2000);
 
         // --- 4. Cookies & Redirection ---
         const cookieFlags = "Path=/; HttpOnly; Secure; SameSite=None";
@@ -77,10 +79,13 @@ export default async function handler(req, res) {
             { expiresIn: '7d' }
         );
 
-        res.setHeader("Set-Cookie", [
+        /* res.setHeader("Set-Cookie", [
             `session=${sessionToken}; ${cookieFlags}`,
 			`strava_token=${data.access_token}; ${cookieFlags}`
-        ]);
+        ]); */
+		res.setHeader("Set-Cookie", [
+            `session=${sessionToken}; ${cookieFlags}`
+		]);
 
         return res.redirect("https://segseq.vercel.app/profile.html");
 

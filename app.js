@@ -137,13 +137,16 @@ async function injectComponents() {
     const authSection = document.getElementById('nav-auth-section');
     
     if (res.ok) {
-      const athlete = await res.json();
-      authSection.innerHTML = `
-        <a href="profile.html">
-          <img src="${athlete.profile}" alt="Profile" class="nav-profile-pic" title="Go to profile">
-        </a>
-      `;
-    } else {
+	  const athlete = await res.json();
+	  authSection.innerHTML = `
+		<a href="profile.html" title="Go to profile">
+		  <img src="${athlete.profile}" alt="Profile" class="nav-profile-pic">
+		</a>
+		<a href="#" onclick="logout()" class="lang-element" data-fr="Déconnexion" data-en="Logout" style="color: white; text-decoration: underline; cursor: pointer;">
+		  Logout
+		</a>
+	  `;
+	} else {
       authSection.innerHTML = `
         <a href="https://segseq.vercel.app/api/strava/auth" class="btn btn-primary lang-element" data-fr="Se connecter" data-en="Connect" style="padding: 10px 20px;">Connect</a>
       `;
@@ -155,6 +158,32 @@ async function injectComponents() {
   // 4. Appliquer la langue au chargement des composants
   if (typeof applyCurrentLanguage === 'function') {
     applyCurrentLanguage();
+  }
+}
+
+async function logout() {
+  const lang = localStorage.getItem('userLang') || 'en';
+  const confirmMsg = lang === 'fr' ? "Êtes-vous sûr de vouloir vous déconnecter ?" : "Are you sure you want to log out?";
+
+  if (confirm(confirmMsg)) {
+    try {
+      const res = await fetch('/api/strava?action=logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        // Rediriger vers la page d'accueil après la déconnexion
+        window.location.href = '/';
+      } else {
+        const errorMsg = lang === 'fr' ? "Échec de la déconnexion." : "Logout failed.";
+        alert(errorMsg);
+      }
+    } catch (err) {
+      console.error("Erreur réseau lors de la déconnexion:", err);
+      const errorMsg = lang === 'fr' ? "Erreur réseau." : "Network error.";
+      alert(errorMsg);
+    }
   }
 }
 
