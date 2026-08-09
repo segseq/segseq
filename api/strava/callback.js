@@ -6,6 +6,10 @@
 import { query } from "../../db.js";
 import jwt from "jsonwebtoken";
 
+// Fonction utilitaire pour le délai
+const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
+
 // --- HANDLER ---
 export default async function handler(req, res) {
   const urlObj = new URL(req.url, `https://${req.headers.host}`);
@@ -61,10 +65,11 @@ export default async function handler(req, res) {
     // --- 3. BACKFILL OPTIMISÉ (Performances du nouvel athlète) ---
     const segmentsDb = await query(`SELECT DISTINCT segment_id FROM challenge_segments`);
     
-    (async () => {
+    await (async () => {
       for (const row of segmentsDb) {
         try {
-          const stravaRes = await fetch(`https://www.strava.com/api/v3/segment_efforts?segment_id=${row.segment_id}`, {
+          // Ajout de per_page=200 pour maximiser la récupération
+        const stravaRes = await fetch(`https://www.strava.com/api/v3/segment_efforts?segment_id=${row.segment_id}&per_page=200`, {
             headers: { Authorization: `Bearer ${data.access_token}` }
           });
           
@@ -80,6 +85,8 @@ export default async function handler(req, res) {
               );
             }
           }
+		  await delay(200); 
+
         } catch (e) { console.error(`Erreur backfill callback pour segment ${row.segment_id}:`, e); }
       }
     })();

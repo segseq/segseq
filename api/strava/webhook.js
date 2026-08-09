@@ -84,10 +84,10 @@ async function processActivity(athleteId, activityId) {
   for (const effort of activity.segment_efforts) {
     if (activeSegIds.has(effort.segment.id.toString())) {
       await query(`
-        INSERT INTO segment_efforts (segment_id, athlete_name, start_date, elapsed_time)
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT (segment_id, athlete_name, start_date) DO NOTHING
-      `, [effort.segment.id, athleteName, effort.start_date_local, effort.elapsed_time]);
+		  INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time)
+		  VALUES ($1, $2, $3, $4, $5, $6)
+		  ON CONFLICT (effort_id) DO NOTHING
+		`, [effort.id, effort.segment.id, athleteId, athleteName, effort.start_date_local, effort.elapsed_time]);	
       inserted++;
       impactedSegments.push(effort.segment.id);
     }
