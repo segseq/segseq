@@ -62,40 +62,30 @@ export default async function handler(req, res) {
       ]
     );
 
-   // --- 3. DÉCLENCHEMENT DU BACKFILL EN ARRIÈRE-PLAN ---
-    // On construit l'URL absolue vers notre propre API
-    const protocol = req.headers['x-forwarded-proto'] || 'http';
-    const host = req.headers.host;
-    const backfillUrl = `${protocol}://${host}/api/segseq/admin-backfill?athlete_id=${athleteId}`;
-    
-    // On lance la requête SANS "await". 
-    // Vercel va rediriger l'utilisateur instantanément pendant que le script tourne en fond.
-    fetch(backfillUrl).catch(err => console.error("Erreur lancement backfill:", err));
+    // --- 3. DÉCLENCHEMENT DU BACKFILL EN ARRIÈRE-PLAN ---
+        const protocol = req.headers['x-forwarded-proto'] || 'http';
+        const host = req.headers.host;
+        const backfillUrl = `${protocol}://${host}/api/segseq/admin-backfill?athlete_id=${athleteId}`;
+        
+        fetch(backfillUrl).catch(err => console.error("Erreur lancement backfill:", err));
 
-    // --- 4. Cookies & Redirection ---
-    const cookieFlags = "Path=/; HttpOnly; Secure; SameSite=None";
-    const sessionToken = jwt.sign({ athleteId: athleteId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        // --- 4. Cookies & Redirection ---
+        // (SUPPRESSION DU BLOC EN DOUBLE ICI)
+        const cookieFlags = "Path=/; HttpOnly; Secure; SameSite=None";
+        const sessionToken = jwt.sign(
+            { athleteId: athleteId }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '7d' }
+        );
 
-    res.setHeader("Set-Cookie", [
-      `session=${sessionToken}; ${cookieFlags}`,
-    ]);
+        res.setHeader("Set-Cookie", [
+            `session=${sessionToken}; ${cookieFlags}`
+        ]);
 
-    return res.redirect("https://segseq.vercel.app/profile.html");
+        return res.redirect("https://segseq.vercel.app/profile.html");
 
-
-    // --- 4. Cookies & Redirection ---
-    const cookieFlags = "Path=/; HttpOnly; Secure; SameSite=None";
-    const sessionToken = jwt.sign({ athleteId: athleteId }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    res.setHeader("Set-Cookie", [
-      `session=${sessionToken}; ${cookieFlags}`,
-      `strava_token=${data.access_token}; ${cookieFlags}`
-    ]);
-
-    return res.redirect("https://segseq.vercel.app/profile.html");
-
-  } catch (err) {
-    console.error("Callback crash:", err);
-    return res.status(500).send("Internal Server Error during callback");
-  }
+    } catch (err) {
+        console.error("Callback crash:", err);
+        return res.status(500).send("Internal Server Error during callback");
+    }
 }
