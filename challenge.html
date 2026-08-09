@@ -193,7 +193,7 @@
       const lang = localStorage.getItem('userLang') || 'en';
       
       try {
-        const res = await fetch(`/api/segseq/challenges?id=${challengeId}`);
+        const res = await fetch(`/api/challenges?id=${challengeId}`);
         const data = await res.json();
         
         if (!res.ok) {
@@ -289,7 +289,7 @@
           document.getElementById("refresh-btn").click();
           window.history.replaceState({}, document.title, `/challenge.html?id=${challengeId}`);
         } else {
-          const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}`);
+          const lbRes = await fetch(`/api/leaderboard?id=${challengeId}`);
           const lbData = await lbRes.json();
           processApiData(lbData);
         }
@@ -316,7 +316,7 @@
       debugLog.innerHTML = `${logStart1}<br/>${logStart2}`;
       
       try {
-        const lbRes = await fetch(`/api/segseq/leaderboard?id=${challengeId}&force=1`);
+        const lbRes = await fetch(`/api/leaderboard?id=${challengeId}&force=1`);
         const lbData = await lbRes.json();
         if(!lbRes.ok) {
           const errorPrefix = lang === 'fr' ? "> Erreur :" : "> Error:";
@@ -347,7 +347,7 @@
       btn.disabled = true;
 
       try {
-        const res = await fetch(`/api/segseq/challenges?id=${challengeId}`, { 
+        const res = await fetch(`/api/challenges?id=${challengeId}`, { 
           method: "DELETE", 
           credentials: "include" 
         });

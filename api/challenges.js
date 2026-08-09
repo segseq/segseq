@@ -6,7 +6,7 @@
 export const config = { api: { bodyParser: true } };
 
 // --- IMPORTS ---
-import { query } from "../../db.js";
+import { query } from "../db.js";
 import { parse } from "cookie-es";
 import jwt from "jsonwebtoken";
 

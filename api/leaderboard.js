@@ -2,7 +2,7 @@
 /* ./api/segseq/leaderboard.js */
 /* ------------------------------ */
 
-import { query } from "../../db.js";
+import { query } from "../db.js";
 
 export function formatTime(sec) {
   const h = Math.floor(sec / 3600);

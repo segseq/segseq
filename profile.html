@@ -195,7 +195,7 @@
       if (!confirmDelete) return;
 
       try {
-        const response = await fetch('/api/segseq/delete-account', {
+        const response = await fetch('/api/account', {
           method: 'DELETE'
         });
 
@@ -219,7 +219,7 @@
 	// Chargement des statistiques de l'athlète
     async function loadMyStats() {
       try {
-        const res = await fetch("/api/segseq/stats?scope=me", { credentials: "include" });
+        const res = await fetch("/api/stats?scope=me", { credentials: "include" });
         if (res.ok) {
           const stats = await res.json();
           

@@ -2,7 +2,7 @@
 /* ./api/strava/webhook.js */
 /* ------------------------------ */
 
-import { query } from "../../db.js";
+import { query } from "../db.js";
 // ATTENTION: Ajuste le chemin relatif ci-dessous selon la structure de tes dossiers
 import { calculateLeaderboard } from "../segseq/leaderboards.js"; 
 
