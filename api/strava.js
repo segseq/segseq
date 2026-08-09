@@ -1,22 +1,41 @@
-// Fichier : /api/strava.js (VERSION FINALE ET SÉCURISÉE)
+// Fichier : /api/strava.js
 
 import { query } from "../db.js";
 import { parse } from "cookie-es";
 import jwt from "jsonwebtoken";
-import { getValidStravaToken } from './strava/token.js'; // Assurez-vous que ce chemin est correct
+import { getValidStravaToken } from './strava/token.js';
 
 export default async function handler(req, res) {
-  const { action, id: segmentId } = req.query; // Renommé 'id' en 'segmentId' pour plus de clarté
+  const { action, id: segmentId } = req.query;
 
-  // 1. Authentification centralisée via le cookie de session JWT
+  // --- LOGOUT DOIT ÊTRE GÉRÉ EN PREMIER ---
+  if (action === "logout") {
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    try {
+      const pastCookieFlags =
+        "Path=/; HttpOnly; Secure; SameSite=None; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
+      res.setHeader("Set-Cookie", [
+        `session=; ${pastCookieFlags}`,
+        `strava_token=; ${pastCookieFlags}`
+      ]);
+
+      return res.status(200).json({ success: true, message: "Déconnexion réussie." });
+    } catch (err) {
+      return res.status(500).json({ error: "Erreur serveur lors de la déconnexion." });
+    }
+  }
+
+  // --- AUTHENTIFICATION ---
   const cookies = parse(req.headers.cookie || "");
   const sessionToken = cookies.session;
 
   if (!sessionToken) {
-    // Si aucune action ne requiert d'être authentifié, on peut continuer (ex: future action publique)
-    // Mais pour celles qui le requièrent, on bloque ici.
     if (action === 'getProfile' || action === 'getStarredSegments') {
-       return res.status(401).json({ error: "Non authentifié" });
+      return res.status(401).json({ error: "Non authentifié" });
     }
   }
 
@@ -33,7 +52,6 @@ export default async function handler(req, res) {
   try {
     // --- ROUTEUR INTERNE ---
 
-    // ACTION 1 : Récupérer le profil de l'utilisateur connecté
     if (action === 'getProfile') {
       if (!athleteId) return res.status(401).json({ error: "Non authentifié" });
 
@@ -51,10 +69,9 @@ export default async function handler(req, res) {
       return res.status(200).json(athlete);
     }
 
-    // ACTION 2 : Récupérer les segments favoris de l'utilisateur (logique sécurisée)
     else if (action === 'getStarredSegments') {
       if (!athleteId) return res.status(401).json({ error: "Non authentifié" });
-      
+
       const validAccessToken = await getValidStravaToken(athleteId);
       if (!validAccessToken) return res.status(401).json({ error: "Impossible d'obtenir un token Strava valide." });
 
@@ -70,7 +87,6 @@ export default async function handler(req, res) {
       return res.status(200).json(simplifiedSegments);
     }
 
-    // ACTION 3 : Valider un ID de segment (logique sécurisée)
     else if (action === 'validateSegment') {
       if (!athleteId) return res.status(401).json({ error: "Non authentifié pour valider un segment." });
       if (!segmentId) return res.status(400).json({ error: "Missing segment ID" });
@@ -82,12 +98,11 @@ export default async function handler(req, res) {
         headers: { Authorization: `Bearer ${validAccessToken}` }
       });
       if (!stravaRes.ok) return res.status(404).json({ error: "Segment introuvable ou privé." });
-      
+
       const data = await stravaRes.json();
       return res.status(200).json({ name: data.name, distance: data.distance });
     }
 
-    // Si aucune action ne correspond
     else {
       return res.status(400).json({ error: "Action non spécifiée ou invalide." });
     }
@@ -95,28 +110,5 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error(`Erreur API pour l'action '${action}':`, err.message);
     return res.status(500).json({ error: "Erreur serveur", details: err.message });
-  }
-}
-
-export default async function handler(req, res) {
-  if (req.method !== 'POST' && req.query.action === 'logout') {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  try {
-    // Crée une date d'expiration dans le passé pour dire au navigateur de supprimer les cookies.
-    const pastCookieFlags = "Path=/; HttpOnly; Secure; SameSite=None; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
-
-    // On envoie l'instruction de supprimer le cookie de session et, par sécurité, l'ancien strava_token
-    res.setHeader("Set-Cookie", [
-      `session=; ${pastCookieFlags}`,
-      `strava_token=; ${pastCookieFlags}`
-    ]);
-
-    // On confirme que l'opération a réussi
-    res.status(200).json({ success: true, message: "Déconnexion réussie." });
-
-  } catch (err) {
-    res.status(500).json({ error: "Erreur serveur lors de la déconnexion." });
   }
 }
