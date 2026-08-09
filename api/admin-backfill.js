@@ -1,3 +1,5 @@
+/* admin-backfill.js */
+
 import { query } from "../../db.js";
 import { calculateLeaderboard } from "./leaderboard.js"; 
 
@@ -48,15 +50,46 @@ export default async function handler(req, res) {
 
     let totalInserted = 0;
 
-    // 2. STRATÉGIE ANTI-PAYWALL : On récupère les 50 dernières activités de l'athlète
-    debugLog.push("Récupération des 50 dernières activités (Bypass Paywall Strava)...");
-    const activitiesRes = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=200`, {
-      headers: { Authorization: `Bearer ${athlete.access_token}` }
-    });
+    // 2. STRATÉGIE ANTI-PAYWALL & PREMIUM
+        debugLog.push("Vérification du statut de l'athlète...");
+        const profileRes = await fetch("https://www.strava.com/api/v3/athlete", {
+            headers: { Authorization: `Bearer ${athlete.access_token}` }
+        });
+        const profileData = await profileRes.json();
+        const isPremium = profileData.premium === true;
 
-    if (!activitiesRes.ok) throw new Error("Impossible de lire les activités.");
-    const activities = await activitiesRes.json();
-    debugLog.push(`${activities.length} activités trouvées. Analyse en cours...`);
+        debugLog.push(`Statut : ${isPremium ? 'Premium (Historique complet)' : 'Gratuit (Max 200 activités)'}`);
+
+        let allActivities = [];
+        let page = 1;
+        let hasMore = true;
+
+        while (hasMore) {
+            debugLog.push(`Récupération des activités (Page ${page})...`);
+            const activitiesRes = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=200&page=${page}`, {
+                headers: { Authorization: `Bearer ${athlete.access_token}` }
+            });
+
+            if (!activitiesRes.ok) throw new Error("Impossible de lire les activités.");
+            const activities = await activitiesRes.json();
+            allActivities = allActivities.concat(activities);
+
+            // Si gratuit, on s'arrête à la page 1. Si Premium, on continue tant que la page est pleine (200).
+            if (!isPremium) {
+                hasMore = false;
+            } else {
+                if (activities.length === 200) {
+                    page++;
+                } else {
+                    hasMore = false;
+                }
+            }
+        }
+
+        debugLog.push(`${allActivities.length} activités trouvées. Analyse en cours...`);
+
+
+
 
     // 3. On analyse chaque activité en détail pour extraire les segments
     for (const act of activities) {

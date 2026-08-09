@@ -48,7 +48,7 @@
 	  <!-- Section Statistiques -->
       <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 30px;">
 	  <!-- Bannière d'information Strava -->
-      <div style="background-color: #fff3eb; border-left: 4px solid var(--orange); padding: 15px; margin-bottom: 30px; border-radius: 4px;">
+      <div id="sync-info-banner" style="background-color: #fff3eb; border-left: 4px solid var(--orange); padding: 15px; margin-bottom: 30px; border-radius: 4px;">
         <p style="margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5;">
           <strong style="color: var(--orange);">ℹ️ <span class="lang-element" data-en="Sync Info:" data-fr="Info Synchronisation :">Info Synchronisation :</span></strong> 
           <span class="lang-element" 
@@ -141,6 +141,13 @@
           return;
         }
         const athlete = await athleteRes.json();
+		
+		// Masquer la bannière si l'utilisateur est Premium
+        if (athlete.premium) {
+            const banner = document.getElementById("sync-info-banner");
+            if (banner) banner.style.display = "none";
+        }
+		
 		// Photo
 		// On crée un avatar par défaut avec les initiales si Strava échoue ou si l'image est absente
         const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.firstname + ' ' + athlete.lastname)}&background=random&color=fff&size=140`;

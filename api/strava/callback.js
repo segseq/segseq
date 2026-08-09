@@ -70,7 +70,6 @@ export default async function handler(req, res) {
         fetch(backfillUrl).catch(err => console.error("Erreur lancement backfill:", err));
 
         // --- 4. Cookies & Redirection ---
-        // (SUPPRESSION DU BLOC EN DOUBLE ICI)
         const cookieFlags = "Path=/; HttpOnly; Secure; SameSite=None";
         const sessionToken = jwt.sign(
             { athleteId: athleteId }, 
@@ -79,7 +78,8 @@ export default async function handler(req, res) {
         );
 
         res.setHeader("Set-Cookie", [
-            `session=${sessionToken}; ${cookieFlags}`
+            `session=${sessionToken}; ${cookieFlags}`,
+			`strava_token=${data.access_token}; ${cookieFlags}`
         ]);
 
         return res.redirect("https://segseq.vercel.app/profile.html");
