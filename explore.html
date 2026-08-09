@@ -124,7 +124,9 @@
         card.id = `challenge-${challenge.id}`;
         
         let deleteBtnHtml = "";
+        let editBtnHtml = ""; // NOUVEAU
         if (challenge.can_delete) {
+          editBtnHtml = `<a href="create.html?edit=${challenge.id}" class="btn-view-feature" style="color: var(--navy); background: #eee; border:none;">${lang === 'fr' ? 'Modifier' : 'Edit'}</a>`;
           deleteBtnHtml = `<button onclick="deleteChallenge(${challenge.id})" class="btn-delete">${deleteBtnText}</button>`;
         }
         
@@ -135,6 +137,7 @@
           </div>
           <div style="display: flex; gap: 10px;">
             <a href="challenge.html?id=${challenge.id}" class="btn-view-feature" style="color: white; background: var(--navy-light); border:none;">${viewBtnText}</a>
+            ${editBtnHtml}
             ${deleteBtnHtml}
           </div>
         `;

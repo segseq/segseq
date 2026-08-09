@@ -327,6 +327,9 @@
 
       const segmentIds = validSegments.map(s => s.id);
       
+      const urlParams = new URLSearchParams(window.location.search);
+      const editId = urlParams.get('edit');
+      
       const payload = { 
         name, 
         description, 
@@ -334,15 +337,20 @@
         strict_sequence: strictSequence,
         segments: segmentIds 
       };
+
+      // Si on est en mode édition, on ajoute l'ID et on change la méthode
+      if (editId) payload.id = editId;
       
       try {
         const res = await fetch("/api/segseq/challenges", {
-          method: "POST",
+          method: editId ? "PUT" : "POST", // NOUVEAU : PUT si édition
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
         const data = await res.json();
+        // ... (le reste de la fonction reste identique, redirection vers /challenge.html?id=...)
+
         
         if (!res.ok) {
           alert((lang === 'fr' ? "Erreur : " : "Error: ") + (data.error || "Unable to create challenge."));
@@ -361,7 +369,44 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", renderSegments);
+    // --- NOUVEAU : LOGIQUE D'ÉDITION ---
+    document.addEventListener("DOMContentLoaded", async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const editId = urlParams.get('edit');
+      const lang = localStorage.getItem('userLang') || 'en';
+
+      if (editId) {
+        // Changer les titres et boutons
+        document.querySelector('h2').textContent = lang === 'fr' ? "Modifier le défi" : "Edit Challenge";
+        document.getElementById('publish-btn').textContent = lang === 'fr' ? "Enregistrer les modifications" : "Save changes";
+        
+        try {
+          const res = await fetch(`/api/segseq/challenges?id=${editId}`);
+          if (res.ok) {
+            const challenge = await res.json();
+            
+            // Pré-remplir les champs
+            document.getElementById("challenge-name").value = challenge.name;
+            document.getElementById("description").value = challenge.description;
+            document.getElementById("duration").value = challenge.duration_hours;
+            document.getElementById("strict-sequence").checked = challenge.strict_sequence;
+            
+            // Pré-remplir les segments
+            segments = challenge.segments.map(s => ({
+              id: String(s.id),
+              name: s.name,
+              isValidated: true // On les considère déjà validés
+            }));
+            
+            renderSegments();
+          }
+        } catch (err) {
+          console.error("Erreur chargement édition:", err);
+        }
+      } else {
+        renderSegments(); // Mode création normal
+      }
+    });
   </script>
 </body>
 </html>

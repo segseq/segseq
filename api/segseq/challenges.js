@@ -86,6 +86,71 @@ export default async function handler(req, res) {
       return res.status(200).json({ id: challengeId });
     }
 
+	// ==========================================
+    // PUT : MODIFIER UN DÉFI
+    // ==========================================
+    else if (method === "PUT") {
+      if (!currentAthleteId) return res.status(401).json({ error: "Not authenticated" });
+      
+      const { id, name, description, duration, strict_sequence, segments } = req.body;
+      if (!id || !name || !duration || !Array.isArray(segments) || segments.length < 2) {
+        return res.status(400).json({ error: "Invalid payload" });
+      }
+
+      // Vérifier que l'utilisateur est le créateur
+      const checkOwner = await query(`SELECT creator_id FROM challenges WHERE id = $1`, [id]);
+      if (!checkOwner.length || String(checkOwner[0].creator_id) !== String(currentAthleteId)) {
+        return res.status(403).json({ error: "Forbidden: You can only edit your own challenges." });
+      }
+
+      // 1. Mettre à jour le défi
+      await query(
+        `UPDATE challenges SET name = $1, description = $2, duration_hours = $3, strict_sequence = $4 WHERE id = $5`,
+        [name, description, duration, strict_sequence, id]
+      );
+
+      // 2. Remplacer les segments (On supprime les anciens, on insère les nouveaux)
+      await query(`DELETE FROM challenge_segments WHERE challenge_id = $1`, [id]);
+      for (let i = 0; i < segments.length; i++) {
+        await query(
+          `INSERT INTO challenge_segments (challenge_id, segment_id, order_index) VALUES ($1, $2, $3)`,
+          [id, segments[i], i + 1]
+        );
+      }
+
+      // 3. Vider l'ancien classement (car les segments ou la durée ont pu changer)
+      await query(`DELETE FROM challenge_results WHERE challenge_id = $1`, [id]);
+
+      // 4. BACKFILL INCRÉMENTAL (Pour les nouveaux segments potentiellement ajoutés)
+      const athletes = await query(`SELECT id, firstname, lastname, access_token FROM athletes WHERE access_token IS NOT NULL`);
+      (async () => {
+        for (const athlete of athletes) {
+          const athleteName = `${athlete.firstname || ''} ${athlete.lastname || ''}`.trim();
+          for (const segmentId of segments) {
+            try {
+              const stravaRes = await fetch(`https://www.strava.com/api/v3/segment_efforts?segment_id=${segmentId}`, {
+                headers: { Authorization: `Bearer ${athlete.access_token}` }
+              });
+              if (stravaRes.ok) {
+                const efforts = await stravaRes.json();
+                for (const effort of efforts) {
+                  await query(
+                    `INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time)
+                     VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (effort_id) DO NOTHING`,
+                    [effort.id, segmentId, athlete.id, athleteName, effort.start_date, effort.elapsed_time]
+                  );
+                }
+              }
+              await delay(200);
+            } catch (e) { console.error(`Erreur backfill edit pour athlete ${athlete.id}:`, e); }
+          }
+        }
+      })();
+
+      return res.status(200).json({ success: true, id: id });
+    }
+
+
     // ==========================================
     // GET : LIRE LES DÉFIS
     // ==========================================
@@ -126,8 +191,7 @@ export default async function handler(req, res) {
           return { id: s.segment_id, order: s.order_index, ...extra };
         }));
 
-        return res.status(200).json({ ...challengeRows[0], is_admin: isAdmin, 
- total_distance: totalDistance, total_elevation: totalElevation, segments: enrichedSegments.sort((a, b) => a.order - b.order) });
+        return res.status(200).json({ ...challengeRows[0], is_admin: isAdmin, can_edit: String(challengeRows[0].creator_id) === String(currentAthleteId), total_distance: totalDistance, total_elevation: totalElevation, segments: enrichedSegments.sort((a, b) => a.order - b.order) });
       }
     }
 
