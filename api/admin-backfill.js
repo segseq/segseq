@@ -1,11 +1,11 @@
-import { query } from "../db.js";
+import { query } from "../../db.js";
 import { calculateLeaderboard } from "./leaderboard.js"; 
 
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 export default async function handler(req, res) {
   const athleteId = req.query.athlete_id;
-  let debugLog = []; // Notre journal de bord Rayon-X
+  let debugLog = [];
   
   if (!athleteId) return res.status(400).json({ error: "Veuillez fournir un athlete_id" });
 
@@ -35,55 +35,65 @@ export default async function handler(req, res) {
         await query(`UPDATE athletes SET access_token = $1, refresh_token = $2, expires_at = $3 WHERE id = $4`, 
           [newTokens.access_token, newTokens.refresh_token, newTokens.expires_at, athlete.id]);
         athlete.access_token = newTokens.access_token;
-        debugLog.push("Token rafraîchi avec succès.");
+        debugLog.push("Token rafraîchi.");
       } else {
-        debugLog.push("❌ Échec du rafraîchissement du token.");
+        return res.status(500).json({ error: "Échec rafraîchissement token." });
       }
-    } else {
-      debugLog.push("Token toujours valide.");
     }
 
+    // 1. On récupère tous les segments de l'application dans un Set pour une recherche ultra-rapide
     const segmentsDb = await query(`SELECT DISTINCT segment_id FROM challenge_segments`);
-    debugLog.push(`${segmentsDb.length} segments uniques trouvés en base.`);
+    const activeSegIds = new Set(segmentsDb.map(s => s.segment_id.toString()));
+    debugLog.push(`${activeSegIds.size} segments cibles trouvés en base.`);
 
     let totalInserted = 0;
 
-    // Interrogation de Strava
-    for (const row of segmentsDb) {
-      const stravaRes = await fetch(`https://www.strava.com/api/v3/segment_efforts?segment_id=${row.segment_id}&per_page=200`, {
+    // 2. STRATÉGIE ANTI-PAYWALL : On récupère les 50 dernières activités de l'athlète
+    debugLog.push("Récupération des 50 dernières activités (Bypass Paywall Strava)...");
+    const activitiesRes = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=200`, {
+      headers: { Authorization: `Bearer ${athlete.access_token}` }
+    });
+
+    if (!activitiesRes.ok) throw new Error("Impossible de lire les activités.");
+    const activities = await activitiesRes.json();
+    debugLog.push(`${activities.length} activités trouvées. Analyse en cours...`);
+
+    // 3. On analyse chaque activité en détail pour extraire les segments
+    for (const act of activities) {
+      // Pour avoir les segments, il faut requêter l'activité en détail
+      const detailRes = await fetch(`https://www.strava.com/api/v3/activities/${act.id}?include_all_efforts=true`, {
         headers: { Authorization: `Bearer ${athlete.access_token}` }
       });
-
-      if (!stravaRes.ok) {
-        const errText = await stravaRes.text();
-        debugLog.push(`❌ Erreur Strava (Seg ${row.segment_id}): ${stravaRes.status} - ${errText}`);
-        continue;
-      }
-
-      const efforts = await stravaRes.json();
-      debugLog.push(`Seg ${row.segment_id} : Strava a renvoyé ${efforts.length} efforts.`);
-
-      for (const effort of efforts) {
-        try {
-          // Utilisation de effort_id comme conflit principal
-          const resDb = await query(`
-            INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            ON CONFLICT (effort_id) DO UPDATE SET athlete_id = EXCLUDED.athlete_id
-            RETURNING id
-          `, [effort.id, row.segment_id, athlete.id, athleteName, effort.start_date_local || effort.start_date, effort.elapsed_time]);
-          
-          if (resDb && resDb.length > 0) totalInserted++;
-        } catch (sqlErr) {
-          debugLog.push(`❌ Erreur SQL (Effort ${effort.id}): ${sqlErr.message}`);
+      
+      if (detailRes.ok) {
+        const detail = await detailRes.json();
+        if (detail.segment_efforts) {
+          for (const effort of detail.segment_efforts) {
+            // Si l'effort correspond à un segment de nos défis
+            if (activeSegIds.has(effort.segment.id.toString())) {
+              try {
+                const resDb = await query(`
+                  INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time)
+                  VALUES ($1, $2, $3, $4, $5, $6)
+                  ON CONFLICT (segment_id, athlete_name, start_date) 
+                  DO UPDATE SET effort_id = EXCLUDED.effort_id, athlete_id = EXCLUDED.athlete_id
+                  RETURNING id
+                `, [effort.id, effort.segment.id, athlete.id, athleteName, effort.start_date_local || effort.start_date, effort.elapsed_time]);
+                
+                if (resDb && resDb.length > 0) totalInserted++;
+              } catch (sqlErr) {
+                console.error("Erreur SQL:", sqlErr);
+              }
+            }
+          }
         }
       }
-      await delay(200); 
+      await delay(250); // Respect du Rate Limit Strava (Très important ici)
     }
 
-    debugLog.push(`Total efforts insérés ou mis à jour: ${totalInserted}`);
+    debugLog.push(`Total efforts récupérés et insérés: ${totalInserted}`);
 
-    // Recalcul des classements
+    // 4. Recalcul des classements
     const allChallenges = await query(`SELECT id FROM challenges`);
     const allAthletes = await query(`SELECT id, firstname, lastname, profile, sex FROM athletes`);
     for (const challenge of allChallenges) {
@@ -94,7 +104,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, debug: debugLog });
 
   } catch (error) {
-    debugLog.push(`❌ Erreur Fatale: ${error.message}`);
+    debugLog.push(`❌ Erreur: ${error.message}`);
     return res.status(500).json({ error: error.message, debug: debugLog });
   }
 }

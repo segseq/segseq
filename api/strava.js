@@ -1,7 +1,8 @@
 // Fichier : /api/strava.js
 
 // Imports communs (regroupez les imports des 3 fichiers)
-import { query } from "../db.js"; // Attention, le chemin relatif change !
+import { query } from "../db.js"; // 
+import { getValidStravaToken } from './strava/token.js'; 
 import { parse } from "cookie-es";
 
 export default async function handler(req, res) {
@@ -12,26 +13,45 @@ export default async function handler(req, res) {
 
     // ACTION 1 : Récupérer le profil de l'utilisateur connecté
     if (action === 'getProfile') {
-        try {
-            // Logique de l'ancien /api/strava/me.js
-            const cookieHeader = req.headers.cookie || "";
-            const token = cookieHeader.split(';').map(c => c.trim()).find(c => c.startsWith('strava_token='))?.split('=')[1];
+    try {
+        // 1. Lire le cookie de session SegSeq (et non plus strava_token)
+        const cookies = parse(req.headers.cookie || "");
+        const sessionToken = cookies.session;
 
-            if (!token) {
-                return res.status(401).json({ error: "Not authenticated" });
-            }
-            
-            const athleteRes = await fetch("https://www.strava.com/api/v3/athlete", {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const athlete = await athleteRes.json();
-            return res.status(200).json(athlete);
-
-        } catch (err) {
-            console.error("Athlete fetch error:", err);
-            return res.status(500).json({ error: "Failed to fetch athlete" });
+        if (!sessionToken) {
+            return res.status(401).json({ error: "Non authentifié" });
         }
+
+        // 2. Décoder le JWT pour obtenir l'ID de l'athlète
+        const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET);
+        const athleteId = decoded.athleteId;
+
+        // 3. Obtenir un token Strava GARANTI valide
+        const validAccessToken = await getValidStravaToken(athleteId);
+
+        if (!validAccessToken) {
+            // Le rafraîchissement a échoué, la session est potentiellement invalide
+            return res.status(401).json({ error: "Session Strava invalide, veuillez vous reconnecter." });
+        }
+
+        // 4. Appeler l'API Strava avec le token valide
+        const athleteRes = await fetch("https://www.strava.com/api/v3/athlete", {
+            headers: { Authorization: `Bearer ${validAccessToken}` }
+        });
+
+        if (!athleteRes.ok) {
+            throw new Error('Échec de la récupération du profil Strava');
+        }
+
+        const athlete = await athleteRes.json();
+        return res.status(200).json(athlete);
+
+    } catch (err) {
+        // Gère les JWT invalides ou autres erreurs
+        console.error("Erreur dans getProfile:", err.message);
+        return res.status(401).json({ error: "Session invalide" });
     }
+}
     
     // ACTION 2 : Récupérer les segments favoris de l'utilisateur
     else if (action === 'getStarredSegments') {

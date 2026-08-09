@@ -62,34 +62,26 @@ export default async function handler(req, res) {
       ]
     );
 
-    // --- 3. BACKFILL OPTIMISÉ (Performances du nouvel athlète) ---
-    const segmentsDb = await query(`SELECT DISTINCT segment_id FROM challenge_segments`);
+   // --- 3. DÉCLENCHEMENT DU BACKFILL EN ARRIÈRE-PLAN ---
+    // On construit l'URL absolue vers notre propre API
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers.host;
+    const backfillUrl = `${protocol}://${host}/api/segseq/admin-backfill?athlete_id=${athleteId}`;
     
-    await (async () => {
-      for (const row of segmentsDb) {
-        try {
-          // Ajout de per_page=200 pour maximiser la récupération
-        const stravaRes = await fetch(`https://www.strava.com/api/v3/segment_efforts?segment_id=${row.segment_id}&per_page=200`, {
-            headers: { Authorization: `Bearer ${data.access_token}` }
-          });
-          
-          if (stravaRes.ok) {
-            const efforts = await stravaRes.json();
-            for (const effort of efforts) {
-              // Insertion ultra-rapide grâce à la contrainte UNIQUE sur effort_id
-              await query(
-                `INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time)
-                 VALUES ($1, $2, $3, $4, $5, $6)
-                 ON CONFLICT (effort_id) DO NOTHING`,
-                [effort.id, row.segment_id, athleteId, athleteName, effort.start_date, effort.elapsed_time]
-              );
-            }
-          }
-		  await delay(200); 
+    // On lance la requête SANS "await". 
+    // Vercel va rediriger l'utilisateur instantanément pendant que le script tourne en fond.
+    fetch(backfillUrl).catch(err => console.error("Erreur lancement backfill:", err));
 
-        } catch (e) { console.error(`Erreur backfill callback pour segment ${row.segment_id}:`, e); }
-      }
-    })();
+    // --- 4. Cookies & Redirection ---
+    const cookieFlags = "Path=/; HttpOnly; Secure; SameSite=None";
+    const sessionToken = jwt.sign({ athleteId: athleteId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.setHeader("Set-Cookie", [
+      `session=${sessionToken}; ${cookieFlags}`,
+    ]);
+
+    return res.redirect("https://segseq.vercel.app/profile.html");
+
 
     // --- 4. Cookies & Redirection ---
     const cookieFlags = "Path=/; HttpOnly; Secure; SameSite=None";
