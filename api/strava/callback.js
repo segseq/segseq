@@ -43,25 +43,36 @@ export default async function handler(req, res) {
     const athleteName = `${data.athlete.firstname || ''} ${data.athlete.lastname || ''}`.trim();
 
     // --- 2. UPSERT dans la base (Athlète) ---
-    await query(
-      `INSERT INTO athletes (id, firstname, lastname, profile, country, sex, access_token, refresh_token, expires_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       ON CONFLICT (id) DO UPDATE SET 
-         firstname = COALESCE(EXCLUDED.firstname, athletes.firstname),
-         lastname = COALESCE(EXCLUDED.lastname, athletes.lastname),
-         profile = COALESCE(EXCLUDED.profile, athletes.profile),
-         country = COALESCE(EXCLUDED.country, athletes.country),
-         sex = COALESCE(EXCLUDED.sex, athletes.sex),
-         access_token = EXCLUDED.access_token,
-         refresh_token = EXCLUDED.refresh_token,
-         expires_at = EXCLUDED.expires_at`,
+		await query(
+	  `INSERT INTO athletes (
+		  id, firstname, lastname, profile, country, sex,
+		  access_token, refresh_token, expires_at, scope
+	   )
+	   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+	   ON CONFLICT (id) DO UPDATE SET 
+		 firstname = COALESCE(EXCLUDED.firstname, athletes.firstname),
+		 lastname = COALESCE(EXCLUDED.lastname, athletes.lastname),
+		 profile = COALESCE(EXCLUDED.profile, athletes.profile),
+		 country = COALESCE(EXCLUDED.country, athletes.country),
+		 sex = COALESCE(EXCLUDED.sex, athletes.sex),
+		 access_token = EXCLUDED.access_token,
+		 refresh_token = EXCLUDED.refresh_token,
+		 expires_at = EXCLUDED.expires_at,
 		 scope = EXCLUDED.scope`,
-      [
-        athleteId, data.athlete.firstname || null, data.athlete.lastname || null,
-        data.athlete.profile || null, data.athlete.country || null, data.athlete.sex || null,
-        data.access_token, data.refresh_token, data.expires_at, data.scope 
-      ]
-    );
+	  [
+		athleteId,
+		data.athlete.firstname || null,
+		data.athlete.lastname || null,
+		data.athlete.profile || null,
+		data.athlete.country || null,
+		data.athlete.sex || null,
+		data.access_token,
+		data.refresh_token,
+		data.expires_at,
+		data.scope
+	  ]
+	);
+
 
     // --- 3. DÉCLENCHEMENT DU BACKFILL EN ARRIÈRE-PLAN ---
         const protocol = req.headers['x-forwarded-proto'] || 'http';
