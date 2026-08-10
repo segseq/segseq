@@ -49,10 +49,6 @@
           <div id="subscription-status" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
         </div>
 
-      </div>
-	  
-	  <!-- Section Statistiques -->
-      <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 30px;">
 	  <!-- Bannière d'information Strava -->
       <div id="sync-info-banner" style="background-color: #fff3eb; border-left: 4px solid var(--orange); padding: 15px; margin-bottom: 30px; border-radius: 4px;">
         <p style="margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5;">
@@ -64,7 +60,10 @@
           </span>
         </p>
       </div>
+	  </div>
 	  
+	  <!-- Section Statistiques -->
+      <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 30px;">
         <h3 class="lang-element" data-en="Athlete Dashboard" data-fr="Tableau de bord" style="text-align: center; color: var(--navy); margin-bottom: 20px; font-size: 1.2rem;">
           Athlete Dashboard
         </h3>
@@ -276,10 +275,6 @@
     }
 	
 	// Chargement des statistiques de l'athlète
-    async function loadMyStats() {
-        let statsPollCount = 0;
-    const MAX_POLLS = 6; // On vérifiera 6 fois (soit environ 30 secondes)
-
     async function loadMyStats() {
       const statIds = ["my-created", "my-completed", "my-victories", "my-efforts"];
       const lang = localStorage.getItem('userLang') || 'en';
