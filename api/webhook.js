@@ -74,6 +74,16 @@ async function processActivity(athleteId, activityId) {
   if (!response.ok) return;
   const activity = await response.json();
   if (!activity.segment_efforts) return;
+  
+  // === OPTIMISATION WEBHOOK ===
+    // Ignorer les activités virtuelles ou saisies manuellement
+    const isVirtualOrManual = activity.manual || activity.type === 'VirtualRide' || activity.type === 'VirtualRun' || activity.sport_type === 'VirtualRide';
+    if (isVirtualOrManual) {
+        console.log(`☑️ Webhook: Activité ${activityId} ignorée (Manuelle ou Virtuelle)`);
+        return;
+    }
+    // ============================
+	
 
   const activeSegments = await query(`SELECT DISTINCT segment_id FROM challenge_segments`);
   const activeSegIds = new Set(activeSegments.map(s => s.segment_id.toString()));

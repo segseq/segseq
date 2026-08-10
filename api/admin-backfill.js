@@ -88,33 +88,48 @@ export default async function handler(req, res) {
 
         debugLog.push(`${allActivities.length} activités trouvées. Analyse en cours...`);
 
+// 3. On analyse chaque activité en détail pour extraire les segments
+    debugLog.push(`${allActivities.length} activités trouvées. Filtrage et analyse...`);
 
-
-
-    // 3. On extrait chaque effort qui contient un segment actif dans un défi
-for (const segId of activeSegIds) {
-    try {
-        // 1 seul appel API par segment pour récupérer jusqu'à 200 efforts de l'athlète
-        const stravaUrl = `https://www.strava.com/api/v3/segment_efforts?segment_id=${segId}&per_page=200`;
-        const res = await fetch(stravaUrl, { 
-            headers: { Authorization: `Bearer ${athlete.access_token}` } 
-        });
-
-        if (res.ok) {
-            const efforts = await res.json();
-            for (const effort of efforts) {
-                // Insérer dans la base de données (ON CONFLICT DO NOTHING)
-                await query(`
-                    INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time)
-                    VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (effort_id) DO NOTHING
-                `, [effort.id, segId, athlete.id, athleteName, effort.start_date_local, effort.elapsed_time]);
-            }
+    for (const act of allActivities) {
+        // OPTIMISATION : On ignore les activités virtuelles (Zwift), manuelles, ou les mauvais sports
+        const isVirtualOrManual = act.manual || act.type === 'VirtualRide' || act.type === 'VirtualRun' || act.sport_type === 'VirtualRide';
+        const isEligibleSport = ['Run', 'Ride', 'TrailRun', 'GravelRide', 'Hike', 'Walk', 'EBikeRide', 'MountainBikeRide'].includes(act.type);
+        
+        if (isVirtualOrManual || !isEligibleSport) {
+            continue; // On passe à la suivante SANS faire d'appel API
         }
-        await delay(300); // Pause de 300ms = max ~50 requêtes par minute. Très sécuritaire.
-    } catch (err) {
-        console.error(`Erreur sur le segment ${segId}:`, err);
+
+        // On a retiré le filtre de confidentialité. Si l'activité est là, c'est qu'on a le droit de la lire.
+        
+        try {
+            const detailRes = await fetch(`https://www.strava.com/api/v3/activities/${act.id}?include_all_efforts=true`, {
+                headers: { Authorization: `Bearer ${athlete.access_token}` }
+            });
+
+            if (detailRes.ok) {
+                const detail = await detailRes.json();
+                if (detail.segment_efforts) {
+                    for (const effort of detail.segment_efforts) {
+                        if (activeSegIds.has(effort.segment.id.toString())) {
+                            const resDb = await query(`
+                                INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time)
+                                VALUES ($1, $2, $3, $4, $5, $6)
+                                ON CONFLICT (effort_id) DO NOTHING
+                                RETURNING id
+                            `, [effort.id, effort.segment.id, athlete.id, athleteName, effort.start_date_local || effort.start_date, effort.elapsed_time]);
+                            
+                            if (resDb && resDb.length > 0) totalInserted++;
+                        }
+                    }
+                }
+            }
+            await delay(250); // Respect du Rate Limit
+        } catch (err) {
+            console.error(`Erreur sur l'activité ${act.id}:`, err);
+        }
     }
-}
+
 
 
     debugLog.push(`Total efforts récupérés et insérés: ${totalInserted}`);
