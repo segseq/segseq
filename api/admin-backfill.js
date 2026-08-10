@@ -58,69 +58,41 @@ export default async function handler(req, res) {
     // ÉTAPE 3 : ARCHITECTURE DE DÉCISION DU BACKFILL
     // =================================================================
 
+  // RÈGLE STRICTE : On ne collecte aucune donnée passée pour les comptes gratuits
+    if (!athlete.premium) {
+      logStep("-> Statut: Gratuit. Conformément aux règles, aucune donnée passée n'est collectée.");
+      return res.status(200).json({ success: true, message: "Skipped backfill for free user", debug: debugLog });
+    }
+
+    // À partir d'ici, l'utilisateur est obligatoirement Premium
     if (hasReadAllScope) {
-      // --- CAS A : PERMISSION 'activity:read_all' ACCORDÉE ---
-      logStep("-> Permission 'activity:read_all' détectée. Stratégie basée sur l'abonnement.");
-      
-      if (athlete.premium) {
-        // --- STRATÉGIE A.1 : PREMIUM + FULL SCOPE (LA PLUS RAPIDE) ---
-        logStep(`--> Statut: Premium. Utilisation de la méthode directe (getSegmentEfforts).`);
-        for (const segmentId of allAppSegmentIds) {
-          if (rateLimitHit) break;
-          try {
-            const effortsRes = await fetch(`https://www.strava.com/api/v3/segment_efforts?segment_id=${segmentId}&athlete_id=${athlete.id}`, {
-              headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            if (effortsRes.ok) {
-              const efforts = await effortsRes.json();
-              if (efforts.length > 0) {
-                logStep(`--> Trouvé ${efforts.length} effort(s) pour le segment ${segmentId}.`);
-                for (const effort of efforts) {
-                  const resDb = await query(`INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (effort_id) DO NOTHING RETURNING id`, [effort.id, effort.segment.id, athlete.id, athleteName, effort.start_date_local || effort.start_date, effort.elapsed_time]);
-                  if (resDb.length > 0) totalInserted++;
-                }
+      // --- CAS A : PREMIUM + FULL SCOPE ---
+      logStep(`--> Statut: Premium avec accès privé. Récupération de tous les efforts.`);
+      for (const segmentId of allAppSegmentIds) {
+        if (rateLimitHit) break;
+        try {
+          const effortsRes = await fetch(`https://www.strava.com/api/v3/segment_efforts?segment_id=${segmentId}&athlete_id=${athlete.id}`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          if (effortsRes.ok) {
+            const efforts = await effortsRes.json();
+            if (efforts.length > 0) {
+              logStep(`--> Trouvé ${efforts.length} effort(s) pour le segment ${segmentId}.`);
+              for (const effort of efforts) {
+                const resDb = await query(`INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (effort_id) DO NOTHING RETURNING id`, [effort.id, effort.segment.id, athlete.id, athleteName, effort.start_date_local || effort.start_date, effort.elapsed_time]);
+                if (resDb.length > 0) totalInserted++;
               }
-            } else {
-              logStep(`X Erreur API (${effortsRes.status}) pour le segment ${segmentId}: ${effortsRes.statusText}`);
-              if (effortsRes.status === 429) { rateLimitHit = true; }
             }
-          } catch (err) { logStep(`X Erreur critique sur le segment ${segmentId}: ${err.message}`); }
-          await delay(250); // Délai de sécurité
-        }
-      } else {
-        // --- STRATÉGIE A.2 : GRATUIT + FULL SCOPE (CONTOURNEMENT) ---
-        logStep(`--> Statut: Gratuit. Utilisation du contournement par activités (getActivities).`);
-        const activitiesRes = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=200&page=1`, {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        if (!activitiesRes.ok) throw new Error(`API Strava /activities a échoué: ${activitiesRes.statusText}`);
-        
-        const activities = await activitiesRes.json();
-        logStep(`--> Analyse de ${activities.length} activités récentes.`);
-        for (const activity of activities) {
-          if (rateLimitHit) break;
-          try {
-            const activityDetailRes = await fetch(`https://www.strava.com/api/v3/activities/${activity.id}?include_all_efforts=true`, { headers: { Authorization: `Bearer ${accessToken}` } });
-            if (activityDetailRes.ok) {
-              const activityDetail = await activityDetailRes.json();
-              if (activityDetail.segment_efforts && activityDetail.segment_efforts.length > 0) {
-                for (const effort of activityDetail.segment_efforts) {
-                  if (allAppSegmentIds.has(effort.segment.id.toString())) {
-                    const resDb = await query(`INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (effort_id) DO NOTHING RETURNING id`, [effort.id, effort.segment.id, athlete.id, athleteName, effort.start_date_local || effort.start_date, effort.elapsed_time]);
-                    if (resDb.length > 0) totalInserted++;
-                  }
-                }
-              }
-            } else {
-              if (activityDetailRes.status === 429) { rateLimitHit = true; }
-            }
-          } catch(err) { logStep(`X Erreur critique sur l'activité ${activity.id}: ${err.message}`); }
-          await delay(400); // Délai de sécurité plus long pour les gratuits
-        }
+          } else {
+            logStep(`X Erreur API (${effortsRes.status}) pour le segment ${segmentId}: ${effortsRes.statusText}`);
+            if (effortsRes.status === 429) { rateLimitHit = true; }
+          }
+        } catch (err) { logStep(`X Erreur critique sur le segment ${segmentId}: ${err.message}`); }
+        await delay(250);
       }
     } else {
-      // --- CAS B : PERMISSION 'activity:read_all' NON ACCORDÉE (FALLBACK PUBLIC) ---
-      logStep("! Permission 'activity:read_all' non accordée. Récupération des efforts sur les activités publiques uniquement.");
+      // --- CAS B : PREMIUM + PUBLIC ONLY ---
+      logStep("! Permission 'activity:read_all' non accordée. Récupération des efforts publics uniquement.");
       for (const segmentId of allAppSegmentIds) {
         if (rateLimitHit) break;
         try {
@@ -135,17 +107,13 @@ export default async function handler(req, res) {
               }
             }
           } else {
-            logStep(`X Erreur API (${effortsRes.status}) pour le segment ${segmentId}: ${effortsRes.statusText}`);
             if (effortsRes.status === 429) { rateLimitHit = true; }
           }
-        } catch (err) { logStep(`X Erreur critique sur le segment ${segmentId}: ${err.message}`); }
-        await delay(400); // Délai de sécurité
+        } catch (err) { logStep(`X Erreur critique: ${err.message}`); }
+        await delay(250);
       }
     }
 
-    if(rateLimitHit) {
-      logStep("! Limite de l'API Strava atteinte. Le backfill s'est arrêté prématurément. Le reste sera récupéré au prochain backfill.");
-    }
 
     // --- Étape 4 : Finalisation et recalcul ---
     logStep(`Backfill terminé. Total efforts insérés: ${totalInserted}`);

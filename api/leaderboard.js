@@ -240,7 +240,7 @@ export default async function handler(req, res) {
       debugSteps.push(`> ${msg}`);
     };
 
-    const allAthletes = await query(`SELECT id, firstname, lastname, profile, sex, access_token, refresh_token, expires_at FROM athletes WHERE access_token IS NOT NULL`);
+    const allAthletes = await query(`SELECT id, firstname, lastname, profile, sex, access_token, refresh_token, expires_at, premium FROM athletes WHERE access_token IS NOT NULL`);
 
     if (!force) {
       const results = await query(`
@@ -266,6 +266,12 @@ export default async function handler(req, res) {
     
     for (const athlete of allAthletes) { 
       if (rateLimitHit) break; 
+	    // NOUVELLE RÈGLE : On ne cherche pas le passé des utilisateurs gratuits
+      if (!athlete.premium) {
+          logStep(`\n📡 API Sync ignorée pour ${athlete.firstname} (Compte Gratuit)`);
+          continue;
+      }
+
       const athleteName = `${athlete.firstname} ${athlete.lastname}`.trim(); 
       logStep(`\n📡 API Sync for athlete: ${athleteName}`);
       

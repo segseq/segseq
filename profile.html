@@ -43,6 +43,12 @@
           <div class="lang-element" data-en="Strava ID" data-fr="ID Strava" style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Strava ID</div>
           <div id="strava-id" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
         </div>
+		  <!-- NOUVEAU : Statut Abonnement -->
+		<div class="info-box">
+          <div class="lang-element" data-en="Subscription" data-fr="Abonnement" style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Subscription</div>
+          <div id="subscription-status" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
+        </div>
+
       </div>
 	  
 	  <!-- Section Statistiques -->
@@ -50,11 +56,11 @@
 	  <!-- Bannière d'information Strava -->
       <div id="sync-info-banner" style="background-color: #fff3eb; border-left: 4px solid var(--orange); padding: 15px; margin-bottom: 30px; border-radius: 4px;">
         <p style="margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5;">
-          <strong style="color: var(--orange);">ℹ️ <span class="lang-element" data-en="Sync Info:" data-fr="Info Synchronisation :">Info Synchronisation :</span></strong> 
+          <strong style="color: var(--orange);">ℹ️ <span class="lang-element" data-en="Info:" data-fr="Info:">Info:</span></strong> 
           <span class="lang-element" 
-                data-en="Due to Strava limits for free accounts, only your last 200 activities are analyzed during your first login. Your future activities will sync automatically." 
-                data-fr="En raison des limites de Strava pour les comptes gratuits, seules vos 200 dernières activités sont analysées lors de votre première connexion. Vos futures courses se synchroniseront automatiquement.">
-              Due to Strava limits for free accounts, only your last 200 activities are analyzed during your first login. Your future activities will sync automatically.
+                data-en="As a free Strava user, only your future activities will be included in challenges. Past data cannot be synchronized." 
+                data-fr="En tant qu'abonné gratuit à Strava, seules vos activités futures seront incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
+              As a free Strava user, only your future activities will be included in challenges. Past data cannot be synchronized.
           </span>
         </p>
       </div>
@@ -142,11 +148,39 @@
         }
         const athlete = await athleteRes.json();
 		
-		// Masquer la bannière si l'utilisateur est Premium
+		    // Gestion de la bannière d'information (Gratuit vs Premium)
+        const banner = document.getElementById("sync-info-banner");
         if (athlete.premium) {
-            const banner = document.getElementById("sync-info-banner");
-            if (banner) banner.style.display = "none";
+            // Style Premium (Bleu par exemple)
+            banner.style.backgroundColor = "#e6f7ff";
+            banner.style.borderLeftColor = "#1890ff";
+            banner.innerHTML = `
+                <p style="margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5;">
+                  <strong style="color: #1890ff;">ℹ️ <span class="lang-element" data-en="Sync Info:" data-fr="Info Synchronisation :">Info Synchronisation :</span></strong> 
+                  <span class="lang-element" 
+                        data-en="As a Premium subscriber, your past efforts on active challenge segments are currently being synchronized in the background (subject to Strava API limits)." 
+                        data-fr="En tant qu'abonné Premium, vos efforts passés sur les segments des défis actifs sont en cours de synchronisation en arrière-plan (dans le respect des limites de l'API Strava).">
+                      En tant qu'abonné Premium, vos efforts passés sur les segments des défis actifs sont en cours de synchronisation en arrière-plan (dans le respect des limites de l'API Strava).
+                  </span>
+                </p>
+            `;
+            // Variable globale pour le script de stats
+            window.isPremiumUser = true; 
+        } else {
+            // Message strict pour les comptes gratuits
+            banner.innerHTML = `
+                <p style="margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5;">
+                  <strong style="color: var(--orange);">ℹ️ <span class="lang-element" data-en="Sync Info:" data-fr="Info Synchronisation :">Info Synchronisation :</span></strong> 
+                  <span class="lang-element" 
+                        data-en="As a free Strava user, only your future activities will be included in challenges. Past data cannot be synchronized." 
+                        data-fr="En tant qu'abonné gratuit à Strava, seules vos activités futures seront incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
+                      En tant qu'abonné gratuit à Strava, seules vos activités futures seront incluses dans les défis. Les données passées ne peuvent pas être synchronisées.
+                  </span>
+                </p>
+            `;
+            window.isPremiumUser = false;
         }
+
 		
 		// Photo
 		// On crée un avatar par défaut avec les initiales si Strava échoue ou si l'image est absente
@@ -193,6 +227,12 @@
         // Strava ID
         document.getElementById("strava-id").textContent = athlete.id || (lang === 'fr' ? "N/D" : "N/A");
         document.getElementById("strava-id").classList.remove('lang-element');
+		const subStatus = athlete.premium 
+            ? (lang === 'fr' ? "Payant (Premium)" : "Premium") 
+            : (lang === 'fr' ? "Gratuit" : "Free");
+        document.getElementById("subscription-status").textContent = subStatus;
+        document.getElementById("subscription-status").classList.remove('lang-element');
+
 
       } catch (err) {
         console.error(err);
@@ -237,20 +277,48 @@
 	
 	// Chargement des statistiques de l'athlète
     async function loadMyStats() {
+        let statsPollCount = 0;
+    const MAX_POLLS = 6; // On vérifiera 6 fois (soit environ 30 secondes)
+
+    async function loadMyStats() {
+      const statIds = ["my-created", "my-completed", "my-victories", "my-efforts"];
+      const lang = localStorage.getItem('userLang') || 'en';
+      const loadingText = lang === 'fr' ? "Chargement..." : "Loading...";
+      
+      // Si c'est le premier appel, on affiche "Chargement..."
+      if (statsPollCount === 0) {
+          statIds.forEach(id => {
+              const el = document.getElementById(id);
+              el.textContent = loadingText;
+              el.style.fontSize = "1.2rem"; // Texte plus petit pour que ça rentre
+          });
+      }
+
       try {
         const res = await fetch("/api/stats?scope=me", { credentials: "include" });
         if (res.ok) {
           const stats = await res.json();
           
+          // On restaure la taille de la police et on injecte les chiffres
+          statIds.forEach(id => document.getElementById(id).style.fontSize = "2rem");
           document.getElementById("my-created").textContent = stats.created;
           document.getElementById("my-completed").textContent = stats.completed;
           document.getElementById("my-victories").textContent = stats.victories;
           document.getElementById("my-efforts").textContent = stats.efforts;
+
+          // Logique de rafraîchissement : Si c'est un Premium et qu'il a 0 effort, 
+          // le backfill est probablement encore en cours. On revérifie toutes les 5 secondes.
+          if (window.isPremiumUser && stats.efforts === 0 && statsPollCount < MAX_POLLS) {
+              statsPollCount++;
+              setTimeout(loadMyStats, 5000);
+          }
         }
       } catch (err) {
         console.error("Erreur lors du chargement des statistiques:", err);
+        statIds.forEach(id => document.getElementById(id).textContent = "-");
       }
     }
+
     
     // Appel de la fonction
     loadMyStats();

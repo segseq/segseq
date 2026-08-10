@@ -1,3 +1,0 @@
-copy /b *.html + *.js + *.css github.txt
-copy /b *.js segseq.txt
-copy /b *.js strava.txt

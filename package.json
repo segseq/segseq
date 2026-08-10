@@ -1,4 +1,6 @@
+
 {
+   "_comment": "this is the file package.json",
   "name": "segseq-backend",
   "version": "1.0.0",
   "private": true,
