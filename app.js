@@ -1,6 +1,7 @@
 /* ------------------------------ */
 /* app.js */
 /* ------------------------------ */
+
 // Cette fonction DOIT être globale pour que le onclick="" du HTML la trouve
 function setLanguage(lang) {
     localStorage.setItem('userLang', lang);
@@ -54,32 +55,36 @@ document.addEventListener("DOMContentLoaded", applyCurrentLanguage);
 /* ------------------------------ */
 
 async function injectComponents() {
-  // 1. Définition des templates
+  // 1. Définition des templates avec styles intégrés pour la responsivité
   const headerHTML = `
     <header class="main-header">
-      <div class="nav-left" style="display: flex; align-items: center; gap: 10px;">
-        <a href="index.html" class="nav-logo"><span>∿</span>segseq</a>
+      <!-- GAUCHE : Logo et Navigation Principale -->
+      <div class="nav-group">
+        <a href="index.html" class="nav-logo" title="Home"><span>∿</span>segseq</a>
         
-        <div class="dropdown">
-          <!-- Icône Hamburger à la place du texte -->
-          <button class="dropbtn" aria-label="Menu" style="display: flex; align-items: center; justify-content: center; padding: 5px; margin-top: 3px;">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </button>
-          
-          <div class="dropdown-content">
-            <a href="explore.html" class="lang-element" data-fr="Explorer" data-en="Explore">Explore</a>
-            <a href="create.html" class="lang-element" data-fr="Créer" data-en="Create">Create</a>
-            <a href="terms.html" class="lang-element" data-fr="Conditions / Confidentialité" data-en="Terms / Privacy">Terms / Privacy</a>
-          </div>
-        </div>
+        <!-- Explorer (Loupe) -->
+        <a href="explore.html" class="nav-icon lang-element" data-titleFr="Explorer" data-titleEn="Explore">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </a>
+        
+        <!-- Créer (+) -->
+        <a href="create.html" class="nav-icon lang-element" data-titleFr="Créer un défi" data-titleEn="Create challenge">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </a>
+        
+        <!-- Info (i) -->
+        <a href="terms.html" class="nav-icon lang-element" data-titleFr="Informations" data-titleEn="Information">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        </a>
       </div>
       
-      <!-- Conteneur de droite : Langue + Auth -->
-      <div class="nav-right" style="display: flex; align-items: center; gap: 20px;">
+      <!-- DROITE : Notifications, Langue et Auth -->
+      <div class="nav-group">
+        <!-- Notifications (Cloche) -->
+        <a href="#" class="nav-icon lang-element" data-titleFr="Notifications (Bientôt)" data-titleEn="Notifications (Coming soon)" onclick="alert('Notifications coming soon!'); return false;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        </a>
+
         <!-- Sélecteur EN | FR -->
         <div class="lang-selector">
           <span id="btn-en" class="lang-btn" onclick="setLanguage('en')">EN</span>
@@ -87,8 +92,9 @@ async function injectComponents() {
           <span id="btn-fr" class="lang-btn" onclick="setLanguage('fr')">FR</span>
         </div>
 
-        <div id="nav-auth-section">
-          <!-- Rempli dynamiquement -->
+        <!-- Zone d'authentification dynamique -->
+        <div id="nav-auth-section" style="display: flex; align-items: center; gap: 12px;">
+          <!-- Rempli dynamiquement par JS -->
         </div>
       </div>
     </header>
@@ -100,7 +106,6 @@ async function injectComponents() {
       <div style="margin-bottom: 15px;">
         <span class="lang-element" data-fr="SegSeq • Défis Multi-Segments" data-en="SegSeq • Multi-Segment Challenges">SegSeq • Multi-Segment Challenges</span>
       </div>
-      <!-- Bouton de contact discret -->
       <a href="mailto:info.segseq@gmail.com" class="contact-link lang-element" data-fr="Contactez-nous" data-en="Contact us">Contact us</a>
     </footer>
   `;
@@ -110,25 +115,6 @@ async function injectComponents() {
   const footerPlaceholder = document.getElementById('footer-placeholder');
   
   if(headerPlaceholder) headerPlaceholder.innerHTML = headerHTML;
-  
-  const dropbtn = document.querySelector('.dropbtn');
-  const dropdown = document.querySelector('.dropdown');
-
-  if (dropbtn && dropdown) {
-    // Permet d'ouvrir/fermer le menu au clic
-    dropbtn.addEventListener('click', (e) => {
-      e.stopPropagation(); // Empêche le clic de se propager au document
-      dropdown.classList.toggle('open');
-    });
-
-    // Ferme le menu si on clique n'importe où ailleurs sur la page
-    document.addEventListener('click', (e) => {
-      if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('open');
-      }
-    });
-  }
-  
   if(footerPlaceholder) footerPlaceholder.innerHTML = footerHTML;
 
   // 3. Logique d'authentification Strava pour le header
@@ -137,18 +123,26 @@ async function injectComponents() {
     const authSection = document.getElementById('nav-auth-section');
     
     if (res.ok) {
-	  const athlete = await res.json();
-	  authSection.innerHTML = `
-		<a href="profile.html" title="Go to profile">
-		  <img src="${athlete.profile}" alt="Profile" class="nav-profile-pic">
-		</a>
-		<a href="#" onclick="logout()" class="lang-element" data-fr="Déconnexion" data-en="Logout" style="color: white; text-decoration: underline; cursor: pointer;">
-		  Logout
-		</a>
-	  `;
-	} else {
+      const athlete = await res.json();
+      // Utilisateur Connecté : Photo de profil + Icône Logout
       authSection.innerHTML = `
-        <a href="https://segseq.vercel.app/api/strava/auth" class="btn btn-primary lang-element" data-fr="Se connecter" data-en="Connect" style="padding: 10px 20px;">Connect</a>
+        <a href="profile.html" class="lang-element" data-titleFr="Mon Profil" data-titleEn="My Profile">
+          <img src="${athlete.profile}" alt="Profile" class="nav-profile-pic">
+        </a>
+        <a href="#" onclick="logout(); return false;" class="nav-icon lang-element" data-titleFr="Se déconnecter" data-titleEn="Logout">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </a>
+      `;
+    } else {
+      // Utilisateur Déconnecté : Bouton image Strava
+      authSection.innerHTML = `
+        <a href="https://segseq.vercel.app/api/strava/auth" class="strava-connect-btn">
+          <img src="btn_strava_connect_with_orange.png" alt="Connect with Strava">
+        </a>
       `;
     }
   } catch (err) {
@@ -173,7 +167,6 @@ async function logout() {
       });
 
       if (res.ok) {
-        // Rediriger vers la page d'accueil après la déconnexion
         window.location.href = '/';
       } else {
         const errorMsg = lang === 'fr' ? "Échec de la déconnexion." : "Logout failed.";
