@@ -181,3 +181,58 @@ async function logout() {
 }
 
 document.addEventListener("DOMContentLoaded", injectComponents);
+
+/* ------------------------------ */
+/* carousel: Ways To Compete */
+/* ------------------------------ */
+
+document.addEventListener('DOMContentLoaded', () => {
+  const track = document.getElementById('ways-carousel');
+  const dotsContainer = document.getElementById('carousel-dots');
+  
+  if (track && dotsContainer) {
+    const slides = Array.from(track.children);
+    let currentIndex = 0;
+    let autoSlideInterval;
+    const intervalTime = 5000; // 5 secondes par slide
+
+    // 1. Créer les points de navigation (dots)
+    slides.forEach((_, index) => {
+      const dot = document.createElement('div');
+      dot.classList.add('carousel-dot');
+      if (index === 0) dot.classList.add('active');
+      
+      dot.addEventListener('click', () => {
+        goToSlide(index);
+        resetInterval();
+      });
+      
+      dotsContainer.appendChild(dot);
+    });
+
+    const dots = Array.from(dotsContainer.children);
+
+    // 2. Fonction pour changer de slide
+    function goToSlide(index) {
+      track.style.transform = `translateX(-${index * 100}%)`;
+      dots[currentIndex].classList.remove('active');
+      dots[index].classList.add('active');
+      currentIndex = index;
+    }
+
+    // 3. Fonction pour passer au suivant
+    function nextSlide() {
+      let nextIndex = (currentIndex + 1) % slides.length;
+      goToSlide(nextIndex);
+    }
+
+    // 4. Gestion du défilement automatique
+    function resetInterval() {
+      clearInterval(autoSlideInterval);
+      autoSlideInterval = setInterval(nextSlide, intervalTime);
+    }
+
+    resetInterval();
+  }
+});
+

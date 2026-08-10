@@ -74,7 +74,7 @@
   </div>
 </section>
 
-<!-- NOUVELLE SECTION : Ways To Compete -->
+<!-- NOUVELLE SECTION : Ways To Compete (Carousel) -->
 <section class="section">
   <div class="container">
     
@@ -82,36 +82,47 @@
       Ways To Compete
     </h2>
 
-    <div class="steps">
+    <!-- Conteneur du Carrousel -->
+    <div class="carousel-container">
+      <div class="carousel-track" id="ways-carousel">
 
-      <div class="card">
-        <div class="number">📍</div>
-        <h3 class="lang-element" data-en="City Explorer" data-fr="Explorateur Urbain">City Explorer</h3>
-        <p class="lang-element" data-en="Turn sightseeing into a race. Connect iconic landmarks and discover the city at your own pace, but sprint the segments." data-fr="Transformez le tourisme en course. Reliez des lieux emblématiques et découvrez la ville à votre rythme, mais sprintez sur les segments.">Turn sightseeing into a race. Connect iconic landmarks and discover the city at your own pace, but sprint the segments.</p>
+        <!-- Idée 1 : Multi-sport -->
+        <div class="carousel-slide card">
+          <div class="number">🏅</div>
+          <h3 class="lang-element" data-en="Multi-Sport Madness" data-fr="Folie Multi-Sports">Multi-Sport Madness</h3>
+          <p class="lang-element" data-en="While Strava limits you to one sport per challenge, SegSeq lets you mix them up. Create your own Ironman, triathlon, or run-and-bike event!" data-fr="Alors que Strava ne permet pas de défis multi-sports, SegSeq le permet. Créez votre propre Ironman, triathlon ou run-and-bike, tout est possible !">While Strava limits you to one sport per challenge, SegSeq lets you mix them up. Create your own Ironman, triathlon, or run-and-bike event!</p>
+        </div>
+
+        <!-- Idée 2 : Répétitions non-consécutives -->
+        <div class="carousel-slide card">
+          <div class="number">🔁</div>
+          <h3 class="lang-element" data-en="Non-Consecutive Reps" data-fr="Répétitions Libres">Non-Consecutive Reps</h3>
+          <p class="lang-element" data-en="Strava requires consecutive loops. SegSeq innovates by taking your best efforts on a segment over a given period, whether consecutive or not." data-fr="Strava impose des boucles consécutives. SegSeq innove en retenant uniquement vos meilleurs efforts sur un segment sur une période donnée, qu'ils soient consécutifs ou non.">Strava requires consecutive loops. SegSeq innovates by taking your best efforts on a segment over a given period, whether consecutive or not.</p>
+        </div>
+
+        <!-- Idée 3 : Ski -->
+        <div class="carousel-slide card">
+          <div class="number">⛷️</div>
+          <h3 class="lang-element" data-en="Ski Resort Showdown" data-fr="Défi des Sommets (Ski)">Ski Resort Showdown</h3>
+          <p class="lang-element" data-en="Explore a mountain and measure yourself on the slopes of a ski resort during your winter holidays." data-fr="Explorez une montagne et mesurez-vous sur les pistes d'une station de ski pendant votre semaine de vacances en hiver."> Explore a mountain and measure yourself on the slopes of a ski resort during your winter holidays.</p>
+        </div>
+
+        <!-- Idée 4 : City Explorer (Existant conservé pour l'exemple) -->
+        <div class="carousel-slide card">
+          <div class="number">📍</div>
+          <h3 class="lang-element" data-en="City Explorer" data-fr="Explorateur Urbain">City Explorer</h3>
+          <p class="lang-element" data-en="Turn sightseeing into a race. Connect iconic landmarks and discover the city at your own pace, but sprint the segments." data-fr="Transformez le tourisme en course. Reliez des lieux emblématiques et découvrez la ville à votre rythme, mais sprintez sur les segments.">Turn sightseeing into a race. Connect iconic landmarks and discover the city at your own pace, but sprint the segments.</p>
+        </div>
+
       </div>
-
-      <div class="card">
-        <div class="number">⛰️</div>
-        <h3 class="lang-element" data-en="Climber's Trophy" data-fr="Trophée du Grimpeur">Climber's Trophy</h3>
-        <p class="lang-element" data-en="Forget the downhills. Link only the toughest ascents of a legendary route to crown the ultimate climber." data-fr="Oubliez les descentes. Reliez uniquement les ascensions les plus dures d'un parcours mythique pour couronner le grimpeur ultime.">Forget the downhills. Link only the toughest ascents of a legendary route to crown the ultimate climber.</p>
-      </div>
-
-      <div class="card">
-        <div class="number">⏱️</div>
-        <h3 class="lang-element" data-en="Fartlek & Stages" data-fr="Fartlek & Étapes">Fartlek & Stages</h3>
-        <p class="lang-element" data-en="Link segments that flow naturally. Push hard on the targeted sections and use the untimed transitions to recover." data-fr="Reliez des segments qui s'enchaînent naturellement. Poussez fort sur les sections ciblées et utilisez les transitions non chronométrées pour récupérer.">Link segments that flow naturally. Push hard on the targeted sections and use the untimed transitions to recover.</p>
-      </div>
-
-      <div class="card">
-        <div class="number">🗺️</div>
-        <h3 class="lang-element" data-en="Accessible Ultras" data-fr="Ultras Accessibles">Accessible Ultras</h3>
-        <p class="lang-element" data-en="Break down an intimidating ultra-distance route into a manageable multi-day challenge over a 5-day window." data-fr="Découpez un parcours ultra-distance intimidant en un défi gérable sur plusieurs jours avec une fenêtre de 5 jours.">Break down an intimidating ultra-distance route into a manageable multi-day challenge over a 5-day window.</p>
-      </div>
-
+      
+      <!-- Indicateurs (Points) du carrousel -->
+      <div class="carousel-dots" id="carousel-dots"></div>
     </div>
 
   </div>
 </section>
+
 
 <section class="section">
   <div class="container">
