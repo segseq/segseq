@@ -92,8 +92,14 @@ export default async function handler(req, res) {
 
 
     // 3. On analyse chaque activité en détail pour extraire les segments
-    for (const act of activities) {
-      // Pour avoir les segments, il faut requêter l'activité en détail
+    for (const act of allActivities) {
+       const isPublic = act.visibility === 'everyone' && act.private === false;
+	    if (!isPublic) {
+        // On ignore les activités privées ou réservées aux abonnés, 
+        // ce qui économise un appel API précieux !
+        continue; 
+    }
+	  // Pour avoir les segments, il faut requêter l'activité en détail
       const detailRes = await fetch(`https://www.strava.com/api/v3/activities/${act.id}?include_all_efforts=true`, {
         headers: { Authorization: `Bearer ${athlete.access_token}` }
       });
