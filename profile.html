@@ -45,7 +45,7 @@
         </div>
 		  <!-- NOUVEAU : Statut Abonnement -->
 		<div class="info-box">
-          <div class="lang-element" data-en="Subscription" data-fr="Abonnement" style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Subscription</div>
+          <div class="lang-element" data-en="Membership" data-fr="Abonnement" style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Membership</div>
           <div id="subscription-status" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
         </div>
 
@@ -54,10 +54,10 @@
         <p style="margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5;">
           <strong style="color: var(--orange);">ℹ️ <span class="lang-element" data-en="Info:" data-fr="Info:">Info:</span></strong> 
           <span class="lang-element" 
-                data-en="As a free Strava user, only your future activities will be included in challenges. Past data cannot be synchronized." 
-                data-fr="En tant qu'abonné gratuit à Strava, seules vos activités futures seront incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
-              As a free Strava user, only your future activities will be included in challenges. Past data cannot be synchronized.
-          </span>
+                        data-en="As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized." 
+                        data-fr="En tant qu'abonné gratuit à Strava, seules les activités futures sont incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
+                      As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized.
+                  </span>
         </p>
       </div>
 	  </div>
@@ -155,11 +155,11 @@
             banner.style.borderLeftColor = "#1890ff";
             banner.innerHTML = `
                 <p style="margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5;">
-                  <strong style="color: #1890ff;">ℹ️ <span class="lang-element" data-en="Sync Info:" data-fr="Info Synchronisation :">Info Synchronisation :</span></strong> 
+                  <strong style="color: #1890ff;">ℹ️ <span class="lang-element" data-en="Info:" data-fr="Info:">Info:</span></strong> 
                   <span class="lang-element" 
-                        data-en="As a Premium subscriber, your past efforts on active challenge segments are currently being synchronized in the background (subject to Strava API limits)." 
-                        data-fr="En tant qu'abonné Premium, vos efforts passés sur les segments des défis actifs sont en cours de synchronisation en arrière-plan (dans le respect des limites de l'API Strava).">
-                      En tant qu'abonné Premium, vos efforts passés sur les segments des défis actifs sont en cours de synchronisation en arrière-plan (dans le respect des limites de l'API Strava).
+                        data-en="As a Strava premium subscriber, past activities can be synchronized for challenges." 
+                        data-fr="En tant qu'abonné premium Strava, les activités passées peuvent être synchronisées pour les défis.">
+                      As a Strava premium subscriber, past activities can be synchronized for challenges.
                   </span>
                 </p>
             `;
@@ -169,11 +169,11 @@
             // Message strict pour les comptes gratuits
             banner.innerHTML = `
                 <p style="margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5;">
-                  <strong style="color: var(--orange);">ℹ️ <span class="lang-element" data-en="Sync Info:" data-fr="Info Synchronisation :">Info Synchronisation :</span></strong> 
+                  <strong style="color: var(--orange);">ℹ️ <span class="lang-element" data-en="Sync:" data-fr="Info:">Info:</span></strong> 
                   <span class="lang-element" 
-                        data-en="As a free Strava user, only your future activities will be included in challenges. Past data cannot be synchronized." 
-                        data-fr="En tant qu'abonné gratuit à Strava, seules vos activités futures seront incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
-                      En tant qu'abonné gratuit à Strava, seules vos activités futures seront incluses dans les défis. Les données passées ne peuvent pas être synchronisées.
+                        data-en="As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized." 
+                        data-fr="En tant qu'abonné gratuit à Strava, seules les activités futures sont incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
+                      As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized.
                   </span>
                 </p>
             `;
@@ -275,6 +275,9 @@
     }
 	
 	// Chargement des statistiques de l'athlète
+	let statsPollCount = 0; // Compteur pour le polling
+	const MAX_POLLS = 6;    // Nombre maximum de tentatives de polling
+
     async function loadMyStats() {
       const statIds = ["my-created", "my-completed", "my-victories", "my-efforts"];
       const lang = localStorage.getItem('userLang') || 'en';
