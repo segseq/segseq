@@ -1,6 +1,6 @@
 /* admin-backfill.js */
 
-import { query } from "../../db.js";
+import { query } from "../db.js";
 import { calculateLeaderboard } from "./leaderboard.js"; 
 
 const delay = (ms) => new Promise(res => setTimeout(res, ms));

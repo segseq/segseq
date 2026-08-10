@@ -1,5 +1,5 @@
 /* ------------------------------ */
-/* ./api/segseq/delete-account.js */
+/* ./api/delete-account.js */
 /* ------------------------------ */
 
 import { query } from "../db.js";

@@ -1,5 +1,5 @@
 /* ------------------------------ */
-/* ./api/strava/webhook.js */
+/* ./api/webhook.js */
 /* ------------------------------ */
 
 import { query } from "../db.js";

@@ -1,5 +1,5 @@
 /* ------------------------------ */
-/* ./api/segseq/leaderboard.js */
+/* ./api/leaderboard.js */
 /* ------------------------------ */
 
 import { query } from "../db.js";
