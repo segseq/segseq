@@ -1,100 +1,161 @@
 <!------------------------------>
-<!-- cretae.html -->
+<!-- create.html -->
 <!------------------------------>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title class="lang-element" data-en="SegSeq - Create Challenge" data-fr="SegSeq - Créer un défi">SegSeq - Create Challenge</title>
-  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .wizard-step { display: none; animation: fadeIn 0.3s ease; }
+    .wizard-step.active { display: block; }
+    .wizard-nav { display: flex; justify-content: space-between; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+    .step-indicator { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+    .step-dot { width: 30px; height: 10px; background: #eee; border-radius: 5px; transition: 0.3s; }
+    .step-dot.active { background: var(--orange); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
 </head>
 <body>
   <div id="header-placeholder"></div>
 
   <div class="container" style="max-width:900px;">
     <div class="form-card">
-      <h2 class="lang-element" data-en="Create a Challenge" data-fr="Créer un défi">Create a Challenge</h2>
+      <h2 class="lang-element" data-en="Create a Challenge" data-fr="Créer un défi" style="margin-bottom: 20px;">Create a Challenge</h2>
       
-      <label class="lang-element" data-en="Challenge Name" data-fr="Nom du défi">Challenge Name</label>
-      <input id="challenge-name" maxlength="40" class="lang-element" data-placeholder-en="Ex: UTMB 4-Day Challenge" data-placeholder-fr="Ex: Défi UTMB en 4 jours" placeholder="Ex: UTMB 4-Day Challenge">
-      
-      <label class="lang-element" data-en="Description" data-fr="Description">Description</label>
-      <textarea id="description" class="lang-element" data-placeholder-en="Describe your challenge..." data-placeholder-fr="Décrivez votre défi..." placeholder="Describe your challenge..." style="min-height:120px; resize:vertical;"></textarea>
-      
-      <!-- Bloc Durée + Séquence aligné -->
-      <div class="mobile-stack" style="display: flex; gap: 30px; margin-top: 20px;">
-        
-        <!-- Colonne Gauche : Durée -->
-        <div style="flex: 1;">
-          <label class="lang-element" data-en="Duration (hours, max 120)" data-fr="Durée (heures, max 120)" style="margin-top: 0;">Duration (hours, max 120)</label>
-          <input id="duration" type="number" min="1" max="120" placeholder="48">
-        </div>
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot-1"></div>
+        <div class="step-dot" id="dot-2"></div>
+        <div class="step-dot" id="dot-3"></div>
+      </div>
 
-        <!-- Colonne Droite : Séquence -->
-        <div style="flex: 1; display: flex; align-items: center;">
-          <div style="display: flex; align-items: center; gap: 15px; margin-top: 28px;">
-            <label class="switch" style="margin: 0; flex-shrink: 0;">
-              <input type="checkbox" id="strict-sequence" checked>
-              <span class="slider"></span>
-            </label>
-            <div style="line-height: 1.3;">
-              <strong class="lang-element" data-en="Strict sequence" data-fr="Séquence stricte" style="display: block; color: var(--navy);">Strict sequence</strong>
-              <small class="lang-element" data-en="Segments must be completed in exact order" data-fr="Les segments doivent être complétés dans l'ordre exact" style="color: #777;">Segments must be completed in exact order</small>
+      <!-- ETAPE 1 : SEGMENTS -->
+      <div id="step-1" class="wizard-step active">
+        <h3 class="lang-element" data-en="Step 1: Select Segments (2 to 5)" data-fr="Étape 1 : Sélection des segments (2 à 5)" style="color: var(--navy); margin-bottom: 15px;">Step 1: Select Segments</h3>
+        <p class="lang-element" data-en="Virtual or manual activities are not allowed." data-fr="Les activités virtuelles ou manuelles ne sont pas autorisées." style="color: #777; font-size: 0.9rem; margin-bottom: 15px;">Virtual or manual activities are not allowed.</p>
+        <div id="segments-list"></div>
+        <button id="btn-add-row" class="btn-add-row" onclick="addEmptySegment()">
+          + <span class="lang-element" data-en="Add another segment" data-fr="Ajouter un autre segment">Add another segment</span>
+        </button>
+        <div class="wizard-nav">
+          <button class="btn btn-delete lang-element" data-en="Cancel" data-fr="Annuler" onclick="window.location.href='index.html'">Cancel</button>
+          <button class="btn btn-primary lang-element" data-en="Next" data-fr="Suivant" onclick="goToStep(2)">Next</button>
+        </div>
+      </div>
+
+      <!-- ETAPE 2 : DUREE ET SEQUENCE -->
+      <div id="step-2" class="wizard-step">
+        <h3 class="lang-element" data-en="Step 2: Rules" data-fr="Étape 2 : Règles" style="color: var(--navy); margin-bottom: 15px;">Step 2: Rules</h3>
+        <div class="mobile-stack" style="display: flex; gap: 30px; margin-top: 20px;">
+          <div style="flex: 1;">
+            <label class="lang-element" data-en="Duration (hours, max 120)" data-fr="Durée (heures, max 120)" style="margin-top: 0;">Duration (hours, max 120)</label>
+            <input id="duration" type="number" min="1" max="120" placeholder="48">
+          </div>
+          <div style="flex: 1; display: flex; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 15px; margin-top: 28px;">
+              <label class="switch" style="margin: 0; flex-shrink: 0;">
+                <input type="checkbox" id="strict-sequence" checked>
+                <span class="slider"></span>
+              </label>
+              <div style="line-height: 1.3;">
+                <strong class="lang-element" data-en="Strict sequence" data-fr="Séquence stricte" style="display: block; color: var(--navy);">Strict sequence</strong>
+                <small class="lang-element" data-en="Segments must be completed in exact order" data-fr="Les segments doivent être complétés dans l'ordre exact" style="color: #777;">Segments must be completed in exact order</small>
+              </div>
             </div>
           </div>
         </div>
-
+        <div class="wizard-nav">
+          <button class="btn btn-view-feature lang-element" data-en="Back" data-fr="Précédent" onclick="goToStep(1)">Back</button>
+          <button class="btn btn-primary lang-element" data-en="Next" data-fr="Suivant" onclick="goToStep(3)">Next</button>
+        </div>
       </div>
-      
-      <label class="lang-element" data-en="Segments (Drag to reorder)" data-fr="Segments (Glissez pour réorganiser)" style="margin-top: 30px;">Segments (Drag to reorder)</label>
-      
-      <!-- Conteneur de la liste glisser-déposer -->
-      <div id="segments-list" style="margin-top: 10px;"></div>
-      
-      <!-- Bouton pour ajouter une ligne -->
-      <button id="btn-add-row" class="btn-add-row" onclick="addEmptySegment()">
-        + <span class="lang-element" data-en="Add another segment" data-fr="Ajouter un autre segment">Add another segment</span>
-      </button>
-    </div>
-    
-    <div class="cta">
-      <a href="#" id="publish-btn" class="btn btn-primary lang-element" data-en="Publish challenge" data-fr="Publier le défi" onclick="publishChallenge(event)">Publish challenge</a>
-      <a href="explore.html" class="btn btn-primary lang-element" data-en="Explore challenges" data-fr="Explorer les défis">Explore challenges</a>
+
+      <!-- ETAPE 3 : DETAILS FINAUX -->
+      <div id="step-3" class="wizard-step">
+        <h3 class="lang-element" data-en="Step 3: Details" data-fr="Étape 3 : Détails" style="color: var(--navy); margin-bottom: 15px;">Step 3: Details</h3>
+        
+        <label class="lang-element" data-en="Challenge Name" data-fr="Nom du défi">Challenge Name</label>
+        <input id="challenge-name" maxlength="40" class="lang-element" data-placeholder-en="Ex: UTMB 4-Day Challenge" data-placeholder-fr="Ex: Défi UTMB en 4 jours" placeholder="Ex: UTMB 4-Day Challenge">
+        
+        <label class="lang-element" data-en="Description" data-fr="Description">Description</label>
+        <textarea id="description" class="lang-element" data-placeholder-en="Describe your challenge..." data-placeholder-fr="Décrivez votre défi..." placeholder="Describe your challenge..." style="min-height:120px; resize:vertical;"></textarea>
+        
+        <!-- Visibilité publique/privée -->
+        <div style="display: flex; align-items: center; gap: 15px; margin-top: 20px;">
+          <label class="switch" style="margin: 0; flex-shrink: 0;">
+            <input type="checkbox" id="is-public">
+            <span class="slider"></span>
+          </label>
+          <div style="line-height: 1.3;">
+            <strong class="lang-element" data-en="Public Challenge" data-fr="Défi Public" style="display: block; color: var(--navy);">Public Challenge</strong>
+            <small class="lang-element" data-en="If unchecked, the challenge remains private." data-fr="Si décoché, le défi reste privé." style="color: #777;">If unchecked, the challenge remains private.</small>
+          </div>
+        </div>
+
+        <!-- Image (Admin Only) -->
+        <div id="admin-image-section" style="display: none; margin-top: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
+          <label style="margin-top: 0; color: var(--orange);">Admin: Image URL (Optional)</label>
+          <input id="image-url" type="text" placeholder="https://example.com/image.jpg">
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn btn-view-feature lang-element" data-en="Back" data-fr="Précédent" onclick="goToStep(2)">Back</button>
+          <button id="publish-btn" class="btn btn-primary lang-element" data-en="Publish challenge" data-fr="Publier le défi" onclick="publishChallenge(event)">Publish challenge</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <div id="footer-placeholder"></div>
-
-	<script src="app.js"></script> 
+  <script src="app.js"></script> 
   
   <script>
-    // --- NOUVEAU : Chargement des favoris ---
     let starredSegments = [];
+    let segments = [{ id: '', name: '', isValidated: false }, { id: '', name: '', isValidated: false }];
+    let dragStartIndex = null;
+    let currentStep = 1;
+
+    // Vérification Admin (à adapter selon ta logique d'authentification)
+    const isAdmin = localStorage.getItem('is_admin') === 'true'; 
+    if (isAdmin) {
+      document.getElementById('admin-image-section').style.display = 'block';
+    }
+
     async function fetchStarredSegments() {
       try {
         const res = await fetch('/api/strava?action=getStarredSegments');
-        if (res.ok) {
-          starredSegments = await res.json();
-        }
-      } catch (err) {
-        console.error("Erreur de chargement des favoris", err);
-      }
+        if (res.ok) starredSegments = await res.json();
+      } catch (err) { console.error(err); }
     }
     fetchStarredSegments();
 
-    // État initial : 2 lignes vides par défaut
-    let segments = [
-      { id: '', name: '', isValidated: false },
-      { id: '', name: '', isValidated: false }
-    ];
+    function goToStep(step) {
+      const lang = localStorage.getItem('userLang') || 'en';
+      
+      // Validation avant de passer à l'étape suivante
+      if (step === 2) {
+        const validSegments = segments.filter(s => s.isValidated);
+        if (validSegments.length < 2) return alert(lang === 'fr' ? "Vous devez valider au moins 2 segments." : "You must validate at least 2 segments.");
+      }
+      if (step === 3) {
+        const durationStr = document.getElementById("duration").value;
+        if (!durationStr || parseInt(durationStr, 10) < 1) return alert(lang === 'fr' ? "Veuillez définir une durée valide." : "Please set a valid duration.");
+      }
 
-    let dragStartIndex = null;
+      document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.step-dot').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(`step-${step}`).classList.add('active');
+      for(let i=1; i<=step; i++) {
+        document.getElementById(`dot-${i}`).classList.add('active');
+      }
+      currentStep = step;
+    }
 
-    // --- FONCTIONS D'AFFICHAGE ---
     function renderSegments() {
       const list = document.getElementById("segments-list");
       list.innerHTML = "";
@@ -106,7 +167,6 @@
         row.draggable = true;
         row.dataset.index = index;
 
-        // Événements Drag & Drop
         row.addEventListener('dragstart', handleDragStart);
         row.addEventListener('dragover', handleDragOver);
         row.addEventListener('drop', handleDrop);
@@ -114,11 +174,9 @@
         row.addEventListener('dragleave', handleDragLeave);
 
         const checkText = lang === 'fr' ? "Valider" : "Check";
-        // NOUVEAU : Placeholder mis à jour pour indiquer la recherche
-        const placeholderText = lang === 'fr' ? "ID ou Favori (ex: 12345 ou 'Mont Royal')" : "ID or Favorite (ex: 12345 or 'Mont Royal')";
+        const placeholderText = lang === 'fr' ? "ID ou Favori" : "ID or Favorite";
 
         let contentHtml = '';
-        
         if (seg.isValidated) {
           contentHtml = `
             <div class="segment-content" style="justify-content: space-between;">
@@ -126,13 +184,9 @@
                 <span style="font-size:1.2rem; color:var(--orange); font-weight:bold; margin-right:8px;">${index + 1}.</span>
                 <strong style="color: var(--navy);">${seg.name}</strong> <small style="color:#777; margin-left:8px;">ID: ${seg.id}</small>
               </div>
-              <button onclick="removeOrClearSegment(${index})" style="background:none; border:none; color:var(--danger); font-size:1.5rem; cursor:pointer;" title="Remove">×</button>
-            </div>
-          `;
-        } 
-        else {
-          // NOUVEAU : Remplacement de l'input simple par le wrapper d'autocomplétion
-          // L'input est maintenant type="text" pour permettre la recherche par nom
+              <button onclick="removeOrClearSegment(${index})" style="background:none; border:none; color:var(--danger); font-size:1.5rem; cursor:pointer;">×</button>
+            </div>`;
+        } else {
           contentHtml = `
             <div class="segment-content">
               <span style="font-size:1.2rem; color:var(--orange); font-weight:bold;">${index + 1}.</span>
@@ -141,29 +195,19 @@
                 <div class="autocomplete-dropdown"></div>
               </div>
               <button id="btn-val-${index}" onclick="validateSegment(${index})" class="btn btn-primary" style="padding:12px 20px;">${checkText}</button>
-              <button onclick="removeOrClearSegment(${index})" style="background:none; border:none; color:var(--danger); font-size:1.5rem; cursor:pointer; padding: 0 10px;" title="Remove">×</button>
-            </div>
-          `;
+              <button onclick="removeOrClearSegment(${index})" style="background:none; border:none; color:var(--danger); font-size:1.5rem; cursor:pointer; padding: 0 10px;">×</button>
+            </div>`;
         }
 
-        row.innerHTML = `
-          <div class="drag-handle" title="Drag to reorder">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="9" cy="12" r="1.5"></circle><circle cx="9" cy="5" r="1.5"></circle><circle cx="9" cy="19" r="1.5"></circle>
-              <circle cx="15" cy="12" r="1.5"></circle><circle cx="15" cy="5" r="1.5"></circle><circle cx="15" cy="19" r="1.5"></circle>
-            </svg>
-          </div>
-          ${contentHtml}
-        `;
+        row.innerHTML = `<div class="drag-handle">☰</div>${contentHtml}`;
         list.appendChild(row);
       });
 
       document.getElementById("btn-add-row").style.display = segments.length < 5 ? "block" : "none";
     }
 
-    // --- NOUVEAU : LOGIQUE D'AUTOCOMPLÉTION (Event Delegation) ---
+    // Autocomplétion (inchangée)
     const segmentsListContainer = document.getElementById("segments-list");
-
     segmentsListContainer.addEventListener('input', function(e) {
       if (e.target.classList.contains('segment-input')) {
         const input = e.target;
@@ -171,74 +215,38 @@
         const query = input.value.toLowerCase().trim();
         const index = input.closest('.segment-row').dataset.index;
 
-        // Si vide ou que des chiffres (ID manuel), on cache le menu
-        if (query.length === 0 || /^\d+$/.test(query)) {
-          dropdown.style.display = 'none';
-          return;
-        }
+        if (query.length === 0 || /^\d+$/.test(query)) { dropdown.style.display = 'none'; return; }
 
         const matches = starredSegments.filter(seg => seg.name.toLowerCase().includes(query));
-        
         dropdown.innerHTML = '';
         if (matches.length > 0) {
           matches.forEach(seg => {
             const item = document.createElement('div');
             item.className = 'autocomplete-item';
-            item.innerHTML = `<strong>${seg.name}</strong> <br><small style="color:#777;">ID: ${seg.id} | ${(seg.distance/1000).toFixed(2)} km</small>`;
-            
-            // mousedown est utilisé car il s'exécute AVANT le focusout de l'input
+            item.innerHTML = `<strong>${seg.name}</strong> <br><small>ID: ${seg.id}</small>`;
             item.addEventListener('mousedown', function(event) {
               event.preventDefault(); 
-              
-              // MAGIE : Puisqu'on sait que c'est un vrai segment Strava, 
-              // on le valide automatiquement sans avoir besoin de cliquer sur "Check" !
-              segments[index] = { 
-                id: String(seg.id), 
-                name: seg.name, 
-                isValidated: true 
-              };
-              
-              // On redessine l'interface : la ligne devient instantanément validée
+              segments[index] = { id: String(seg.id), name: seg.name, isValidated: true };
               renderSegments(); 
             });
-            
             dropdown.appendChild(item);
           });
-          dropdown.style.display = 'block';
         } else {
-          const noResultText = localStorage.getItem('userLang') === 'fr' ? "Aucun favori trouvé..." : "No favorites found...";
-          dropdown.innerHTML = `<div class="autocomplete-item" style="color:#999;">${noResultText}</div>`;
-          dropdown.style.display = 'block';
+          dropdown.innerHTML = `<div class="autocomplete-item" style="color:#999;">Aucun résultat</div>`;
         }
+        dropdown.style.display = 'block';
       }
     });
 
-    // Cacher le menu quand on clique ailleurs
     segmentsListContainer.addEventListener('focusout', function(e) {
-      if (e.target.classList.contains('segment-input')) {
-        e.target.nextElementSibling.style.display = 'none';
-      }
+      if (e.target.classList.contains('segment-input')) e.target.nextElementSibling.style.display = 'none';
     });
 
-    // --- FONCTIONS LOGIQUES ---
-    function updateSegmentId(index, value) {
-      segments[index].id = value;
-      segments[index].isValidated = false;
-    }
-
-    function addEmptySegment() {
-      if (segments.length < 5) {
-        segments.push({ id: '', name: '', isValidated: false });
-        renderSegments();
-      }
-    }
-
+    function updateSegmentId(index, value) { segments[index].id = value; segments[index].isValidated = false; }
+    function addEmptySegment() { if (segments.length < 5) { segments.push({ id: '', name: '', isValidated: false }); renderSegments(); } }
     function removeOrClearSegment(index) {
-      if (segments.length > 2) {
-        segments.splice(index, 1);
-      } else {
-        segments[index] = { id: '', name: '', isValidated: false };
-      }
+      if (segments.length > 2) segments.splice(index, 1);
+      else segments[index] = { id: '', name: '', isValidated: false };
       renderSegments();
     }
 
@@ -250,51 +258,36 @@
 
       if (!id) return alert(lang === 'fr' ? "Veuillez entrer un ID." : "Please enter an ID.");
 
-      btn.innerHTML = "⏳";
-      btn.disabled = true;
-      input.disabled = true;
+      btn.innerHTML = "⏳"; btn.disabled = true; input.disabled = true;
 
       try {
         const res = await fetch(`/api/strava?action=validateSegment&id=${id}`);
         const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Segment not found.");
         
-        if (!res.ok) throw new Error(data.error || (lang === 'fr' ? "Segment introuvable." : "Segment not found."));
-        
+        // REJET DES ACTIVITES VIRTUELLES
+        const sportType = (data.activity_type || data.sport || "").toLowerCase();
+        if (sportType.includes('virtual') || sportType === 'ebikeride' || sportType === 'rowing') {
+            throw new Error(lang === 'fr' ? "Les activités virtuelles ou non-standards ne sont pas autorisées." : "Virtual or non-standard activities are not allowed.");
+        }
+
         segments[index] = { id: id, name: data.name, isValidated: true };
         renderSegments();
       } catch (err) {
         alert(err.message);
         btn.innerHTML = lang === 'fr' ? "Valider" : "Check";
-        btn.disabled = false;
-        input.disabled = false;
+        btn.disabled = false; input.disabled = false;
       }
     }
 
-    // --- LOGIQUE DRAG & DROP ---
-    function handleDragStart(e) {
-      dragStartIndex = +this.dataset.index;
-      e.dataTransfer.effectAllowed = 'move';
-      this.classList.add('dragging');
-    }
-
-    function handleDragOver(e) {
-      e.preventDefault(); 
-      return false;
-    }
-
-    function handleDragEnter(e) {
-      this.classList.add('over');
-    }
-
-    function handleDragLeave(e) {
-      this.classList.remove('over');
-    }
-
+    // Drag & Drop (inchangé)
+    function handleDragStart(e) { dragStartIndex = +this.dataset.index; e.dataTransfer.effectAllowed = 'move'; this.classList.add('dragging'); }
+    function handleDragOver(e) { e.preventDefault(); return false; }
+    function handleDragEnter(e) { this.classList.add('over'); }
+    function handleDragLeave(e) { this.classList.remove('over'); }
     function handleDrop(e) {
-      e.stopPropagation();
-      this.classList.remove('over');
+      e.stopPropagation(); this.classList.remove('over');
       const dragEndIndex = +this.dataset.index;
-      
       if (dragStartIndex !== dragEndIndex && dragStartIndex !== null) {
         const draggedItem = segments.splice(dragStartIndex, 1)[0];
         segments.splice(dragEndIndex, 0, draggedItem);
@@ -303,7 +296,6 @@
       return false;
     }
 
-    // --- SOUMISSION FINALE ---
     async function publishChallenge(event) {
       if (event) event.preventDefault(); 
       const lang = localStorage.getItem('userLang') || 'en';
@@ -312,100 +304,78 @@
       const description = document.getElementById("description").value.trim();
       const durationStr = document.getElementById("duration").value;
       const strictSequence = document.getElementById("strict-sequence").checked;
+      const isPublic = document.getElementById("is-public").checked;
+      const imageUrl = document.getElementById("image-url").value.trim();
       
-      if (!name) return alert(lang === 'fr' ? "Veuillez donner un nom à votre défi." : "Please give your challenge a name.");
+      if (!name) return alert(lang === 'fr' ? "Veuillez donner un nom." : "Please give a name.");
       if (!description) return alert(lang === 'fr' ? "Veuillez ajouter une description." : "Please add a description.");
-      if (!durationStr || parseInt(durationStr, 10) < 1) return alert(lang === 'fr' ? "Veuillez définir une durée valide (min 1 heure)." : "Please set a valid duration (min 1 hour).");
       
       const validSegments = segments.filter(s => s.isValidated);
-      if (validSegments.length < 2) return alert(lang === 'fr' ? "Vous devez valider au moins 2 segments." : "You must validate at least 2 segments.");
-      if (validSegments.length !== segments.length) return alert(lang === 'fr' ? "Veuillez valider ou supprimer les lignes de segments vides." : "Please validate or remove empty segment rows.");
-      
       const publishBtn = document.getElementById("publish-btn");
       const originalText = publishBtn.textContent;
       publishBtn.style.pointerEvents = "none";
       publishBtn.textContent = lang === 'fr' ? "Création en cours..." : "Publishing...";
 
-      const segmentIds = validSegments.map(s => s.id);
-      
       const urlParams = new URLSearchParams(window.location.search);
       const editId = urlParams.get('edit');
       
       const payload = { 
-        name, 
-        description, 
+        name, description, 
         duration: parseInt(durationStr, 10), 
         strict_sequence: strictSequence,
-        segments: segmentIds 
+        is_public: isPublic,
+        image_url: isAdmin ? imageUrl : null,
+        segments: validSegments.map(s => s.id) 
       };
 
-      // Si on est en mode édition, on ajoute l'ID et on change la méthode
       if (editId) payload.id = editId;
       
       try {
         const res = await fetch("/api/challenges", {
-          method: editId ? "PUT" : "POST", // NOUVEAU : PUT si édition
+          method: editId ? "PUT" : "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
         const data = await res.json();
-        // ... (le reste de la fonction reste identique, redirection vers /challenge.html?id=...)
-
         
         if (!res.ok) {
           alert((lang === 'fr' ? "Erreur : " : "Error: ") + (data.error || "Unable to create challenge."));
-          publishBtn.style.pointerEvents = "auto";
-          publishBtn.textContent = originalText;
+          publishBtn.style.pointerEvents = "auto"; publishBtn.textContent = originalText;
           return;
         }
-        
         window.location.href = `/challenge.html?id=${data.id}&autosync=1`;
-        
       } catch (err) {
-        console.error(err);
         alert(lang === 'fr' ? "Erreur réseau." : "Network error.");
-        publishBtn.style.pointerEvents = "auto";
-        publishBtn.textContent = originalText;
+        publishBtn.style.pointerEvents = "auto"; publishBtn.textContent = originalText;
       }
     }
 
-    // --- LOGIQUE D'ÉDITION ---
     document.addEventListener("DOMContentLoaded", async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const editId = urlParams.get('edit');
       const lang = localStorage.getItem('userLang') || 'en';
 
       if (editId) {
-        // Changer les titres et boutons
         document.querySelector('h2').textContent = lang === 'fr' ? "Modifier le défi" : "Edit Challenge";
-        document.getElementById('publish-btn').textContent = lang === 'fr' ? "Enregistrer les modifications" : "Save changes";
-        
+        document.getElementById('publish-btn').textContent = lang === 'fr' ? "Enregistrer" : "Save changes";
         try {
           const res = await fetch(`/api/challenges?id=${editId}`);
           if (res.ok) {
             const challenge = await res.json();
-            
-            // Pré-remplir les champs
             document.getElementById("challenge-name").value = challenge.name;
             document.getElementById("description").value = challenge.description;
             document.getElementById("duration").value = challenge.duration_hours;
             document.getElementById("strict-sequence").checked = challenge.strict_sequence;
+            document.getElementById("is-public").checked = challenge.is_public;
+            if(isAdmin && challenge.image_url) document.getElementById("image-url").value = challenge.image_url;
             
-            // Pré-remplir les segments
-            segments = challenge.segments.map(s => ({
-              id: String(s.id),
-              name: s.name,
-              isValidated: true // On les considère déjà validés
-            }));
-            
+            segments = challenge.segments.map(s => ({ id: String(s.id), name: s.name, isValidated: true }));
             renderSegments();
           }
-        } catch (err) {
-          console.error("Erreur chargement édition:", err);
-        }
+        } catch (err) { console.error(err); }
       } else {
-        renderSegments(); // Mode création normal
+        renderSegments();
       }
     });
   </script>

@@ -6,9 +6,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title class="lang-element" data-en="SegSeq - Challenge" data-fr="SegSeq - Défi">SegSeq - Challenge</title>
-  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -20,14 +18,12 @@
       <h2 id="challenge-name" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size: 2rem; margin-bottom: 20px;">Loading...</h2>
       <p id="challenge-description" class="lang-element" data-en="Loading description..." data-fr="Chargement de la description..." style="opacity:.8; line-height:1.6; margin-bottom: 30px;">Loading description...</p>
       
-	  <!-- NOUVEAU : Bloc d'erreur caché par défaut -->
       <div id="challenge-error-section" style="display: none; text-align: center; padding: 30px 0;">
         <h2 class="lang-element" data-en="Challenge not found" data-fr="Défi introuvable" style="font-size: 2rem; margin-bottom: 15px; color: var(--danger);">Challenge not found</h2>
         <p class="lang-element" data-en="This challenge doesn't exist or was deleted." data-fr="Ce défi n'existe pas ou a été supprimé." style="margin-bottom: 25px; color: #777;">This challenge doesn't exist or was deleted.</p>
         <a href="create.html" class="btn btn-primary lang-element" data-en="Create your own!" data-fr="Créez le vôtre !">Create your own!</a>
       </div>
 	  
-      <!-- Section enveloppée pour pouvoir la masquer si le défi n'existe pas -->
       <div id="challenge-details-section">
         <h3 class="lang-element" data-en="Details" data-fr="Détails" style="color:var(--navy); margin-bottom: 10px;">Details</h3>
         <p><strong class="lang-element" data-en="Duration:" data-fr="Durée :">Duration:</strong> <span id="challenge-duration"></span> <span class="lang-element" data-en="hours" data-fr="heures">hours</span></p>
@@ -39,13 +35,12 @@
         <div id="segments-list"></div>
         
 		<div id="admin-log" style="display:none;">
-        <h3 class="lang-element" data-en="Logic Execution Log" data-fr="Journal d'exécution" style="color:var(--navy); margin: 30px 0 10px;">Logic Execution Log</h3>
-        <div id="debug-log" class="debug-console">Awaiting execution...</div>
+          <h3 class="lang-element" data-en="Logic Execution Log" data-fr="Journal d'exécution" style="color:var(--navy); margin: 30px 0 10px;">Logic Execution Log</h3>
+          <div id="debug-log" class="debug-console">Awaiting execution...</div>
         </div>
 		
-        <h3 class="lang-element" data-en="Leaderboard" data-fr="Classement" style="color:var(--navy); margin: 30px 0 10px;">Leaderboard</h3>
+        <h3 class="lang-element" data-en="Leaderboard (Top 10)" data-fr="Classement (Top 10)" style="color:var(--navy); margin: 30px 0 10px;">Leaderboard (Top 10)</h3>
         
-		 <!-- NOUVEAU : Filtre par genre -->
         <div class="gender-filter" style="margin-bottom: 15px; display: flex; gap: 10px; justify-content: flex-end;">
           <button id="btn-filter-all" class="btn-filter active lang-element" data-en="All" data-fr="Tous" onclick="applyFilter('all')">Tous</button>
           <button id="btn-filter-M" class="btn-filter lang-element" data-en="Men" data-fr="Hommes" onclick="applyFilter('M')">Hommes</button>
@@ -67,7 +62,6 @@
         </table>
 		</div>
         
-        <!-- On ajoute un ID et display: none -->
         <div class="refresh-container" id="admin-refresh-section" style="display: none;">
           <button id="refresh-btn" class="btn-refresh lang-element" data-title-en="Force synchro with Strava & Recalculate" data-title-fr="Forcer la synchro Strava et recalculer" title="Force synchro with Strava & Recalculate">
             <svg id="refresh-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -76,65 +70,53 @@
             </svg>
           </button>
         </div>
-		
       </div>
     </div>
     
     <div class="cta">
-      <a href="#" id="btn-edit-challenge" class="btn btn-primary lang-element" data-en="Edit challenge" data-fr="Modifier le défi">Edit challenge</a>
-	  <a href="#" id="btn-delete-challenge" class="btn btn-primary lang-element" data-en="Delete challenge" data-fr="Supprimer le défi">Delete challenge</a>
+      <a href="#" id="btn-edit-challenge" class="btn btn-primary lang-element" data-en="Edit challenge" data-fr="Modifier le défi" style="display:none;">Edit challenge</a>
+	  <a href="#" id="btn-delete-challenge" class="btn btn-primary lang-element" data-en="Delete challenge" data-fr="Supprimer le défi" style="display:none;" onclick="deleteChallengeFromPage()">Delete challenge</a>
 	  <a href="create.html" class="btn btn-primary lang-element" data-en="Create a challenge" data-fr="Créer un défi">Create a challenge</a>
       <a href="explore.html" class="btn btn-primary lang-element" data-en="Explore challenges" data-fr="Explorer les défis" style="margin-left: 10px;">Explore challenges</a>
     </div>
   </div>
 
   <div id="footer-placeholder"></div>
-
- <script src="app.js"></script> 
+  <script src="app.js"></script> 
   
   <script>
     const params = new URLSearchParams(window.location.search);
     const challengeId = params.get("id");
-
-    // Variables globales pour stocker les données et le filtre actuel
     let fullLeaderboard = [];
     let currentGenderFilter = 'all';
 
-    // Fonction appelée par les boutons HTML
     function applyFilter(gender) {
       currentGenderFilter = gender;
-      
-      // Mettre à jour l'apparence des boutons
       document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
       document.getElementById('btn-filter-' + gender).classList.add('active');
-      
       renderTable();
     }
 
-    // Fonction qui dessine le tableau en fonction du filtre
     function renderTable() {
       const lang = localStorage.getItem('userLang') || 'en';
       const lb = document.getElementById("leaderboard");
       lb.innerHTML = "";
       
-      // Filtrer les données
       let filteredData = fullLeaderboard;
       if (currentGenderFilter !== 'all') {
         filteredData = fullLeaderboard.filter(row => row.sex === currentGenderFilter);
       }
       
-      if (filteredData && filteredData.length > 0) {
-        // On utilise l'index de la boucle pour le nouveau rang filtré
-        filteredData.forEach((row, index) => {
+      // LIMITATION A 10 LIGNES MAX
+      const top10Data = filteredData.slice(0, 10);
+      
+      if (top10Data && top10Data.length > 0) {
+        top10Data.forEach((row, index) => {
           const tr = document.createElement("tr");
-          
-          // Le rang dynamique (1, 2, 3...) basé sur la vue filtrée
           const currentRank = index + 1;
-          
           const rankDisplay = currentRank === 1 
             ? `<img src="segseq-crown.png" alt="1" style="width: 24px; height: 24px; vertical-align: middle; mix-blend-mode: multiply;">` 
             : currentRank;
-
           const avatarUrl = row.profile || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.athlete)}&background=random&color=fff&size=32`;
 
           tr.innerHTML = `
@@ -150,85 +132,56 @@
           lb.appendChild(tr);
         });
       } else {
-		if (filteredData && filteredData.length > 0) {
-        // ... (Gardez votre code existant pour afficher les lignes) ...
-        filteredData.forEach((row, index) => {
-          // ...
-        });
-      } else {
-        // NOUVEAU : Message intelligent si le tableau est vide
-        const isNew = true; // On assume que si c'est vide, c'est en cours de calcul
-        let noDataMsg = "";
-        
-        if (lang === 'fr') {
-          noDataMsg = "Aucun résultat. Si vous venez de créer ce défi, le calcul des historiques Strava est en cours en arrière-plan.";
-        } else {
-          noDataMsg = "No results. If you just created this challenge, Strava history is being calculated in the background.";
-        }
-        
+        const noDataMsg = lang === 'fr' 
+          ? "Aucun résultat. Si vous venez de créer ce défi, le calcul est en cours en arrière-plan." 
+          : "No results. If you just created this challenge, calculation is running in the background.";
         lb.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px 20px; color: #666; line-height: 1.5;">
-          <div class="spinner" style="margin-bottom: 15px;">⏳</div>
-          ${noDataMsg}
+          <div class="spinner" style="margin-bottom: 15px;">⏳</div>${noDataMsg}
         </td></tr>`;
-      }
       }
     }
 
-    // Fonction principale qui gère la réception des données de l'API
     function processApiData(lbData) {
       const debugLog = document.getElementById("debug-log");
       if (lbData.debug_steps) {
         debugLog.innerHTML = lbData.debug_steps.join("<br/>");
         debugLog.scrollTop = debugLog.scrollHeight;
       }
-      
-      // On sauvegarde les données en mémoire globale
       fullLeaderboard = lbData.leaderboard || [];
-      
-      // On dessine le tableau en conservant le filtre actuellement sélectionné
       renderTable();
     }
+
     async function loadChallenge() {
       const lang = localStorage.getItem('userLang') || 'en';
-      
       try {
         const res = await fetch(`/api/challenges?id=${challengeId}`);
         const data = await res.json();
         
         if (!res.ok) {
-          // GESTION DU DÉFI INTROUVABLE
-          // 1. On masque les textes de chargement normaux
           document.getElementById("challenge-name").style.display = "none";
           document.getElementById("challenge-description").style.display = "none";
-          
-          // 2. On masque la section des détails
           document.getElementById("challenge-details-section").style.display = "none";
-          
-          // 3. On affiche notre beau bloc d'erreur pré-traduit !
           document.getElementById("challenge-error-section").style.display = "block";
           return;
         }
         
-        // Affichage des données du défi
         document.getElementById("challenge-name").textContent = data.name;
         document.getElementById("challenge-name").classList.remove('lang-element');
-        
         document.getElementById("challenge-description").textContent = data.description;
         document.getElementById("challenge-description").classList.remove('lang-element');
-               
         document.getElementById("challenge-duration").textContent = data.duration;
         document.getElementById("challenge-distance").textContent = (data.total_distance / 1000).toFixed(2);
         document.getElementById("challenge-elevation").textContent = Math.round(data.total_elevation);
-        const isStrict = data.strict_sequence !== false && data.strict_sequence !== false && data.strict_sequence !== 0; // vérifier si explicitement false // true par défaut
-        const seqTextEn = isStrict ? "Strict (Must follow order)" : "Free (Any order)";
-        const seqTextFr = isStrict ? "Stricte (Dans l'ordre exact)" : "Libre (Dans n'importe quel ordre)";
-        document.getElementById("challenge-sequence").textContent = lang === 'fr' ? seqTextFr : seqTextEn;
-		// Afficher le bouton de rafraîchissement si admin
+        
+        const isStrict = data.strict_sequence !== false && data.strict_sequence !== 0; 
+        document.getElementById("challenge-sequence").textContent = lang === 'fr' 
+          ? (isStrict ? "Stricte (Dans l'ordre exact)" : "Libre (Dans n'importe quel ordre)") 
+          : (isStrict ? "Strict (Must follow order)" : "Free (Any order)");
+
         if (data.is_admin === true) {
           document.getElementById("admin-refresh-section").style.display = "block";
 		  document.getElementById("admin-log").style.display = "block";
         }
-		// NOUVEAU : Afficher le bouton d'édition et suppression si c'est le créateur
         if (data.can_edit === true) {
           const editBtn = document.getElementById("btn-edit-challenge");
           editBtn.href = `create.html?edit=${challengeId}`;
@@ -238,25 +191,19 @@
 		
         const segList = document.getElementById("segments-list");
         segList.innerHTML = "";
-        
         const viewStravaText = lang === 'fr' ? "Voir sur Strava" : "View on Strava";
         
         data.segments.forEach(seg => {
           const div = document.createElement("div");
           div.className = "segment-item";
+          const displayName = seg.name ? seg.name : `Segment #${seg.id}`;
           
-          const segmentLabel = lang === 'fr' ? "Segment" : "Segment";
-          const displayName = seg.name ? seg.name : `${segmentLabel} #${seg.id}`;
-          
-          // 1. Traduction basique du sport (Strava renvoie généralement 'Ride' ou 'Run')
           let sportName = seg.activity_type || seg.sport || "N/A";
           if (lang === 'fr') {
             if (sportName.toLowerCase() === 'run') sportName = 'Course à pied';
             if (sportName.toLowerCase() === 'ride') sportName = 'Cyclisme';
-            if (sportName.toLowerCase() === 'virtualride') sportName = 'Vélo Virtuel';
           }
 
-          // 2. Formatage des métriques
           const distanceStr = seg.distance ? `${(seg.distance / 1000).toFixed(2)} km` : '-';
           const elevationStr = seg.elevation != null ? `+${Math.round(seg.elevation)}m` : '-';
           const gradeStr = seg.average_grade != null ? `${seg.average_grade}%` : '-';
@@ -292,9 +239,7 @@
           const lbData = await lbRes.json();
           processApiData(lbData);
         }
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) { console.error(err); }
     }
     
     loadChallenge();
@@ -306,70 +251,43 @@
       const icon = document.getElementById("refresh-icon"); 
       
       icon.classList.add("spinning"); 
-      
-      const refreshMsg = lang === 'fr' ? "Rafraîchissement depuis l'API Strava... Veuillez patienter." : "Refreshing from Strava API... Please wait.";
-      lb.innerHTML = `<tr><td colspan="5" style="text-align:center;">${refreshMsg}</td></tr>`;
-      
-      const logStart1 = lang === 'fr' ? "> Lancement de la synchronisation forcée avec l'API Strava..." : "> Initiating Force Sync with Strava API...";
-      const logStart2 = lang === 'fr' ? "> Cela peut prendre quelques secondes..." : "> This may take a few seconds...";
-      debugLog.innerHTML = `${logStart1}<br/>${logStart2}`;
+      lb.innerHTML = `<tr><td colspan="5" style="text-align:center;">${lang === 'fr' ? "Rafraîchissement..." : "Refreshing..."}</td></tr>`;
+      debugLog.innerHTML = lang === 'fr' ? "> Lancement de la synchronisation..." : "> Initiating Sync...";
       
       try {
         const lbRes = await fetch(`/api/leaderboard?id=${challengeId}&force=1`);
         const lbData = await lbRes.json();
         if(!lbRes.ok) {
-          const errorPrefix = lang === 'fr' ? "> Erreur :" : "> Error:";
-          debugLog.innerHTML += `<br/><span style="color:red">${errorPrefix} ${lbData.error}</span>`;
+          debugLog.innerHTML += `<br/><span style="color:red">> Error: ${lbData.error}</span>`;
           icon.classList.remove("spinning"); 
           return;
         }
         processApiData(lbData);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        icon.classList.remove("spinning"); 
-      }
+      } catch (err) { console.error(err); } finally { icon.classList.remove("spinning"); }
     });
 	
-	// --- FONCTION DE SUPPRESSION DEPUIS LA PAGE DÉFI ---
     async function deleteChallengeFromPage() {
       const lang = localStorage.getItem('userLang') || 'en';
-      const confirmMsg = lang === 'fr' 
-        ? "Êtes-vous sûr de vouloir supprimer ce défi ? Cette action est irréversible." 
-        : "Are you sure you want to delete this challenge? This action cannot be undone.";
-        
-      if (!confirm(confirmMsg)) return;
+      if (!confirm(lang === 'fr' ? "Êtes-vous sûr ?" : "Are you sure?")) return;
       
       const btn = document.getElementById("btn-delete-challenge");
-      const originalText = btn.textContent;
       btn.textContent = lang === 'fr' ? "Suppression..." : "Deleting...";
       btn.disabled = true;
 
       try {
-        const res = await fetch(`/api/challenges?id=${challengeId}`, { 
-          method: "DELETE", 
-          credentials: "include" 
-        });
-        const data = await res.json();
-        
-        if (res.ok) {
-          // Redirection vers la liste des défis après suppression
-          window.location.href = "explore.html"; 
-        } else {
-          const errorPrefix = lang === 'fr' ? "Erreur : " : "Error: ";
-          alert(errorPrefix + data.error);
-          btn.textContent = originalText;
+        const res = await fetch(`/api/challenges?id=${challengeId}`, { method: "DELETE", credentials: "include" });
+        if (res.ok) window.location.href = "explore.html"; 
+        else {
+          const data = await res.json();
+          alert((lang === 'fr' ? "Erreur : " : "Error: ") + data.error);
+          btn.textContent = lang === 'fr' ? "Supprimer le défi" : "Delete challenge";
           btn.disabled = false;
         }
       } catch (err) {
-        console.error(err);
-        const networkError = lang === 'fr' ? "Une erreur réseau est survenue." : "Network error occurred.";
-        alert(networkError);
-        btn.textContent = originalText;
+        alert(lang === 'fr' ? "Erreur réseau." : "Network error.");
         btn.disabled = false;
       }
     }
-	
   </script>
 </body>
 </html>
