@@ -43,96 +43,67 @@ export default async function handler(req, res) {
       }
     }
 
-    // 1. On récupère tous les segments de l'application dans un Set pour une recherche ultra-rapide
-    const segmentsDb = await query(`SELECT DISTINCT segment_id FROM challenge_segments`);
-    const activeSegIds = new Set(segmentsDb.map(s => s.segment_id.toString()));
-    debugLog.push(`${activeSegIds.size} segments cibles trouvés en base.`);
+debugLog.push("Début de la nouvelle stratégie de backfill 'segment-centric'.");
 
-    let totalInserted = 0;
+// 1. Récupérer TOUS les segments uniques de TOUS les challenges de l'application
+const allAppSegments = await query(`SELECT DISTINCT segment_id FROM challenge_segments`);
+const allAppSegmentIds = allAppSegments.map(s => s.segment_id);
+debugLog.push(`${allAppSegmentIds.length} segments uniques à vérifier dans l'application.`);
 
-    // 2. STRATÉGIE ANTI-PAYWALL & PREMIUM
-        debugLog.push("Vérification du statut de l'athlète...");
-        const profileRes = await fetch("https://www.strava.com/api/v3/athlete", {
+let totalInserted = 0;
+
+// 2. Pour chaque segment, récupérer les efforts de l'athlète
+for (const segmentId of allAppSegmentIds) {
+    try {
+        // Cet endpoint fonctionne avec le scope 'read' de base.
+        const effortsRes = await fetch(`https://www.strava.com/api/v3/segment_efforts?segment_id=${segmentId}&athlete_id=${athlete.id}`, {
             headers: { Authorization: `Bearer ${athlete.access_token}` }
         });
-        const profileData = await profileRes.json();
-        const isPremium = profileData.premium === true;
 
-        debugLog.push(`Statut : ${isPremium ? 'Premium (Historique complet)' : 'Gratuit (Max 200 activités)'}`);
+        if (effortsRes.ok) {
+            const efforts = await effortsRes.json();
+            if (efforts.length > 0) {
+                debugLog.push(`-> Trouvé ${efforts.length} effort(s) pour le segment ${segmentId}.`);
 
-        let allActivities = [];
-        let page = 1;
-        let hasMore = true;
+                // 3. Insérer chaque effort dans la base de données
+                for (const effort of efforts) {
+                    // On vérifie que l'activité n'est pas privée si l'utilisateur n'a donné que l'accès public
+                    const athleteScope = athlete.scope || '';
+                    if (!athleteScope.includes('activity:read_all') && effort.activity.private) {
+                        continue; // On ignore cet effort car il provient d'une activité privée non autorisée
+                    }
 
-        while (hasMore) {
-            debugLog.push(`Récupération des activités (Page ${page})...`);
-            const activitiesRes = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=200&page=${page}`, {
-                headers: { Authorization: `Bearer ${athlete.access_token}` }
-            });
-
-            if (!activitiesRes.ok) throw new Error("Impossible de lire les activités.");
-            const activities = await activitiesRes.json();
-            allActivities = allActivities.concat(activities);
-
-            // Si gratuit, on s'arrête à la page 1. Si Premium, on continue tant que la page est pleine (200).
-            if (!isPremium) {
-                hasMore = false;
-            } else {
-                if (activities.length === 200) {
-                    page++;
-                } else {
-                    hasMore = false;
-                }
-            }
-        }
-
-        debugLog.push(`${allActivities.length} activités trouvées. Analyse en cours...`);
-
-// 3. On analyse chaque activité en détail pour extraire les segments
-    debugLog.push(`${allActivities.length} activités trouvées. Filtrage et analyse...`);
-
-    for (const act of allActivities) {
-        // OPTIMISATION : On ignore les activités virtuelles (Zwift), manuelles, ou les mauvais sports
-        const isVirtualOrManual = act.manual || act.type === 'VirtualRide' || act.type === 'VirtualRun' || act.sport_type === 'VirtualRide';
-        const isEligibleSport = ['Run', 'Ride', 'TrailRun', 'GravelRide', 'Hike', 'Walk', 'EBikeRide', 'MountainBikeRide'].includes(act.type);
-        
-        if (isVirtualOrManual || !isEligibleSport) {
-            continue; // On passe à la suivante SANS faire d'appel API
-        }
-
-        // On a retiré le filtre de confidentialité. Si l'activité est là, c'est qu'on a le droit de la lire.
-        
-        try {
-            const detailRes = await fetch(`https://www.strava.com/api/v3/activities/${act.id}?include_all_efforts=true`, {
-                headers: { Authorization: `Bearer ${athlete.access_token}` }
-            });
-
-            if (detailRes.ok) {
-                const detail = await detailRes.json();
-                if (detail.segment_efforts) {
-                    for (const effort of detail.segment_efforts) {
-                        if (activeSegIds.has(effort.segment.id.toString())) {
-                            const resDb = await query(`
-                                INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time)
-                                VALUES ($1, $2, $3, $4, $5, $6)
-                                ON CONFLICT (effort_id) DO NOTHING
-                                RETURNING id
-                            `, [effort.id, effort.segment.id, athlete.id, athleteName, effort.start_date_local || effort.start_date, effort.elapsed_time]);
-                            
-                            if (resDb && resDb.length > 0) totalInserted++;
-                        }
+                    const resDb = await query(`
+                        INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time)
+                        VALUES ($1, $2, $3, $4, $5, $6)
+                        ON CONFLICT (effort_id) DO NOTHING
+                        RETURNING id`,
+                        [effort.id, effort.segment.id, athlete.id, athleteName, effort.start_date_local || effort.start_date, effort.elapsed_time]
+                    );
+                    if (resDb && resDb.length > 0) {
+                        totalInserted++;
                     }
                 }
             }
-            await delay(250); // Respect du Rate Limit
-        } catch (err) {
-            console.error(`Erreur sur l'activité ${act.id}:`, err);
+        } else {
+            // Gérer les erreurs, par ex. 429 (Rate Limit)
+            debugLog.push(`X Erreur API pour le segment ${segmentId}: ${effortsRes.statusText}`);
+            if (effortsRes.status === 429) {
+                 debugLog.push(`! Limite de l'API Strava atteinte. Le backfill s'arrête pour cet athlète.`);
+                 break; // Sortir de la boucle des segments
+            }
         }
+        
+        // Respecter la limite de l'API Strava
+        await delay(250); 
+
+    } catch (err) {
+        console.error(`Erreur critique sur le backfill du segment ${segmentId}:`, err);
+        debugLog.push(`X Erreur critique sur le backfill du segment ${segmentId}.`);
     }
+}
 
-
-
-    debugLog.push(`Total efforts récupérés et insérés: ${totalInserted}`);
+debugLog.push(`Total efforts récupérés et insérés : ${totalInserted}`);
 
     // 4. Recalcul des classements
     const allChallenges = await query(`SELECT id FROM challenges`);

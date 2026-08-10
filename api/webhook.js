@@ -41,10 +41,17 @@ export default async function handler(req, res) {
 }
 
 async function processActivity(athleteId, activityId) {
-  const athletes = await query(`SELECT firstname, lastname, access_token, refresh_token, expires_at FROM athletes WHERE id = $1`, [athleteId]);
-  if (athletes.length === 0) return; 
-  
-  let athlete = athletes[0];
+   const athletes = await query(`SELECT firstname, lastname, access_token, refresh_token, expires_at, scope FROM athletes WHERE id = $1`, [athleteId]);
+    if (athletes.length === 0) return;
+    let athlete = athletes[0];
+    const athleteScope = athlete.scope || '';
+
+    // Si l'utilisateur n'a pas donné la permission complète, on ne fait rien.
+    // Les données seront récupérées lors d'un prochain backfill manuel.
+    if (!athleteScope.includes('activity:read_all')) {
+        console.log(`Webhook: Ignoré pour l'athlète ${athleteId} (scope insuffisant). L'activité ${activityId} sera traitée plus tard.`);
+        return;
+    }
   const athleteName = `${athlete.firstname} ${athlete.lastname}`.trim();
 
   const nowUnix = Math.floor(Date.now() / 1000);
