@@ -45,17 +45,18 @@ export default async function handler(req, res) {
 
 debugLog.push("Début de la nouvelle stratégie de backfill 'segment-centric'.");
 
-// 1. Récupérer TOUS les segments uniques de TOUS les challenges de l'application
+// 1. Récupérer TOUS les segments uniques de TOUS les challenges
 const allAppSegments = await query(`SELECT DISTINCT segment_id FROM challenge_segments`);
 const allAppSegmentIds = allAppSegments.map(s => s.segment_id);
 debugLog.push(`${allAppSegmentIds.length} segments uniques à vérifier dans l'application.`);
 
 let totalInserted = 0;
 
-// 2. Pour chaque segment, récupérer les efforts de l'athlète
+// 2. Pour chaque segment, récupérer les efforts de l'athlète concerné
 for (const segmentId of allAppSegmentIds) {
     try {
-        // Cet endpoint fonctionne avec le scope 'read' de base.
+        // Cet endpoint respecte automatiquement le scope du token de l'athlète.
+        // Il ne renverra pas les efforts d'activités privées si le scope est limité à 'read'.
         const effortsRes = await fetch(`https://www.strava.com/api/v3/segment_efforts?segment_id=${segmentId}&athlete_id=${athlete.id}`, {
             headers: { Authorization: `Bearer ${athlete.access_token}` }
         });
@@ -65,13 +66,11 @@ for (const segmentId of allAppSegmentIds) {
             if (efforts.length > 0) {
                 debugLog.push(`-> Trouvé ${efforts.length} effort(s) pour le segment ${segmentId}.`);
 
-                // 3. Insérer chaque effort dans la base de données
+                // 3. Insérer chaque effort reçu dans la base de données
                 for (const effort of efforts) {
-                    // On vérifie que l'activité n'est pas privée si l'utilisateur n'a donné que l'accès public
-                    const athleteScope = athlete.scope || '';
-                    if (!athleteScope.includes('activity:read_all') && effort.activity.private) {
-                        continue; // On ignore cet effort car il provient d'une activité privée non autorisée
-                    }
+                    // --- LA VÉRIFICATION MANUELLE EST SUPPRIMÉE ---
+                    // La logique est maintenant plus simple : si l'API nous donne l'effort,
+                    // c'est que nous avons la permission de le voir.
 
                     const resDb = await query(`
                         INSERT INTO segment_efforts (effort_id, segment_id, athlete_id, athlete_name, start_date, elapsed_time)
@@ -86,7 +85,6 @@ for (const segmentId of allAppSegmentIds) {
                 }
             }
         } else {
-            // Gérer les erreurs, par ex. 429 (Rate Limit)
             debugLog.push(`X Erreur API pour le segment ${segmentId}: ${effortsRes.statusText}`);
             if (effortsRes.status === 429) {
                  debugLog.push(`! Limite de l'API Strava atteinte. Le backfill s'arrête pour cet athlète.`);
