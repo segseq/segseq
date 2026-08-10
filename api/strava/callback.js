@@ -65,7 +65,7 @@ export default async function handler(req, res) {
     // --- 3. DÉCLENCHEMENT DU BACKFILL EN ARRIÈRE-PLAN ---
         const protocol = req.headers['x-forwarded-proto'] || 'http';
         const host = req.headers.host;
-        const backfillUrl = `${protocol}://${host}/api/segseq/admin-backfill?athlete_id=${athleteId}`;
+        const backfillUrl = `${protocol}://${host}/api/admin-backfill?athlete_id=${athleteId}`;
         
         setTimeout(() => {
 			fetch(backfillUrl).catch(err => console.error("Erreur lancement backfill:", err));
