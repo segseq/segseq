@@ -52,7 +52,7 @@ export default async function handler(req, res) {
   try {
     // --- ROUTEUR INTERNE ---
 
-    if (action === 'getProfile') {
+   if (action === 'getProfile') {
       if (!athleteId) return res.status(401).json({ error: "Non authentifié" });
 
       const validAccessToken = await getValidStravaToken(athleteId);
@@ -64,69 +64,27 @@ export default async function handler(req, res) {
         headers: { Authorization: `Bearer ${validAccessToken}` }
       });
 
-      if (!athleteRes.ok) throw new Error('Échec de la récupération du profil Strava');
+      if (!athleteRes.ok) {
+        console.error("Erreur Strava API:", athleteRes.status);
+        throw new Error('Échec de la récupération du profil Strava');
+      }
 
       const athlete = await athleteRes.json();
 
-      // --- DÉBUT DE LA MODIFICATION (CORRIGÉE ET SÉCURISÉE) ---
+      // --- AJOUT SÉCURISÉ POUR L'ADMIN ---
       try {
-          // On ne demande QUE is_admin pour éviter tout crash SQL
           const localDbRes = await query(`SELECT is_admin FROM athletes WHERE id = $1`, [athleteId]);
-          if (localDbRes.length > 0) {
-              athlete.is_admin = localDbRes[0].is_admin;
+          
+          if (localDbRes && localDbRes.length > 0) {
+              athlete.is_admin = localDbRes[0].is_admin === true;
           } else {
               athlete.is_admin = false;
           }
       } catch (dbErr) {
-          // Si la requête échoue, on log l'erreur mais on ne bloque pas le chargement du profil
-          console.error("Erreur lors de la récupération de is_admin:", dbErr);
-          athlete.is_admin = false; 
+          console.error("Erreur SQL (ignorée) :", dbErr);
+          athlete.is_admin = false;
       }
-      // --- FIN DE LA MODIFICATION ---
+      // --- FIN DE L'AJOUT ---
 
       return res.status(200).json(athlete);
-
-
-    else if (action === 'getStarredSegments') {
-      if (!athleteId) return res.status(401).json({ error: "Non authentifié" });
-
-      const validAccessToken = await getValidStravaToken(athleteId);
-      if (!validAccessToken) return res.status(401).json({ error: "Impossible d'obtenir un token Strava valide." });
-
-      const stravaRes = await fetch("https://www.strava.com/api/v3/segments/starred?page=1&per_page=200", {
-        headers: { Authorization: `Bearer ${validAccessToken}` }
-      });
-      if (!stravaRes.ok) throw new Error("Erreur lors de la communication avec Strava");
-
-      const segments = await stravaRes.json();
-      const simplifiedSegments = segments.map(seg => ({
-        id: seg.id, name: seg.name, distance: seg.distance, city: seg.city || ""
-      }));
-      return res.status(200).json(simplifiedSegments);
     }
-
-    else if (action === 'validateSegment') {
-      if (!athleteId) return res.status(401).json({ error: "Non authentifié pour valider un segment." });
-      if (!segmentId) return res.status(400).json({ error: "Missing segment ID" });
-
-      const validAccessToken = await getValidStravaToken(athleteId);
-      if (!validAccessToken) return res.status(401).json({ error: "Impossible d'obtenir un token Strava valide." });
-
-      const stravaRes = await fetch(`https://www.strava.com/api/v3/segments/${segmentId}`, {
-        headers: { Authorization: `Bearer ${validAccessToken}` }
-      });
-      if (!stravaRes.ok) return res.status(404).json({ error: "Segment introuvable ou privé." });
-
-      const data = await stravaRes.json();
-      return res.status(200).json({ name: data.name, distance: data.distance, activity_type: data.activity_type });
-    }
-
-    else {
-      return res.status(400).json({ error: "Action non spécifiée ou invalide." });
-    }
-
-  } catch (err) {
-    console.error(`Erreur API pour l'action '${action}':`, err.message);
-    return res.status(500).json({ error: "Erreur serveur", details: err.message });
-  }
-}
