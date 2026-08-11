@@ -58,9 +58,14 @@
         </button>
         
         <div class="wizard-nav">
-          <button class="btn btn-delete lang-element" data-en="Cancel" data-fr="Annuler" onclick="window.location.href='index.html'">Cancel</button>
-          <button class="btn btn-primary lang-element" data-en="Next" data-fr="Suivant" onclick="goToStep(2)">Next</button>
+          <button class="icon-btn" onclick="confirmCancel()" title="Cancel">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <button class="icon-btn" onclick="goToStep(2)" title="Next">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
         </div>
+
       </div>
 
       <!-- ETAPE 2 : DUREE ET SEQUENCE -->
@@ -69,8 +74,8 @@
         
         <div class="mobile-stack" style="display: flex; gap: 30px; margin-top: 20px;">
           <div style="flex: 1;">
-            <label class="lang-element" data-en="Duration (hours, max 120)" data-fr="Durée (heures, max 120)" style="margin-top: 0;">Duration (hours, max 120)</label>
-            <input id="duration" type="number" min="1" max="120" placeholder="48">
+            <label class="lang-element" data-en="Duration (in hours, 1 to 120)" data-fr="Durée (en heures, 1 à 120)" style="margin-top: 0;">Duration (in hours, 1 to 120)</label>
+            <input id="duration" type="number" min="1" max="120" placeholder="">
           </div>
           <div style="flex: 1; display: flex; align-items: center;">
             <div style="display: flex; align-items: center; gap: 15px; margin-top: 28px;">
@@ -87,9 +92,19 @@
         </div>
         
         <div class="wizard-nav">
-          <button class="btn btn-view-feature lang-element" data-en="Back" data-fr="Précédent" onclick="goToStep(1)">Back</button>
-          <button class="btn btn-primary lang-element" data-en="Next" data-fr="Suivant" onclick="goToStep(3)">Next</button>
+          <button class="icon-btn" onclick="confirmCancel()" title="Cancel">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <div style="display: flex; gap: 20px;">
+            <button class="icon-btn" onclick="goToStep(1)" title="Previous">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <button class="icon-btn" onclick="goToStep(3)" title="Next">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+          </div>
         </div>
+
       </div>
 
       <!-- ETAPE 3 : DETAILS FINAUX -->
@@ -121,9 +136,19 @@
         </div>
 
         <div class="wizard-nav">
-          <button class="btn btn-view-feature lang-element" data-en="Back" data-fr="Précédent" onclick="goToStep(2)">Back</button>
-          <button id="publish-btn" class="btn btn-primary lang-element" data-en="Publish challenge" data-fr="Publier le défi" onclick="publishChallenge(event)">Publish challenge</button>
+          <button class="icon-btn" onclick="confirmCancel()" title="Cancel">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <div style="display: flex; gap: 20px;">
+            <button class="icon-btn" onclick="goToStep(2)" title="Previous">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <button id="publish-btn" class="icon-btn" onclick="publishChallenge(event)" title="Publish">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+          </div>
         </div>
+
       </div>
 
     </div>
@@ -133,7 +158,17 @@
   <script src="app.js"></script> 
   
   <script>
-    let starredSegments = [];
+    function confirmCancel() {
+      const lang = localStorage.getItem('userLang') || 'en';
+      const msg = lang === 'fr' 
+        ? "Annuler et perdre les modifications en cours ?" 
+        : "Cancel and lose current changes?";
+      if (confirm(msg)) {
+        window.location.href = 'index.html';
+      }
+    }
+
+	let starredSegments = [];
     let segments = [{ id: '', name: '', isValidated: false }, { id: '', name: '', isValidated: false }];
     let dragStartIndex = null;
     let currentStep = 1;
@@ -212,7 +247,7 @@
                 <input type="text" id="seg-input-${index}" class="segment-input" value="${seg.id}" placeholder="${placeholderText}" oninput="updateSegmentId(${index}, this.value)" autocomplete="off">
                 <div class="autocomplete-dropdown"></div>
               </div>
-              <button id="btn-val-${index}" onclick="validateSegment(${index})" class="btn btn-primary" style="padding:12px 20px; font-size: 0.9rem;">${checkText}</button>
+              <button id="btn-val-${index}" onclick="validateSegment(${index})" class="icon-btn" title="${checkText}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
               <button onclick="removeOrClearSegment(${index})" style="background:none; border:none; color:var(--danger); font-size:1.8rem; cursor:pointer; padding: 0 10px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">×</button>
             </div>`;
         }
@@ -313,7 +348,7 @@
       return false;
     }
 
-    async function publishChallenge(event) {
+async function publishChallenge(event) {
       if (event) event.preventDefault(); 
       const lang = localStorage.getItem('userLang') || 'en';
       
@@ -329,9 +364,14 @@
       
       const validSegments = segments.filter(s => s.isValidated);
       const publishBtn = document.getElementById("publish-btn");
-      const originalText = publishBtn.textContent;
+      
+      // 1. On sauvegarde le code HTML de l'icône (et non plus le texte)
+      const originalHTML = publishBtn.innerHTML; 
+      
       publishBtn.style.pointerEvents = "none";
-      publishBtn.textContent = lang === 'fr' ? "Création en cours..." : "Publishing...";
+      
+      // 2. On remplace l'icône par le SVG du spinner de chargement
+      publishBtn.innerHTML = `<svg class="spinning" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>`;
 
       const urlParams = new URLSearchParams(window.location.search);
       const editId = urlParams.get('edit');
@@ -358,15 +398,22 @@
         
         if (!res.ok) {
           alert((lang === 'fr' ? "Erreur : " : "Error: ") + (data.error || "Unable to create challenge."));
-          publishBtn.style.pointerEvents = "auto"; publishBtn.textContent = originalText;
+          publishBtn.style.pointerEvents = "auto"; 
+          
+          // 3. En cas d'erreur API, on restaure le HTML de l'icône d'origine
+          publishBtn.innerHTML = originalHTML; 
           return;
         }
         window.location.href = `/challenge.html?id=${data.id}&autosync=1`;
       } catch (err) {
         alert(lang === 'fr' ? "Erreur réseau." : "Network error.");
-        publishBtn.style.pointerEvents = "auto"; publishBtn.textContent = originalText;
+        publishBtn.style.pointerEvents = "auto"; 
+        
+        // 4. En cas d'erreur réseau, on restaure le HTML de l'icône d'origine
+        publishBtn.innerHTML = originalHTML; 
       }
     }
+
 
     document.addEventListener("DOMContentLoaded", async () => {
       const urlParams = new URLSearchParams(window.location.search);
