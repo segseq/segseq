@@ -36,26 +36,33 @@ document.addEventListener("DOMContentLoaded", applyCurrentLanguage);
 async function injectComponents() {
   const headerHTML = `
     <header class="main-header">
-      <div class="nav-group">
+      <!-- 1. Logo (Toujours à gauche / en haut) -->
+      <div class="nav-brand">
         <a href="index.html" class="nav-logo" title="Home"><span>∿</span>segseq</a>
+      </div>
+      
+      <!-- 2. Menu (Au centre sur desktop / Ligne du bas sur mobile) -->
+      <div class="nav-menu">
         <a href="explore.html" class="nav-icon lang-element" data-titleFr="Explorer" data-titleEn="Explore">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         </a>
         <a href="create.html" class="nav-icon lang-element" data-titleFr="Créer un défi" data-titleEn="Create challenge">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </a>
-      </div>
-      
-      <div class="nav-group">
         <div class="lang-selector">
           <span id="btn-en" class="lang-btn" onclick="setLanguage('en')">EN</span>
           <span>|</span>
           <span id="btn-fr" class="lang-btn" onclick="setLanguage('fr')">FR</span>
         </div>
-        <div id="nav-auth-section" style="display: flex; align-items: center; gap: 12px;"></div>
+      </div>
+
+      <!-- 3. Auth/Profil (Toujours à droite / en haut) -->
+      <div class="nav-auth" id="nav-auth-section">
+        <!-- Rempli dynamiquement -->
       </div>
     </header>
   `;
+
 
    const footerHTML = `
     <footer class="main-footer">

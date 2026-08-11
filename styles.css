@@ -25,7 +25,7 @@ body {
   min-height: 100vh;
   position: relative;
   z-index: 0;
-  -webkit-font-smoothing: antialiased; /* Rend le texte plus net sur mobile */
+  -webkit-font-smoothing: antialiased;
 }
 
 .container {
@@ -40,7 +40,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 14px 28px;
-  border-radius: 16px; /* Plus arrondi et moderne */
+  border-radius: 16px;
   font-weight: 600;
   text-decoration: none;
   transition: all 0.3s ease;
@@ -82,6 +82,22 @@ body {
   transform: scale(1.05);
 }
 
+.btn-delete {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 12px 22px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.btn-delete:hover {
+  background: var(--danger);
+  color: white;
+}
+
 /* --- TYPOGRAPHIE & LAYOUT --- */
 .hero { text-align: center; padding: 80px 20px 40px; }
 .logo { font-size: 4rem; color: var(--color-text-main); margin-bottom: 10px; }
@@ -93,14 +109,32 @@ body {
 .section { padding: 60px 0; margin-bottom: 40px; }
 .section-title { text-align: center; font-size: 2.2rem; margin-bottom: 40px; font-weight: 700;}
 
-/* --- CARTES (Adaptées au fond sombre) --- */
+/* CALL TO ACTION (Correction du centrage) */
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centre horizontalement */
+  justify-content: center;
+  margin-top: 40px;
+  gap: 15px;
+}
+
+.strava-btn {
+  height: 48px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  /* margin: 0 auto retiré car Flexbox gère le centrage */
+}
+.strava-btn:hover { opacity: 0.85; }
+
+/* --- CARTES & GRILLES --- */
 .card, .form-card, .profile-card, .stat-card, .challenge-card, .example {
   background: var(--color-bg-surface);
   color: var(--color-text-main);
   border-radius: 24px;
   padding: 35px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.05); /* Légère bordure pour détacher du fond */
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 .steps, .examples {
@@ -122,7 +156,6 @@ body {
   align-items: center;
   padding: 25px;
 }
-
 .example-meta { color: var(--color-text-muted); font-size: 0.9rem; margin-top: 5px; }
 
 /* --- CAROUSEL --- */
@@ -134,10 +167,20 @@ body {
 .carousel-dot { width: 10px; height: 10px; background: var(--color-text-muted); border-radius: 50%; cursor: pointer; transition: all 0.3s ease; opacity: 0.5;}
 .carousel-dot.active { background: var(--color-accent); transform: scale(1.3); opacity: 1;}
 
-/* --- HEADER & FOOTER --- */
-.main-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; max-width: 1200px; margin: auto; }
-.nav-group { display: flex; align-items: center; gap: 24px; }
-.nav-icon { color: var(--color-text-main); transition: color 0.2s; }
+/* --- HEADER & NAVIGATION --- */
+.main-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 15px 30px; 
+  max-width: 1200px; 
+  margin: auto; 
+}
+.nav-brand { display: flex; align-items: center; }
+.nav-menu { display: flex; align-items: center; gap: 30px; }
+.nav-auth { display: flex; align-items: center; gap: 12px; }
+
+.nav-icon { color: var(--color-text-main); transition: color 0.2s; display: flex; align-items: center; justify-content: center;}
 .nav-icon:hover { color: var(--color-accent); }
 .nav-logo { font-weight: 800; font-size: 1.5rem; text-decoration: none; color: var(--color-text-main); display: flex; align-items: center; gap: 5px;}
 .nav-logo span { color: var(--color-accent); }
@@ -149,16 +192,119 @@ body {
 
 .nav-profile-pic { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-accent); }
 
+/* --- FOOTER --- */
 .main-footer { text-align: center; padding: 40px 20px; color: var(--color-text-muted); display: flex; flex-direction: column; gap: 15px; align-items: center;}
 .footer-icons { display: flex; gap: 20px; }
 .footer-icon { color: var(--color-text-muted); transition: color 0.2s; }
-.footer-icon:hover { color: var(--color-accent); }
+.footer-icon:hover { color: var(--color-accent); transform: scale(1.1); }
 
-/* --- RESPONSIVE MOBILE --- */
+/* --- FORMULAIRES & INPUTS (Adaptés au thème sombre) --- */
+label { display: block; margin-top: 20px; font-weight: 600; color: var(--color-text-muted); }
+input, select, textarea {
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--color-bg-main);
+  color: var(--color-text-main);
+  margin-top: 8px;
+  font-size: 1rem;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--color-accent); }
+
+/* --- TABLEAUX --- */
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+th { background: rgba(255,255,255,0.05); color: var(--color-text-muted); font-weight: 600; }
+tr:hover { background: rgba(255,255,255,0.02); }
+
+/* --- DRAG & DROP SEGMENTS --- */
+.segment-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-bg-main);
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.segment-row.over { border: 1px dashed var(--color-accent); background: rgba(252, 76, 2, 0.05); }
+.segment-row.dragging { opacity: 0.4; }
+.drag-handle { cursor: grab; color: var(--color-text-muted); display: flex; align-items: center; padding: 5px; }
+.drag-handle:active { cursor: grabbing; }
+.segment-content { flex: 1; display: flex; align-items: center; gap: 10px; }
+.segment-content input { margin-top: 0; padding: 12px; }
+
+.btn-add-row {
+  background: transparent;
+  border: 2px dashed rgba(255,255,255,0.2);
+  color: var(--color-text-muted);
+  width: 100%;
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+.btn-add-row:hover { border-color: var(--color-accent); color: var(--color-accent); background: rgba(252, 76, 2, 0.05); }
+
+/* --- AUTOCOMPLETE --- */
+.autocomplete-wrapper { position: relative; width: 100%; }
+.autocomplete-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: var(--color-bg-surface);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  max-height: 200px; overflow-y: auto; z-index: 1000; display: none; text-align: left;
+}
+.autocomplete-item { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; font-size: 0.9rem; color: var(--color-text-main); }
+.autocomplete-item:hover { background-color: rgba(255,255,255,0.05); }
+
+/* --- TOGGLE SWITCH --- */
+.switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.2); transition: .4s; border-radius: 26px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--color-accent); }
+input:checked + .slider:before { transform: translateX(24px); }
+
+/* =========================================
+   📱 OPTIMISATIONS MOBILES (RESPONSIVE)
+   ========================================= */
 @media (max-width: 768px) {
+  .container { padding: 0 15px; }
+  .section { padding: 40px 0; margin-bottom: 40px; }
   .hero { padding: 40px 15px 20px; }
   .brand { font-size: 3rem; }
-  .main-header { padding: 15px; flex-direction: column; gap: 20px; }
-  .nav-group { width: 100%; justify-content: space-between; gap: 15px; }
+  .tagline { font-size: 1.3rem; }
+  .section-title { font-size: 1.8rem; }
   .card, .example { padding: 20px; }
+  
+  /* Grille pour le Header Mobile */
+  .main-header { 
+    display: grid;
+    grid-template-columns: 1fr auto; /* Colonne 1: Logo, Colonne 2: Auth */
+    grid-template-rows: auto auto;   /* Ligne 1: Top, Ligne 2: Menu */
+    gap: 15px;
+    padding: 15px; 
+  }
+  
+  .nav-brand { grid-column: 1; grid-row: 1; }
+  .nav-auth { grid-column: 2; grid-row: 1; justify-content: flex-end; }
+  
+  .nav-menu { 
+    grid-column: 1 / -1; /* Prend toute la largeur */
+    grid-row: 2; 
+    justify-content: center; /* Centre les icônes et la langue */
+    gap: 40px; /* Espace généreux pour le tactile */
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05); /* Ligne de séparation subtile */
+  }
+
+  .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 500px; }
 }
