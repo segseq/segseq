@@ -199,3 +199,13 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.log('PWA: Erreur Service Worker', err));
   });
 }
+
+/* ------------------------------ */
+/* Gestion Globale de la Vue Admin */
+/* ------------------------------ */
+document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem('adminViewActive') === 'true') {
+    document.body.classList.add('view-admin');
+  }
+});
+

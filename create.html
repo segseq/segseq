@@ -130,7 +130,7 @@
         </div>
 
         <!-- Image (Admin Only) -->
-        <div id="admin-image-section" style="display: none; margin-top: 25px; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2);">
+        <div id="admin-image-section" class="admin-feature" style="margin-top: 25px; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2);">
           <label style="margin-top: 0; color: var(--color-accent);">Admin: Image URL (Optional)</label>
           <input id="image-url" type="text" placeholder="https://example.com/image.jpg">
         </div>
@@ -172,11 +172,6 @@
     let segments = [{ id: '', name: '', isValidated: false }, { id: '', name: '', isValidated: false }];
     let dragStartIndex = null;
     let currentStep = 1;
-
-    const isAdmin = localStorage.getItem('is_admin') === 'true'; 
-    if (isAdmin) {
-      document.getElementById('admin-image-section').style.display = 'block';
-    }
 
     async function fetchStarredSegments() {
       try {
@@ -375,15 +370,18 @@ async function publishChallenge(event) {
 
       const urlParams = new URLSearchParams(window.location.search);
       const editId = urlParams.get('edit');
+       // Vérifier si la vue admin est active pour envoyer l'URL de l'image
+      const isViewAdminActive = document.body.classList.contains('view-admin');
       
       const payload = { 
         name, description, 
         duration: parseInt(durationStr, 10), 
         strict_sequence: strictSequence,
         is_public: isPublic,
-        image_url: isAdmin ? imageUrl : null,
+        image_url: isViewAdminActive ? imageUrl : null,
         segments: validSegments.map(s => s.id) 
       };
+
 
       if (editId) payload.id = editId;
       
@@ -432,7 +430,10 @@ async function publishChallenge(event) {
             document.getElementById("duration").value = challenge.duration_hours;
             document.getElementById("strict-sequence").checked = challenge.strict_sequence;
             document.getElementById("is-public").checked = challenge.is_public;
-            if(isAdmin && challenge.image_url) document.getElementById("image-url").value = challenge.image_url;
+            // On pré-remplit le champ si une image existe. 
+            // Il ne sera visible que si le mode admin est activé via le CSS.
+            if(challenge.image_url) document.getElementById("image-url").value = challenge.image_url;
+
             
             segments = challenge.segments.map(s => ({ id: String(s.id), name: s.name, isValidated: true }));
             renderSegments();

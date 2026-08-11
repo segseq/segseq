@@ -50,16 +50,21 @@
   <div id="header-placeholder"></div>
 
   <div class="container" style="max-width:900px; margin: 0 auto;">
-    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px;">
-      <div class="stat-card">
-        <div class="stat-value" id="stat-athletes">-</div>
-        <div class="stat-label lang-element" data-en="Registered Athletes" data-fr="Athlètes Inscrits">Registered Athletes</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="stat-challenges">-</div>
-        <div class="stat-label lang-element" data-en="Created Challenges" data-fr="Défis Créés">Created Challenges</div>
+    <!-- DÉBUT : Statistiques globales (Admin Only) -->
+    <div class="admin-feature">
+      <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px;">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-athletes">-</div>
+          <div class="stat-label lang-element" data-en="Registered Athletes" data-fr="Athlètes Inscrits">Registered Athletes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-challenges">-</div>
+          <div class="stat-label lang-element" data-en="Created Challenges" data-fr="Défis Créés">Created Challenges</div>
+        </div>
       </div>
     </div>
+    <!-- FIN : Statistiques globales -->
+
 
     <!-- Barre de contrôles (Recherche, Filtre Sport & Tri) -->
     <div style="display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;">

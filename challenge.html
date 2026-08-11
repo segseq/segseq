@@ -68,7 +68,7 @@
         <h3 class="lang-element" data-en="Segments" data-fr="Segments" style="margin: 35px 0 15px;">Segments</h3>
         <div id="segments-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
         
-		    <div id="admin-log" style="display:none;">
+		    <div id="admin-log" class="admin-feature">
           <h3 class="lang-element" data-en="Logic Execution Log" data-fr="Journal d'exécution" style="margin: 35px 0 15px;">Logic Execution Log</h3>
           <div id="debug-log" class="debug-console" style="background: rgba(0,0,0,0.3); color: #00ff41; padding: 15px; border-radius: 12px; font-family: monospace; height: 200px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05);">Awaiting execution...</div>
         </div>
@@ -96,7 +96,7 @@
           </table>
 		    </div>
         
-        <div class="refresh-container" id="admin-refresh-section" style="display: none; margin-top: 20px;">
+        <div class="refresh-container admin-feature" id="admin-refresh-section" style="margin-top: 20px;">
           <button id="refresh-btn" class="btn-refresh lang-element" data-title-en="Force synchro with Strava & Recalculate" data-title-fr="Forcer la synchro Strava et recalculer" title="Force synchro with Strava & Recalculate" style="background: var(--color-accent); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(252, 76, 2, 0.3);">
             <svg id="refresh-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="23 4 23 10 17 10"></polyline>
@@ -211,10 +211,6 @@
           ? (isStrict ? "Stricte (Dans l'ordre exact)" : "Libre (Dans n'importe quel ordre)") 
           : (isStrict ? "Strict (Must follow order)" : "Free (Any order)");
 
-        if (data.is_admin === true) {
-          document.getElementById("admin-refresh-section").style.display = "block";
-		      document.getElementById("admin-log").style.display = "block";
-        }
         if (data.can_edit === true) {
           const editBtn = document.getElementById("btn-edit-challenge-top");
           editBtn.href = `create.html?edit=${challengeId}`;

@@ -452,3 +452,25 @@ input:checked + .slider:before { transform: translateX(24px); }
 }
 
 
+/* =========================================
+   VUE ADMINISTRATEUR (TOGGLE)
+   ========================================= */
+/* Par défaut, les éléments admin sont cachés */
+.admin-feature {
+  display: none !important;
+}
+
+/* Quand le body a la classe view-admin, on les affiche */
+body.view-admin .admin-feature {
+  display: block !important;
+}
+
+/* Variante pour les éléments qui nécessitent flexbox (ex: conteneurs de boutons) */
+body.view-admin .admin-feature-flex {
+  display: flex !important;
+}
+
+/* Variante pour les éléments qui nécessitent inline-flex (ex: boutons SVG) */
+body.view-admin .admin-feature-inline-flex {
+  display: inline-flex !important;
+}

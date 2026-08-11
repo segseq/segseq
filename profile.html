@@ -55,6 +55,22 @@
           <div id="subscription-status" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--color-text-main);">Loading...</div>
         </div>
 
+		<!-- DÉBUT : Interrupteur Vue Admin (Caché par défaut) -->
+        <div id="admin-toggle-container" class="info-box" style="display: none; grid-column: 1 / -1; background: rgba(252, 76, 2, 0.05); border: 1px solid var(--color-accent);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div class="lang-element" data-en="Admin Mode" data-fr="Mode Administrateur" style="font-size:.9rem; text-transform:uppercase; color:var(--color-accent); margin-bottom:4px; font-weight: bold;">Mode Administrateur</div>
+              <div class="lang-element" data-en="Enable advanced admin features" data-fr="Activer les fonctionnalités avancées" style="font-size:0.85rem; color:var(--color-text-main);">Activer les fonctionnalités avancées</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="admin-view-toggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        <!-- FIN : Interrupteur Vue Admin -->
+
+
 	      <!-- Bannière d'information Strava -->
         <div id="sync-info-banner" style="background-color: rgba(252, 76, 2, 0.05); border-left: 4px solid var(--color-accent); padding: 15px; margin-bottom: 30px; border-radius: 4px;">
           <p style="margin: 0; font-size: 0.9rem; color: var(--color-text-main); line-height: 1.5;">
@@ -202,6 +218,34 @@
             : (lang === 'fr' ? "Gratuit" : "Free");
         document.getElementById("subscription-status").textContent = subStatus;
         document.getElementById("subscription-status").classList.remove('lang-element');
+		
+		// --- DÉBUT : LOGIQUE VUE ADMIN ---
+        // On vérifie la colonne admin (peut être 'admin' ou 'is_admin' selon l'API getProfile)
+        if (athlete.admin || athlete.is_admin) {
+          const adminContainer = document.getElementById("admin-toggle-container");
+          const adminToggle = document.getElementById("admin-view-toggle");
+          
+          // Afficher la boîte de l'interrupteur
+          adminContainer.style.display = "block"; 
+          
+          // Initialiser l'état depuis le localStorage
+          const isAdminViewActive = localStorage.getItem('adminViewActive') === 'true';
+          adminToggle.checked = isAdminViewActive;
+          if (isAdminViewActive) document.body.classList.add('view-admin');
+          
+          // Écouter les changements
+          adminToggle.addEventListener('change', (e) => {
+            const isActive = e.target.checked;
+            localStorage.setItem('adminViewActive', isActive);
+            if (isActive) {
+              document.body.classList.add('view-admin');
+            } else {
+              document.body.classList.remove('view-admin');
+            }
+          });
+        }
+        // --- FIN : LOGIQUE VUE ADMIN ---
+
 
       } catch (err) {
         console.error(err);
