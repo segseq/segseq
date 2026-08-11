@@ -11,6 +11,7 @@
   <!-- === CONFIGURATION PWA & iOS === -->
   <meta name="theme-color" content="#1B241F">
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SegSeq">
@@ -78,7 +79,7 @@
       </select>
     </div>
 
-    <div class="challenge-list" id="challenges-container">
+    <div class="explore-grid" id="challenges-container">
       <p style="text-align: center; color: var(--color-text-muted);" class="lang-element" data-en="Loading challenges..." data-fr="Chargement des défis...">Loading challenges...</p>
     </div>
 
@@ -115,7 +116,7 @@
       }
     }
 
-    function applySearchAndSort() {
+     function applySearchAndSort() {
       const searchTerm = document.getElementById('search-input').value.toLowerCase();
       const sortValue = document.getElementById('sort-select').value;
       const sportValue = document.getElementById('sport-select').value;
@@ -123,19 +124,23 @@
       filteredChallenges = allChallenges.filter(c => {
         const matchName = c.name.toLowerCase().includes(searchTerm);
         
-        let sports = c.sports || [];
-        if (sports.length === 0 && c.segments) {
-          sports = [...new Set(c.segments.map(s => (s.activity_type || s.sport || '').toLowerCase()))];
-        } else {
-          sports = sports.map(s => s.toLowerCase());
-        }
+        // Correction du bug : gestion robuste des formats (Tableau ou String)
+        let sportsList = [];
+        if (Array.isArray(c.sports)) sportsList = c.sports;
+        else if (typeof c.sports === 'string') sportsList = c.sports.split(',');
+        else if (c.segments) sportsList = c.segments.map(s => s.activity_type || s.sport || '');
+        
+        // Nettoyage et suppression des doublons
+        const sportsNormalized = [...new Set(sportsList.map(s => s.toLowerCase().trim()))];
 
         let matchSport = true;
-        const isMulti = sports.length >= 2;
-        
-        if (sportValue === 'run') matchSport = sports.includes('run');
-        else if (sportValue === 'ride') matchSport = sports.includes('ride');
-        else if (sportValue === 'multi') matchSport = isMulti;
+        if (sportValue === 'run') {
+          matchSport = sportsNormalized.some(s => s.includes('run') || s.includes('course'));
+        } else if (sportValue === 'ride') {
+          matchSport = sportsNormalized.some(s => s.includes('ride') || s.includes('cycl') || s.includes('vélo') || s.includes('velo'));
+        } else if (sportValue === 'multi') {
+          matchSport = sportsNormalized.length >= 2;
+        }
 
         return matchName && matchSport;
       });
@@ -150,6 +155,7 @@
       currentPage = 1; 
       renderPaginatedChallenges();
     }
+
 
     function changePage(delta) {
       currentPage += delta;
@@ -180,23 +186,33 @@
         // Bouton ~ centralisé
         let actionsHtml = `<a href="challenge.html?id=${challenge.id}" class="btn-view-feature" title="${lang === 'fr' ? 'Voir' : 'View'}"><span class="icon">∿</span></a>`;
         
-        // Boutons admin/édition
+        // Remplacement des boutons grossiers par des icônes SVG
         if (challenge.can_delete) {
           actionsHtml += `
-            <a href="create.html?edit=${challenge.id}" class="btn" style="background: rgba(255,255,255,0.1); color: var(--color-text-main); padding: 0 15px; height: 44px;">${lang === 'fr' ? 'Modifier' : 'Edit'}</a>
-            <button onclick="deleteChallenge(${challenge.id})" class="btn-delete" style="padding: 0 15px; height: 44px;">${lang === 'fr' ? 'Supprimer' : 'Delete'}</button>
+            <div class="action-icons">
+              <a href="create.html?edit=${challenge.id}" class="icon-btn" title="${lang === 'fr' ? 'Modifier' : 'Edit'}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              </a>
+              <button onclick="deleteChallenge(${challenge.id})" class="icon-btn delete" title="${lang === 'fr' ? 'Supprimer' : 'Delete'}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
           `;
         }
 
-        let sports = challenge.sports || [];
-        if (sports.length === 0 && challenge.segments) {
-          sports = [...new Set(challenge.segments.map(s => s.activity_type || s.sport || 'Unknown'))];
-        }
+        // Affichage robuste des sports
+        let sportsList = [];
+        if (Array.isArray(challenge.sports)) sportsList = challenge.sports;
+        else if (typeof challenge.sports === 'string') sportsList = challenge.sports.split(',');
+        else if (challenge.segments) sportsList = challenge.segments.map(s => s.activity_type || s.sport || 'Unknown');
+        
+        const sports = [...new Set(sportsList.map(s => s.trim()))];
+
         const tagsHtml = sports.map(s => {
           let sName = s;
           if (lang === 'fr') {
-            if (s.toLowerCase() === 'run') sName = 'Course';
-            if (s.toLowerCase() === 'ride') sName = 'Vélo';
+            if (s.toLowerCase().includes('run')) sName = 'Course';
+            if (s.toLowerCase().includes('ride') || s.toLowerCase().includes('cycl')) sName = 'Vélo';
           }
           return `<span class="sport-tag">${sName}</span>`;
         }).join('');
@@ -205,12 +221,13 @@
           ? `<img src="${challenge.image_url}" class="challenge-img" alt="Challenge Image">` 
           : '';
 
+        // Application du titre Orange (challenge-title-accent)
         card.innerHTML = `
           <div class="challenge-card-inner">
             ${imgHtml}
             <div class="challenge-details">
               <div class="challenge-info">
-                <h3 style="color: var(--color-text-main); font-size: 1.4rem; margin-bottom: 8px;">${challenge.name}</h3>
+                <h3 class="challenge-title-accent" style="font-size: 1.4rem; margin-bottom: 8px;">${challenge.name}</h3>
                 <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${challenge.description || ''}</p>
                 <p style="color: var(--color-text-muted); margin-bottom: 10px;"><strong style="color: var(--color-text-main);">${lang === 'fr' ? 'Durée :' : 'Duration:'}</strong> ${challenge.duration_hours}h</p>
                 <div class="sport-tags">${tagsHtml}</div>
@@ -222,6 +239,7 @@
           </div>
         `;
         container.appendChild(card);
+
       });
 
       document.getElementById("page-info").textContent = `${currentPage} / ${totalPages}`;

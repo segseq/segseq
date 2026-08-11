@@ -176,21 +176,45 @@ body {
   max-width: 1200px; 
   margin: auto; 
 }
-.nav-brand { display: flex; align-items: center; }
-.nav-menu { display: flex; align-items: center; gap: 30px; }
-.nav-auth { display: flex; align-items: center; gap: 12px; }
 
-.nav-icon { color: var(--color-text-main); transition: color 0.2s; display: flex; align-items: center; justify-content: center;}
-.nav-icon:hover { color: var(--color-accent); }
-.nav-logo { font-weight: 800; font-size: 1.5rem; text-decoration: none; color: var(--color-text-main); display: flex; align-items: center; gap: 5px;}
-.nav-logo span { color: var(--color-accent); }
+/* Nouveaux groupes de navigation */
+.nav-group-1, .nav-group-2 {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
 
-.lang-selector { display: flex; gap: 8px; font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted);}
+.nav-icon { 
+  color: var(--color-text-main); 
+  transition: color 0.2s, transform 0.2s; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+}
+.nav-icon:hover { 
+  color: var(--color-accent); 
+  transform: scale(1.1);
+}
+
+.lang-selector { 
+  display: flex; 
+  gap: 8px; 
+  font-size: 0.9rem; 
+  font-weight: 600; 
+  color: var(--color-text-muted);
+}
 .lang-btn { cursor: pointer; transition: color 0.2s; }
 .lang-btn:hover { color: var(--color-text-main); }
 .lang-btn.active { color: var(--color-accent); }
 
-.nav-profile-pic { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-accent); }
+.nav-profile-pic { 
+  width: 38px; 
+  height: 38px; 
+  border-radius: 50%; 
+  object-fit: cover; 
+  border: 2px solid var(--color-accent); 
+}
+
 
 /* --- FOOTER --- */
 .main-footer { text-align: center; padding: 40px 20px; color: var(--color-text-muted); display: flex; flex-direction: column; gap: 15px; align-items: center;}
@@ -284,14 +308,28 @@ input:checked + .slider:before { transform: translateX(24px); }
   .section-title { font-size: 1.8rem; }
   .card, .example { padding: 20px; }
   
-  /* Grille pour le Header Mobile */
+   /* Grille pour le Header Mobile (Groupe 1 sous Groupe 2) */
   .main-header { 
-    display: grid;
-    grid-template-columns: 1fr auto; /* Colonne 1: Logo, Colonne 2: Auth */
-    grid-template-rows: auto auto;   /* Ligne 1: Top, Ligne 2: Menu */
+    flex-direction: column;
     gap: 15px;
     padding: 15px; 
   }
+  
+  .nav-group-2 {
+    order: 1; /* S'affiche en HAUT sur mobile */
+    width: 100%;
+    justify-content: flex-end; /* Aligne les icônes auth/profil à droite */
+  }
+
+  .nav-group-1 { 
+    order: 2; /* S'affiche en BAS sur mobile */
+    width: 100%;
+    justify-content: center; /* Centre Accueil, Explore, Create */
+    gap: 40px; 
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
   
   .nav-brand { grid-column: 1; grid-row: 1; }
   .nav-auth { grid-column: 2; grid-row: 1; justify-content: flex-end; }
@@ -347,5 +385,70 @@ input:checked + .slider:before { transform: translateX(24px); }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 .spinning { animation: spin 1s linear infinite; }
 
+
+/* =========================================
+   NOUVEAUX STYLES : EXPLORE, CHALLENGE, PROFIL
+   ========================================= */
+
+/* Boutons SVG (Modifier / Supprimer) */
+.action-icons {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+}
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 5px;
+  display: inline-flex;
+}
+.icon-btn:hover { color: var(--color-accent); transform: scale(1.15); }
+.icon-btn.delete:hover { color: var(--danger); }
+
+/* Titre orange pour les défis */
+.challenge-title-accent {
+  color: var(--color-accent);
+}
+
+/* Espacement des tuiles Explore (Grille) */
+.explore-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px; /* C'est ce 'gap' qui donne de l'air aux tuiles */
+}
+
+/* Image dans la tuile Challenge */
+.challenge-header-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.challenge-main-img {
+  max-width: 120px;
+  height: auto;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Mise en page Profil */
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+.profile-page-pic {
+  border-radius: 50%;
+  border: 3px solid var(--color-accent);
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
 
 

@@ -11,6 +11,7 @@
   <!-- === CONFIGURATION PWA & iOS === -->
   <meta name="theme-color" content="#1B241F">
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SegSeq">
@@ -28,11 +29,11 @@
   <div class="container" style="max-width:900px; margin: 0 auto;">
     <div class="profile-card">
       <div style="text-align:center; margin-bottom:40px;">
-        <img id="athlete-photo" class="profile-photo" src="https://via.placeholder.com/140" alt="Athlete photo">
+        <img id="athlete-photo" class="profile-photo profile-page-pic" src="https://via.placeholder.com/140" alt="Athlete photo">
         <div id="welcome" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="margin-top:20px; font-size:2rem; color:var(--color-text-main); font-weight:800;">Loading...</div>
       </div>
       
-      <div class="info-grid">
+      <div class="profile-details-grid">
         <div class="info-box">
           <div class="lang-element" data-en="Name" data-fr="Nom" style="font-size:.9rem; text-transform:uppercase; color:var(--color-text-muted); margin-bottom:8px;">Name</div>
           <div id="name" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--color-text-main);">Loading...</div>
@@ -84,7 +85,7 @@
           
           <div class="stat-card" style="padding: 15px; background-color: rgba(252, 76, 2, 0.05); border: 1px solid var(--color-accent);">
             <div class="stat-value" id="my-victories" style="font-size: 2rem; color: var(--color-accent);">-</div>
-            <div class="stat-label lang-element" data-en="Crowns (1st Place)" data-fr="Couronnes (1ère place)" style="font-size: 0.85rem;">Crowns (1st Place)</div>
+            <div class="stat-label lang-element" data-en="Crowns" data-fr="Couronnes" style="font-size: 0.85rem;">Crowns</div>
           </div>
           
           <div class="stat-card" style="padding: 15px;">

@@ -36,33 +36,30 @@ document.addEventListener("DOMContentLoaded", applyCurrentLanguage);
 async function injectComponents() {
   const headerHTML = `
     <header class="main-header">
-      <!-- 1. Logo (Toujours à gauche / en haut) -->
-      <div class="nav-brand">
-        <a href="index.html" class="nav-logo" title="Home"><span>∿</span>segseq</a>
-      </div>
-      
-      <!-- 2. Menu (Au centre sur desktop / Ligne du bas sur mobile) -->
-      <div class="nav-menu">
+      <!-- Groupe 1 : Navigation principale (Accueil, Explore, Create) -->
+      <div class="nav-group-1">
+        <a href="index.html" class="nav-icon lang-element" data-titleFr="Accueil" data-titleEn="Home">
+          <!-- SVG Maison avec porte en tilde (~) -->
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <path d="M9 22V12h6v10"></path>
+            <path d="M10.5 17c.5-.5 1.5-.5 2 0s1.5.5 2 0"></path>
+          </svg>
+        </a>
         <a href="explore.html" class="nav-icon lang-element" data-titleFr="Explorer" data-titleEn="Explore">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         </a>
         <a href="create.html" class="nav-icon lang-element" data-titleFr="Créer un défi" data-titleEn="Create challenge">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </a>
-        <div class="lang-selector">
-          <span id="btn-en" class="lang-btn" onclick="setLanguage('en')">EN</span>
-          <span>|</span>
-          <span id="btn-fr" class="lang-btn" onclick="setLanguage('fr')">FR</span>
-        </div>
       </div>
 
-      <!-- 3. Auth/Profil (Toujours à droite / en haut) -->
-      <div class="nav-auth" id="nav-auth-section">
-        <!-- Rempli dynamiquement -->
+      <!-- Groupe 2 : Auth / Notifications / Langue / Profil (Rempli dynamiquement) -->
+      <div class="nav-group-2" id="nav-auth-section">
+        <!-- Injecté par le JS -->
       </div>
     </header>
   `;
-
 
    const footerHTML = `
     <footer class="main-footer">
@@ -71,6 +68,10 @@ async function injectComponents() {
         <span class="lang-element" data-fr="SegSeq • Défis Multi-Segments" data-en="SegSeq • Multi-Segment Challenges">SegSeq • Multi-Segment Challenges</span>
       </div>
       <div class="footer-icons">
+        <a href="terms.html" class="footer-icon lang-element" data-titleFr="Conditions d'utilisation" data-titleEn="Terms and conditions">
+          <!-- SVG icône Information (i) -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        </a>
         <a href="mailto:info.segseq@gmail.com" class="footer-icon lang-element" data-titleFr="Nous contacter" data-titleEn="Contact us">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
         </a>
@@ -91,6 +92,15 @@ async function injectComponents() {
     if (res.ok) {
       const athlete = await res.json();
       authSection.innerHTML = `
+        <a href="#" class="nav-icon lang-element" data-titleFr="Notifications" data-titleEn="Notifications">
+          <!-- SVG Cloche de notification -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        </a>
+        <div class="lang-selector">
+          <span id="btn-en" class="lang-btn" onclick="setLanguage('en')">EN</span>
+          <span>|</span>
+          <span id="btn-fr" class="lang-btn" onclick="setLanguage('fr')">FR</span>
+        </div>
         <a href="profile.html" class="lang-element" data-titleFr="Mon Profil" data-titleEn="My Profile">
           <img src="${athlete.profile}" alt="Profile" class="nav-profile-pic">
         </a>
@@ -111,6 +121,7 @@ async function injectComponents() {
 
   if (typeof applyCurrentLanguage === 'function') applyCurrentLanguage();
 }
+
 
 async function logout() {
   const lang = localStorage.getItem('userLang') || 'en';
