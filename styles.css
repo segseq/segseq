@@ -308,3 +308,44 @@ input:checked + .slider:before { transform: translateX(24px); }
   .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table { min-width: 500px; }
 }
+
+/* --- SEGMENTS & FILTRES (Thème sombre) --- */
+.segment-item {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 15px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btn-filter {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  transition: all 0.2s ease;
+}
+
+.btn-filter:hover {
+  border-color: var(--color-text-main);
+  color: var(--color-text-main);
+}
+
+.btn-filter.active {
+  background: var(--color-text-main);
+  color: var(--color-bg-main);
+  border-color: var(--color-text-main);
+  font-weight: 700;
+}
+
+/* Animation rotation bouton synchro */
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.spinning { animation: spin 1s linear infinite; }
+
+
+

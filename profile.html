@@ -1,178 +1,157 @@
 <!------------------------------>
 <!-- profile.html -->
 <!------------------------------>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <!-- === CONFIGURATION PWA & iOS === -->
+  <meta name="theme-color" content="#1B241F">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SegSeq">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <!-- =============================== -->
   
   <title class="lang-element" data-en="SegSeq - Profile" data-fr="SegSeq - Profil">SegSeq - Profile</title>
   
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div id="header-placeholder"></div>
 
-  <div class="container" style="max-width:900px;">
+  <div class="container" style="max-width:900px; margin: 0 auto;">
     <div class="profile-card">
       <div style="text-align:center; margin-bottom:40px;">
         <img id="athlete-photo" class="profile-photo" src="https://via.placeholder.com/140" alt="Athlete photo">
-        <!-- Ce texte est remplacé par le JS, on le traduit initialement pour le "flash" visuel -->
-        <div id="welcome" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="margin-top:20px; font-size:2rem; color:var(--navy); font-weight:800;">Loading...</div>
+        <div id="welcome" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="margin-top:20px; font-size:2rem; color:var(--color-text-main); font-weight:800;">Loading...</div>
       </div>
       
-      <!-- Grid mise à jour pour inclure toutes les infos -->
       <div class="info-grid">
         <div class="info-box">
-          <div class="lang-element" data-en="Name" data-fr="Nom" style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Name</div>
-          <div id="name" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
+          <div class="lang-element" data-en="Name" data-fr="Nom" style="font-size:.9rem; text-transform:uppercase; color:var(--color-text-muted); margin-bottom:8px;">Name</div>
+          <div id="name" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--color-text-main);">Loading...</div>
         </div>
         <div class="info-box">
-          <div class="lang-element" data-en="Country" data-fr="Pays" style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Country</div>
-          <div id="country" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
+          <div class="lang-element" data-en="Country" data-fr="Pays" style="font-size:.9rem; text-transform:uppercase; color:var(--color-text-muted); margin-bottom:8px;">Country</div>
+          <div id="country" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--color-text-main);">Loading...</div>
         </div>
-        <!-- NOUVEAU : Genre -->
         <div class="info-box">
-          <div class="lang-element" data-en="Gender" data-fr="Genre" style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Gender</div>
-          <div id="sex" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
+          <div class="lang-element" data-en="Gender" data-fr="Genre" style="font-size:.9rem; text-transform:uppercase; color:var(--color-text-muted); margin-bottom:8px;">Gender</div>
+          <div id="sex" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--color-text-main);">Loading...</div>
         </div>
-        <!-- NOUVEAU : Strava ID -->
         <div class="info-box">
-          <div class="lang-element" data-en="Strava ID" data-fr="ID Strava" style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Strava ID</div>
-          <div id="strava-id" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
+          <div class="lang-element" data-en="Strava ID" data-fr="ID Strava" style="font-size:.9rem; text-transform:uppercase; color:var(--color-text-muted); margin-bottom:8px;">Strava ID</div>
+          <div id="strava-id" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--color-text-main);">Loading...</div>
         </div>
-		  <!-- NOUVEAU : Statut Abonnement -->
-		<div class="info-box">
-          <div class="lang-element" data-en="Membership" data-fr="Abonnement" style="font-size:.9rem; text-transform:uppercase; color:#777; margin-bottom:8px;">Membership</div>
-          <div id="subscription-status" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--navy);">Loading...</div>
+		    <div class="info-box">
+          <div class="lang-element" data-en="Membership" data-fr="Abonnement" style="font-size:.9rem; text-transform:uppercase; color:var(--color-text-muted); margin-bottom:8px;">Membership</div>
+          <div id="subscription-status" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--color-text-main);">Loading...</div>
         </div>
 
-	  <!-- Bannière d'information Strava -->
-      <div id="sync-info-banner" style="background-color: #fff3eb; border-left: 4px solid var(--orange); padding: 15px; margin-bottom: 30px; border-radius: 4px;">
-        <p style="margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5;">
-          <strong style="color: var(--orange);">ℹ️ <span class="lang-element" data-en="Info:" data-fr="Info:">Info:</span></strong> 
-          <span class="lang-element" 
-                        data-en="As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized." 
-                        data-fr="En tant qu'abonné gratuit à Strava, seules les activités futures sont incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
-                      As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized.
-                  </span>
-        </p>
-      </div>
-	  </div>
+	      <!-- Bannière d'information Strava -->
+        <div id="sync-info-banner" style="background-color: rgba(252, 76, 2, 0.05); border-left: 4px solid var(--color-accent); padding: 15px; margin-bottom: 30px; border-radius: 4px;">
+          <p style="margin: 0; font-size: 0.9rem; color: var(--color-text-main); line-height: 1.5;">
+            <strong style="color: var(--color-accent);">ℹ️ <span class="lang-element" data-en="Info:" data-fr="Info:">Info:</span></strong> 
+            <span class="lang-element" data-en="As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized." data-fr="En tant qu'abonné gratuit à Strava, seules les activités futures sont incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
+              As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized.
+            </span>
+          </p>
+        </div>
+	    </div>
 	  
-	  <!-- Section Statistiques -->
-      <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 30px;">
-        <h3 class="lang-element" data-en="Athlete Dashboard" data-fr="Tableau de bord" style="text-align: center; color: var(--navy); margin-bottom: 20px; font-size: 1.2rem;">
+	    <!-- Section Statistiques -->
+      <div style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px;">
+        <h3 class="lang-element" data-en="Athlete Dashboard" data-fr="Tableau de bord" style="text-align: center; color: var(--color-text-main); margin-bottom: 20px; font-size: 1.2rem;">
           Athlete Dashboard
         </h3>
         
-        <!-- Grille de 4 tuiles -->
         <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
-          
-          <!-- 1. Défis créés -->
           <div class="stat-card" style="padding: 15px;">
             <div class="stat-value" id="my-created" style="font-size: 2rem;">-</div>
             <div class="stat-label lang-element" data-en="Challenges Created" data-fr="Défis Créés" style="font-size: 0.85rem;">Challenges Created</div>
           </div>
           
-          <!-- 2. Participations -->
           <div class="stat-card" style="padding: 15px;">
             <div class="stat-value" id="my-completed" style="font-size: 2rem;">-</div>
             <div class="stat-label lang-element" data-en="Challenges Participated" data-fr="Défis Relevés" style="font-size: 0.85rem;">Challenges Participated</div>
           </div>
           
-          <!-- 3. Couronnes (Victoires) -->
-          <div class="stat-card" style="padding: 15px; background-color: #fffaf0; border-color: var(--orange);">
-            <div class="stat-value" id="my-victories" style="font-size: 2rem; color: var(--orange);">-</div>
+          <div class="stat-card" style="padding: 15px; background-color: rgba(252, 76, 2, 0.05); border: 1px solid var(--color-accent);">
+            <div class="stat-value" id="my-victories" style="font-size: 2rem; color: var(--color-accent);">-</div>
             <div class="stat-label lang-element" data-en="Crowns (1st Place)" data-fr="Couronnes (1ère place)" style="font-size: 0.85rem;">Crowns (1st Place)</div>
           </div>
           
-          <!-- 4. Efforts (Transparence) -->
           <div class="stat-card" style="padding: 15px;">
             <div class="stat-value" id="my-efforts" style="font-size: 2rem;">-</div>
             <div class="stat-label lang-element" data-en="Strava Efforts Saved" data-fr="Efforts Strava Enregistrés" style="font-size: 0.85rem;">Strava Efforts Saved</div>
           </div>
-          
         </div>
       </div>
-	  
-    </div>
-
-    <div class="cta">
-      <a href="create.html" class="btn btn-primary lang-element" data-en="Create a challenge" data-fr="Créer un défi">Create a challenge</a>
-      <a href="explore.html" class="btn btn-primary lang-element" data-en="Explore challenges" data-fr="Explorer les défis" style="margin-left: 10px;">Explore challenges</a>
     </div>
   </div>
 
-<section class="section waitlist">
-  <div class="container">
-    <h2 class="section-title lang-element" data-en="Thinking of leaving?" data-fr="Vous pensez à nous quitter ?">Thinking of leaving?</h2>
+  <section class="section waitlist">
+    <div class="container">
+      <h2 class="section-title lang-element" data-en="Thinking of leaving?" data-fr="Vous pensez à nous quitter ?">Thinking of leaving?</h2>
 
-    <!-- Le texte est découpé en span pour ne pas écraser les <br> lors de la traduction -->
-    <p style="text-align: center;">
-      <span class="lang-element" data-en="We'd be really sorry to see you go! :(" data-fr="Nous serions vraiment désolés de vous voir partir ! :(">We'd be really sorry to see you go! :(</span>
-      <br><br> 
-      <span class="lang-element" data-en="Deleting your account is permanent and cannot be undone. All your created challenges and profile data will be erased from Segseq forever." data-fr="La suppression de votre compte est définitive et ne peut être annulée. Tous vos défis créés et vos données de profil seront effacés de SegSeq pour toujours.">Deleting your account is permanent and cannot be undone. All your created challenges and profile data will be erased from Segseq forever.</span>
-      <br> 
-      <span class="lang-element" data-en="Your Strava connection will also be securely revoked." data-fr="Votre connexion Strava sera également révoquée en toute sécurité.">Your Strava connection will also be securely revoked.</span>
-    </p>
+      <p style="text-align: center; color: var(--color-text-muted);">
+        <span class="lang-element" data-en="We'd be really sorry to see you go! :(" data-fr="Nous serions vraiment désolés de vous voir partir ! :(">We'd be really sorry to see you go! :(</span>
+        <br><br> 
+        <span class="lang-element" data-en="Deleting your account is permanent and cannot be undone. All your created challenges and profile data will be erased from Segseq forever." data-fr="La suppression de votre compte est définitive et ne peut être annulée. Tous vos défis créés et vos données de profil seront effacés de SegSeq pour toujours.">Deleting your account is permanent and cannot be undone. All your created challenges and profile data will be erased from Segseq forever.</span>
+        <br> 
+        <span class="lang-element" data-en="Your Strava connection will also be securely revoked." data-fr="Votre connexion Strava sera également révoquée en toute sécurité.">Your Strava connection will also be securely revoked.</span>
+      </p>
 
-    <div class="cta">
-      <a href="#" class="btn btn-delete lang-element" data-en="Permanently delete my account" data-fr="Supprimer définitivement mon compte" onclick="deleteAccount()">Permanently delete my account</a>
+      <div class="cta">
+        <a href="#" class="btn btn-delete lang-element" data-en="Permanently delete my account" data-fr="Supprimer définitivement mon compte" onclick="deleteAccount()">Permanently delete my account</a>
+      </div>
+      <div class="cta">
+        <a href="terms.html" style="color: var(--color-text-muted); text-decoration: underline;" class="lang-element" data-en="Terms of Service & Privacy Policy" data-fr="Conditions d'utilisation et Politique de confidentialité">Terms of Service & Privacy Policy</a>
+      </div>
     </div>
-    <div class="cta">
-      <a href="terms.html" style="color: #666; text-decoration: underline;" class="lang-element" data-en="Terms of Service & Privacy Policy" data-fr="Conditions d'utilisation et Politique de confidentialité">Terms of Service & Privacy Policy</a>
-    </div>
-  </div>
-</section>
+  </section>
 
   <div id="footer-placeholder"></div>
 
-<script src="app.js"></script> 
+  <script src="app.js"></script> 
   
   <script>
     async function loadProfile() {
-      // On récupère la langue actuelle pour traduire le contenu dynamique
       const lang = localStorage.getItem('userLang') || 'en';
       
       try {
         const athleteRes = await fetch("/api/strava?action=getProfile", { credentials: "include" });
         if (!athleteRes.ok) {
           document.getElementById("welcome").textContent = lang === 'fr' ? "Non authentifié" : "Not authenticated";
-          // On retire la classe lang-element pour que language.js n'écrase pas notre texte dynamique
           document.getElementById("welcome").classList.remove('lang-element');
           return;
         }
         const athlete = await athleteRes.json();
 		
-		    // Gestion de la bannière d'information (Gratuit vs Premium)
-        const banner = document.getElementById("sync-info-banner");
+		    const banner = document.getElementById("sync-info-banner");
         if (athlete.premium) {
-            // Style Premium (Bleu par exemple)
-            banner.style.backgroundColor = "#e6f7ff";
+            banner.style.backgroundColor = "rgba(24, 144, 255, 0.1)";
             banner.style.borderLeftColor = "#1890ff";
             banner.innerHTML = `
-                <p style="margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5;">
+                <p style="margin: 0; font-size: 0.9rem; color: var(--color-text-main); line-height: 1.5;">
                   <strong style="color: #1890ff;">ℹ️ <span class="lang-element" data-en="Info:" data-fr="Info:">Info:</span></strong> 
-                  <span class="lang-element" 
-                        data-en="As a Strava premium subscriber, past activities can be synchronized for challenges." 
-                        data-fr="En tant qu'abonné premium Strava, les activités passées peuvent être synchronisées pour les défis.">
+                  <span class="lang-element" data-en="As a Strava premium subscriber, past activities can be synchronized for challenges." data-fr="En tant qu'abonné premium Strava, les activités passées peuvent être synchronisées pour les défis.">
                       As a Strava premium subscriber, past activities can be synchronized for challenges.
                   </span>
                 </p>
             `;
-            // Variable globale pour le script de stats
             window.isPremiumUser = true; 
         } else {
-            // Message strict pour les comptes gratuits
             banner.innerHTML = `
-                <p style="margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5;">
-                  <strong style="color: var(--orange);">ℹ️ <span class="lang-element" data-en="Sync:" data-fr="Info:">Info:</span></strong> 
-                  <span class="lang-element" 
-                        data-en="As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized." 
-                        data-fr="En tant qu'abonné gratuit à Strava, seules les activités futures sont incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
+                <p style="margin: 0; font-size: 0.9rem; color: var(--color-text-main); line-height: 1.5;">
+                  <strong style="color: var(--color-accent);">ℹ️ <span class="lang-element" data-en="Sync:" data-fr="Info:">Info:</span></strong> 
+                  <span class="lang-element" data-en="As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized." data-fr="En tant qu'abonné gratuit à Strava, seules les activités futures sont incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
                       As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized.
                   </span>
                 </p>
@@ -180,38 +159,29 @@
             window.isPremiumUser = false;
         }
 
-		
-		// Photo
-		// On crée un avatar par défaut avec les initiales si Strava échoue ou si l'image est absente
         const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.firstname + ' ' + athlete.lastname)}&background=random&color=fff&size=140`;
-        
         const photoEl = document.getElementById("athlete-photo");
         
-        // Si la base de données contient "avatar/athlete" (le bug de Strava) ou est vide, on met le défaut
         if (!athlete.profile || athlete.profile.includes("avatar/athlete")) {
           photoEl.src = defaultAvatar;
         } else {
           photoEl.src = athlete.profile;
         }
         
-        // La magie : Si l'URL Strava est cassée (Erreur 404), le navigateur déclenche "onerror" et met le défaut !
         photoEl.onerror = function() {
-          this.onerror = null; // Empêche une boucle infinie
+          this.onerror = null; 
           this.src = defaultAvatar;
         };        
-        // Traduction dynamique du message de bienvenue
+
         document.getElementById("welcome").textContent = lang === 'fr' ? `Bon retour, ${athlete.firstname} !` : `Welcome back, ${athlete.firstname}!`;
         document.getElementById("welcome").classList.remove('lang-element');
 
-        // Nom
         document.getElementById("name").textContent = athlete.firstname + " " + athlete.lastname;
         document.getElementById("name").classList.remove('lang-element');
         
-        // Pays (Traduction de "N/A")
         document.getElementById("country").textContent = athlete.country || (lang === 'fr' ? "N/D" : "N/A");
         document.getElementById("country").classList.remove('lang-element');
 
-        // Genre (Formatage M/F)
         let sexDisplay = athlete.sex;
         if (athlete.sex === "M") {
           sexDisplay = lang === 'fr' ? "Homme (M)" : "Male (M)";
@@ -223,15 +193,14 @@
         document.getElementById("sex").textContent = sexDisplay;
         document.getElementById("sex").classList.remove('lang-element');
 
-        // Strava ID
         document.getElementById("strava-id").textContent = athlete.id || (lang === 'fr' ? "N/D" : "N/A");
         document.getElementById("strava-id").classList.remove('lang-element');
-		const subStatus = athlete.premium 
+		
+        const subStatus = athlete.premium 
             ? (lang === 'fr' ? "Payant (Premium)" : "Premium") 
             : (lang === 'fr' ? "Gratuit" : "Free");
         document.getElementById("subscription-status").textContent = subStatus;
         document.getElementById("subscription-status").classList.remove('lang-element');
-
 
       } catch (err) {
         console.error(err);
@@ -239,23 +208,17 @@
     }
     loadProfile();
     
-    // Suppression du compte
     async function deleteAccount() {
       const lang = localStorage.getItem('userLang') || 'en';
-      
-      // Traduction de la pop-up de confirmation
       const confirmMsg = lang === 'fr' 
         ? "Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Toutes vos données et challenges créés seront perdus." 
         : "Are you sure you want to permanently delete your account? All your data and created challenges will be lost.";
         
       const confirmDelete = confirm(confirmMsg);
-      
       if (!confirmDelete) return;
 
       try {
-        const response = await fetch('/api/account', {
-          method: 'DELETE'
-        });
+        const response = await fetch('/api/account', { method: 'DELETE' });
 
         if (response.ok) {
           const successMsg = lang === 'fr' ? "Votre compte a été supprimé avec succès." : "Your account has been successfully deleted.";
@@ -274,21 +237,19 @@
       }
     }
 	
-	// Chargement des statistiques de l'athlète
-	let statsPollCount = 0; // Compteur pour le polling
-	const MAX_POLLS = 6;    // Nombre maximum de tentatives de polling
+	  let statsPollCount = 0; 
+	  const MAX_POLLS = 6;    
 
     async function loadMyStats() {
       const statIds = ["my-created", "my-completed", "my-victories", "my-efforts"];
       const lang = localStorage.getItem('userLang') || 'en';
       const loadingText = lang === 'fr' ? "Chargement..." : "Loading...";
       
-      // Si c'est le premier appel, on affiche "Chargement..."
       if (statsPollCount === 0) {
           statIds.forEach(id => {
               const el = document.getElementById(id);
               el.textContent = loadingText;
-              el.style.fontSize = "1.2rem"; // Texte plus petit pour que ça rentre
+              el.style.fontSize = "1.2rem"; 
           });
       }
 
@@ -297,15 +258,12 @@
         if (res.ok) {
           const stats = await res.json();
           
-          // On restaure la taille de la police et on injecte les chiffres
           statIds.forEach(id => document.getElementById(id).style.fontSize = "2rem");
           document.getElementById("my-created").textContent = stats.created;
           document.getElementById("my-completed").textContent = stats.completed;
           document.getElementById("my-victories").textContent = stats.victories;
           document.getElementById("my-efforts").textContent = stats.efforts;
 
-          // Logique de rafraîchissement : Si c'est un Premium et qu'il a 0 effort, 
-          // le backfill est probablement encore en cours. On revérifie toutes les 5 secondes.
           if (window.isPremiumUser && stats.efforts === 0 && statsPollCount < MAX_POLLS) {
               statsPollCount++;
               setTimeout(loadMyStats, 5000);
@@ -316,11 +274,8 @@
         statIds.forEach(id => document.getElementById(id).textContent = "-");
       }
     }
-
     
-    // Appel de la fonction
     loadMyStats();
-	
   </script>
 </body>
 </html>

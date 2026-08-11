@@ -1,33 +1,54 @@
 <!------------------------------>
 <!-- explore.html -->
 <!------------------------------>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <!-- === CONFIGURATION PWA & iOS === -->
+  <meta name="theme-color" content="#1B241F">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SegSeq">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <!-- =============================== -->
+
   <title class="lang-element" data-en="SegSeq - Explore Challenges" data-fr="SegSeq - Explorer les défis">SegSeq - Explore Challenges</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  
   <style>
-    .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 30px; }
-    .btn-page { background: var(--gray); color: var(--navy); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-    .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
+    /* Styles spécifiques à la page Explore (Adaptés au thème sombre) */
+    .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 40px; }
+    .btn-page { background: rgba(255,255,255,0.1); color: var(--color-text-main); border: 1px solid rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; }
+    .btn-page:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
+    .btn-page:disabled { opacity: 0.3; cursor: not-allowed; }
+    
     .challenge-card-inner { display: flex; gap: 20px; align-items: center; width: 100%; }
-    .challenge-img { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; flex-shrink: 0; }
-    .challenge-details { flex: 1; }
-    .sport-tags { display: flex; gap: 8px; margin-top: 8px; }
-    .sport-tag { background: #eee; color: #555; font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; font-weight: 600; }
+    .challenge-img { width: 120px; height: 120px; object-fit: cover; border-radius: 16px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+    .challenge-details { flex: 1; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+    .challenge-info { flex: 1; }
+    .challenge-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    
+    .sport-tags { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .sport-tag { background: rgba(255,255,255,0.05); color: var(--color-text-muted); font-size: 0.8rem; padding: 6px 12px; border-radius: 8px; font-weight: 600; border: 1px solid rgba(255,255,255,0.05); }
+    
     @media (max-width: 600px) {
       .challenge-card-inner { flex-direction: column; align-items: flex-start; }
-      .challenge-img { width: 100%; height: 150px; }
+      .challenge-img { width: 100%; height: 180px; }
+      .challenge-details { flex-direction: column; align-items: flex-start; width: 100%; }
+      .challenge-actions { width: 100%; justify-content: flex-start; margin-top: 10px; }
     }
   </style>
 </head>
 <body>
   <div id="header-placeholder"></div>
 
-  <div class="container" style="max-width:900px;">
+  <div class="container" style="max-width:900px; margin: 0 auto;">
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-value" id="stat-athletes">-</div>
@@ -58,18 +79,14 @@
     </div>
 
     <div class="challenge-list" id="challenges-container">
-      <p style="text-align: center;" class="lang-element" data-en="Loading challenges..." data-fr="Chargement des défis...">Loading challenges...</p>
+      <p style="text-align: center; color: var(--color-text-muted);" class="lang-element" data-en="Loading challenges..." data-fr="Chargement des défis...">Loading challenges...</p>
     </div>
 
     <!-- Pagination -->
     <div class="pagination-controls" id="pagination-controls" style="display: none;">
       <button class="btn-page lang-element" data-en="Previous" data-fr="Précédent" id="btn-prev" onclick="changePage(-1)">Previous</button>
-      <span id="page-info" style="font-weight: 600; color: var(--navy);">1 / 1</span>
+      <span id="page-info" style="font-weight: 600; color: var(--color-text-main);">1 / 1</span>
       <button class="btn-page lang-element" data-en="Next" data-fr="Suivant" id="btn-next" onclick="changePage(1)">Next</button>
-    </div>
-
-    <div class="cta">
-      <a href="create.html" class="btn btn-primary lang-element" data-en="Create a challenge" data-fr="Créer un défi">Create a challenge</a>
     </div>
   </div>
 
@@ -94,7 +111,7 @@
         allChallenges = data; 
         applySearchAndSort(); 
       } catch (err) {
-        container.innerHTML = `<p style="text-align: center; color: red;">${lang === 'fr' ? "Erreur de chargement." : "Error loading."}</p>`;
+        container.innerHTML = `<p style="text-align: center; color: var(--danger);">${lang === 'fr' ? "Erreur de chargement." : "Error loading."}</p>`;
       }
     }
 
@@ -106,20 +123,19 @@
       filteredChallenges = allChallenges.filter(c => {
         const matchName = c.name.toLowerCase().includes(searchTerm);
         
-        // Extraction robuste des sports (gère les tableaux, les chaînes "Ride,Run", et les segments imbriqués)
-        let sportsArr = [];
-        if (Array.isArray(c.sports)) sportsArr = c.sports;
-        else if (typeof c.sports === 'string') sportsArr = c.sports.split(',');
-        else if (Array.isArray(c.segments)) sportsArr = c.segments.map(s => s.activity_type || s.sport);
-
-        // Nettoyage et normalisation (ex: "Ride" devient "ride")
-        const sports = [...new Set(sportsArr.map(s => String(s).toLowerCase().trim()))].filter(Boolean);
+        let sports = c.sports || [];
+        if (sports.length === 0 && c.segments) {
+          sports = [...new Set(c.segments.map(s => (s.activity_type || s.sport || '').toLowerCase()))];
+        } else {
+          sports = sports.map(s => s.toLowerCase());
+        }
 
         let matchSport = true;
+        const isMulti = sports.length >= 2;
+        
         if (sportValue === 'run') matchSport = sports.includes('run');
         else if (sportValue === 'ride') matchSport = sports.includes('ride');
-        else if (sportValue === 'multi') matchSport = sports.length >= 2;
-
+        else if (sportValue === 'multi') matchSport = isMulti;
 
         return matchName && matchSport;
       });
@@ -131,7 +147,7 @@
         return 0;
       });
 
-      currentPage = 1; // Reset à la page 1 après un filtre
+      currentPage = 1; 
       renderPaginatedChallenges();
     }
 
@@ -146,7 +162,7 @@
       const pagination = document.getElementById("pagination-controls");
       
       if (filteredChallenges.length === 0) {
-        container.innerHTML = `<p style="text-align: center;">${lang === 'fr' ? "Aucun défi trouvé." : "No challenges found."}</p>`;
+        container.innerHTML = `<p style="text-align: center; color: var(--color-text-muted);">${lang === 'fr' ? "Aucun défi trouvé." : "No challenges found."}</p>`;
         pagination.style.display = "none";
         return;
       }
@@ -161,15 +177,17 @@
         const card = document.createElement("div");
         card.className = "challenge-card";
         
-        let actionsHtml = `<a href="challenge.html?id=${challenge.id}" class="btn-view-feature" style="color: white; background: var(--navy-light); border:none;">${lang === 'fr' ? 'Voir' : 'View'}</a>`;
+        // Bouton ~ centralisé
+        let actionsHtml = `<a href="challenge.html?id=${challenge.id}" class="btn-view-feature" title="${lang === 'fr' ? 'Voir' : 'View'}"><span class="icon">∿</span></a>`;
+        
+        // Boutons admin/édition
         if (challenge.can_delete) {
           actionsHtml += `
-            <a href="create.html?edit=${challenge.id}" class="btn-view-feature" style="color: var(--navy); background: #eee; border:none;">${lang === 'fr' ? 'Modifier' : 'Edit'}</a>
-            <button onclick="deleteChallenge(${challenge.id})" class="btn-delete">${lang === 'fr' ? 'Supprimer' : 'Delete'}</button>
+            <a href="create.html?edit=${challenge.id}" class="btn" style="background: rgba(255,255,255,0.1); color: var(--color-text-main); padding: 0 15px; height: 44px;">${lang === 'fr' ? 'Modifier' : 'Edit'}</a>
+            <button onclick="deleteChallenge(${challenge.id})" class="btn-delete" style="padding: 0 15px; height: 44px;">${lang === 'fr' ? 'Supprimer' : 'Delete'}</button>
           `;
         }
 
-        // Tags de sports
         let sports = challenge.sports || [];
         if (sports.length === 0 && challenge.segments) {
           sports = [...new Set(challenge.segments.map(s => s.activity_type || s.sport || 'Unknown'))];
@@ -183,7 +201,6 @@
           return `<span class="sport-tag">${sName}</span>`;
         }).join('');
 
-        // Image optionnelle
         const imgHtml = challenge.image_url 
           ? `<img src="${challenge.image_url}" class="challenge-img" alt="Challenge Image">` 
           : '';
@@ -192,18 +209,21 @@
           <div class="challenge-card-inner">
             ${imgHtml}
             <div class="challenge-details">
-              <h3 style="color: var(--navy); font-size: 1.5rem; margin-bottom: 8px;">${challenge.name}</h3>
-              <p style="color: #555; font-size: 0.95rem; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${challenge.description || ''}</p>
-              <p style="color: #555; margin-bottom: 10px;"><strong>${lang === 'fr' ? 'Durée :' : 'Duration:'}</strong> ${challenge.duration_hours}h</p>
-              <div class="sport-tags" style="margin-bottom: 15px;">${tagsHtml}</div>
-              <div style="display: flex; gap: 10px; flex-wrap: wrap;">${actionsHtml}</div>
+              <div class="challenge-info">
+                <h3 style="color: var(--color-text-main); font-size: 1.4rem; margin-bottom: 8px;">${challenge.name}</h3>
+                <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${challenge.description || ''}</p>
+                <p style="color: var(--color-text-muted); margin-bottom: 10px;"><strong style="color: var(--color-text-main);">${lang === 'fr' ? 'Durée :' : 'Duration:'}</strong> ${challenge.duration_hours}h</p>
+                <div class="sport-tags">${tagsHtml}</div>
+              </div>
+              <div class="challenge-actions">
+                ${actionsHtml}
+              </div>
             </div>
           </div>
         `;
         container.appendChild(card);
       });
 
-      // Mise à jour de la pagination
       document.getElementById("page-info").textContent = `${currentPage} / ${totalPages}`;
       document.getElementById("btn-prev").disabled = currentPage === 1;
       document.getElementById("btn-next").disabled = currentPage === totalPages;

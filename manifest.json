@@ -1,20 +1,24 @@
 {
   "name": "SegSeq",
   "short_name": "SegSeq",
+  "description": "Turn Strava Segments Into Stage Races",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#1B241F",
   "theme_color": "#1B241F",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

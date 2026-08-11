@@ -1,45 +1,58 @@
 <!------------------------------>
 <!-- challenge.html -->
 <!------------------------------>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <!-- === CONFIGURATION PWA & iOS === -->
+  <meta name="theme-color" content="#1B241F">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SegSeq">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <!-- =============================== -->
+
   <title class="lang-element" data-en="SegSeq - Challenge" data-fr="SegSeq - Défi">SegSeq - Challenge</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div id="header-placeholder"></div>
 
-  <div class="container" style="max-width:900px;">
+  <div class="container" style="max-width:900px; margin: 0 auto;">
     <div class="card">
       <h2 id="challenge-name" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size: 2rem; margin-bottom: 20px;">Loading...</h2>
-      <p id="challenge-description" class="lang-element" data-en="Loading description..." data-fr="Chargement de la description..." style="opacity:.8; line-height:1.6; margin-bottom: 30px;">Loading description...</p>
+      <p id="challenge-description" class="lang-element" data-en="Loading description..." data-fr="Chargement de la description..." style="color: var(--color-text-muted); line-height:1.6; margin-bottom: 30px;">Loading description...</p>
       
       <div id="challenge-error-section" style="display: none; text-align: center; padding: 30px 0;">
         <h2 class="lang-element" data-en="Challenge not found" data-fr="Défi introuvable" style="font-size: 2rem; margin-bottom: 15px; color: var(--danger);">Challenge not found</h2>
-        <p class="lang-element" data-en="This challenge doesn't exist or was deleted." data-fr="Ce défi n'existe pas ou a été supprimé." style="margin-bottom: 25px; color: #777;">This challenge doesn't exist or was deleted.</p>
+        <p class="lang-element" data-en="This challenge doesn't exist or was deleted." data-fr="Ce défi n'existe pas ou a été supprimé." style="margin-bottom: 25px; color: var(--color-text-muted);">This challenge doesn't exist or was deleted.</p>
         <a href="create.html" class="btn btn-primary lang-element" data-en="Create your own!" data-fr="Créez le vôtre !">Create your own!</a>
       </div>
 	  
       <div id="challenge-details-section">
-        <h3 class="lang-element" data-en="Details" data-fr="Détails" style="color:var(--navy); margin-bottom: 10px;">Details</h3>
-        <p><strong class="lang-element" data-en="Duration:" data-fr="Durée :">Duration:</strong> <span id="challenge-duration"></span> <span class="lang-element" data-en="hours" data-fr="heures">hours</span></p>
-        <p><strong class="lang-element" data-en="Distance:" data-fr="Distance :">Distance:</strong> <span id="challenge-distance"></span> km</p>
-        <p><strong class="lang-element" data-en="Elevation:" data-fr="Dénivelé :">Elevation:</strong> <span id="challenge-elevation"></span> m</p>
-		<p><strong class="lang-element" data-en="Sequence:" data-fr="Séquence :">Sequence:</strong> <span id="challenge-sequence"></span></p>
+        <h3 class="lang-element" data-en="Details" data-fr="Détails" style="margin-bottom: 15px;">Details</h3>
+        <div style="display: flex; flex-direction: column; gap: 8px; color: var(--color-text-muted);">
+          <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Duration:" data-fr="Durée :">Duration:</strong> <span id="challenge-duration"></span> <span class="lang-element" data-en="hours" data-fr="heures">hours</span></p>
+          <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Distance:" data-fr="Distance :">Distance:</strong> <span id="challenge-distance"></span> km</p>
+          <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Elevation:" data-fr="Dénivelé :">Elevation:</strong> <span id="challenge-elevation"></span> m</p>
+		      <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Sequence:" data-fr="Séquence :">Sequence:</strong> <span id="challenge-sequence"></span></p>
+        </div>
         
-        <h3 class="lang-element" data-en="Segments" data-fr="Segments" style="color:var(--navy); margin: 30px 0 10px;">Segments</h3>
-        <div id="segments-list"></div>
+        <h3 class="lang-element" data-en="Segments" data-fr="Segments" style="margin: 35px 0 15px;">Segments</h3>
+        <div id="segments-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
         
-		<div id="admin-log" style="display:none;">
-          <h3 class="lang-element" data-en="Logic Execution Log" data-fr="Journal d'exécution" style="color:var(--navy); margin: 30px 0 10px;">Logic Execution Log</h3>
-          <div id="debug-log" class="debug-console">Awaiting execution...</div>
+		    <div id="admin-log" style="display:none;">
+          <h3 class="lang-element" data-en="Logic Execution Log" data-fr="Journal d'exécution" style="margin: 35px 0 15px;">Logic Execution Log</h3>
+          <div id="debug-log" class="debug-console" style="background: rgba(0,0,0,0.3); color: #00ff41; padding: 15px; border-radius: 12px; font-family: monospace; height: 200px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05);">Awaiting execution...</div>
         </div>
 		
-        <h3 class="lang-element" data-en="Leaderboard (Top 10)" data-fr="Classement (Top 10)" style="color:var(--navy); margin: 30px 0 10px;">Leaderboard (Top 10)</h3>
+        <h3 class="lang-element" data-en="Leaderboard (Top 10)" data-fr="Classement (Top 10)" style="margin: 35px 0 15px;">Leaderboard (Top 10)</h3>
         
         <div class="gender-filter" style="margin-bottom: 15px; display: flex; gap: 10px; justify-content: flex-end;">
           <button id="btn-filter-all" class="btn-filter active lang-element" data-en="All" data-fr="Tous" onclick="applyFilter('all')">Tous</button>
@@ -47,23 +60,23 @@
           <button id="btn-filter-F" class="btn-filter lang-element" data-en="Women" data-fr="Femmes" onclick="applyFilter('F')">Femmes</button>
         </div>
 		
-		<div class="table-responsive">
-		<table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th class="lang-element" data-en="Athlete" data-fr="Athlète">Athlete</th>
-              <th class="lang-element" data-en="Date" data-fr="Date">Date</th>
-              <th class="lang-element" data-en="Total Time" data-fr="Temps Total">Total Time</th>
-              <th class="lang-element" data-en="Moving Time" data-fr="Temps de Mouvement">Moving Time</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboard"></tbody>
-        </table>
-		</div>
+		    <div class="table-responsive">
+		      <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th class="lang-element" data-en="Athlete" data-fr="Athlète">Athlete</th>
+                <th class="lang-element" data-en="Date" data-fr="Date">Date</th>
+                <th class="lang-element" data-en="Total Time" data-fr="Temps Total">Total Time</th>
+                <th class="lang-element" data-en="Moving Time" data-fr="Temps de Mouvement">Moving Time</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard"></tbody>
+          </table>
+		    </div>
         
-        <div class="refresh-container" id="admin-refresh-section" style="display: none;">
-          <button id="refresh-btn" class="btn-refresh lang-element" data-title-en="Force synchro with Strava & Recalculate" data-title-fr="Forcer la synchro Strava et recalculer" title="Force synchro with Strava & Recalculate">
+        <div class="refresh-container" id="admin-refresh-section" style="display: none; margin-top: 20px;">
+          <button id="refresh-btn" class="btn-refresh lang-element" data-title-en="Force synchro with Strava & Recalculate" data-title-fr="Forcer la synchro Strava et recalculer" title="Force synchro with Strava & Recalculate" style="background: var(--color-accent); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(252, 76, 2, 0.3);">
             <svg id="refresh-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="23 4 23 10 17 10"></polyline>
               <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
@@ -73,11 +86,9 @@
       </div>
     </div>
     
-    <div class="cta">
+    <div class="cta" style="flex-direction: row; flex-wrap: wrap;">
       <a href="#" id="btn-edit-challenge" class="btn btn-primary lang-element" data-en="Edit challenge" data-fr="Modifier le défi" style="display:none;">Edit challenge</a>
-	  <a href="#" id="btn-delete-challenge" class="btn btn-primary lang-element" data-en="Delete challenge" data-fr="Supprimer le défi" style="display:none;" onclick="deleteChallengeFromPage()">Delete challenge</a>
-	  <a href="create.html" class="btn btn-primary lang-element" data-en="Create a challenge" data-fr="Créer un défi">Create a challenge</a>
-      <a href="explore.html" class="btn btn-primary lang-element" data-en="Explore challenges" data-fr="Explorer les défis" style="margin-left: 10px;">Explore challenges</a>
+	    <a href="#" id="btn-delete-challenge" class="btn btn-delete lang-element" data-en="Delete challenge" data-fr="Supprimer le défi" style="display:none;" onclick="deleteChallengeFromPage()">Delete challenge</a>
     </div>
   </div>
 
@@ -107,7 +118,6 @@
         filteredData = fullLeaderboard.filter(row => row.sex === currentGenderFilter);
       }
       
-      // LIMITATION A 10 LIGNES MAX
       const top10Data = filteredData.slice(0, 10);
       
       if (top10Data && top10Data.length > 0) {
@@ -115,19 +125,19 @@
           const tr = document.createElement("tr");
           const currentRank = index + 1;
           const rankDisplay = currentRank === 1 
-            ? `<img src="segseq-crown.png" alt="1" style="width: 24px; height: 24px; vertical-align: middle; mix-blend-mode: multiply;">` 
+            ? `<img src="segseq-crown.png" alt="1" style="width: 24px; height: 24px; vertical-align: middle;">` 
             : currentRank;
           const avatarUrl = row.profile || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.athlete)}&background=random&color=fff&size=32`;
 
           tr.innerHTML = `
             <td style="text-align: center; vertical-align: middle;">${rankDisplay}</td>
             <td style="display: flex; align-items: center; gap: 10px;">
-              <img src="${avatarUrl}" alt="${row.athlete}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(row.athlete)}&background=random&color=fff&size=32';" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
-              <span>${row.athlete}</span>
+              <img src="${avatarUrl}" alt="${row.athlete}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(row.athlete)}&background=random&color=fff&size=32';" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);">
+              <span style="font-weight: 500;">${row.athlete}</span>
             </td>
-            <td style="vertical-align: middle;">${row.start_date}</td>
+            <td style="vertical-align: middle; color: var(--color-text-muted);">${row.start_date}</td>
             <td style="vertical-align: middle;">${row.total_time_human}</td>
-            <td style="vertical-align: middle;"><strong style="color:var(--orange);">${row.moving_time_human}</strong></td>
+            <td style="vertical-align: middle;"><strong style="color:var(--color-accent);">${row.moving_time_human}</strong></td>
           `;
           lb.appendChild(tr);
         });
@@ -135,8 +145,8 @@
         const noDataMsg = lang === 'fr' 
           ? "Aucun résultat. Si vous venez de créer ce défi, le calcul est en cours en arrière-plan." 
           : "No results. If you just created this challenge, calculation is running in the background.";
-        lb.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px 20px; color: #666; line-height: 1.5;">
-          <div class="spinner" style="margin-bottom: 15px;">⏳</div>${noDataMsg}
+        lb.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px 20px; color: var(--color-text-muted); line-height: 1.5;">
+          <div class="spinner" style="margin-bottom: 15px; font-size: 1.5rem;">⏳</div>${noDataMsg}
         </td></tr>`;
       }
     }
@@ -180,13 +190,13 @@
 
         if (data.is_admin === true) {
           document.getElementById("admin-refresh-section").style.display = "block";
-		  document.getElementById("admin-log").style.display = "block";
+		      document.getElementById("admin-log").style.display = "block";
         }
         if (data.can_edit === true) {
           const editBtn = document.getElementById("btn-edit-challenge");
           editBtn.href = `create.html?edit=${challengeId}`;
           editBtn.style.display = "inline-block";
-		  document.getElementById("btn-delete-challenge").style.display = "inline-block";
+		      document.getElementById("btn-delete-challenge").style.display = "inline-block";
         }
 		
         const segList = document.getElementById("segments-list");
@@ -210,16 +220,16 @@
           
           div.innerHTML = `
             <div style="display:flex; align-items:center; gap:12px;">
-              <span style="font-size:1.2rem; color:var(--orange);">${seg.order}.</span>
+              <span style="font-size:1.2rem; color:var(--color-accent); font-weight: 800;">${seg.order}.</span>
               <span>
-                <strong style="color: var(--navy); font-size: 1.05rem;">${displayName}</strong> <br/>
-                <small style="color:#777; line-height: 1.5; display: inline-block; margin-top: 4px;">
+                <strong style="color: var(--color-text-main); font-size: 1.05rem;">${displayName}</strong> <br/>
+                <small style="color:var(--color-text-muted); line-height: 1.5; display: inline-block; margin-top: 4px;">
                   ID: ${seg.id} • <strong>${sportName}</strong> <br/>
                   ${distanceStr} • ${elevationStr} • ${gradeStr}
                 </small>
               </span>
             </div>
-            <a href="https://www.strava.com/segments/${seg.id}" target="_blank" rel="noopener noreferrer" class="strava-link-icon" title="${viewStravaText}">
+            <a href="https://www.strava.com/segments/${seg.id}" target="_blank" rel="noopener noreferrer" class="strava-link-icon" title="${viewStravaText}" style="color: var(--color-text-muted);">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                 <polyline points="15 3 21 3 21 9"></polyline>
@@ -251,14 +261,14 @@
       const icon = document.getElementById("refresh-icon"); 
       
       icon.classList.add("spinning"); 
-      lb.innerHTML = `<tr><td colspan="5" style="text-align:center;">${lang === 'fr' ? "Rafraîchissement..." : "Refreshing..."}</td></tr>`;
+      lb.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: var(--color-text-muted);">${lang === 'fr' ? "Rafraîchissement..." : "Refreshing..."}</td></tr>`;
       debugLog.innerHTML = lang === 'fr' ? "> Lancement de la synchronisation..." : "> Initiating Sync...";
       
       try {
         const lbRes = await fetch(`/api/leaderboard?id=${challengeId}&force=1`);
         const lbData = await lbRes.json();
         if(!lbRes.ok) {
-          debugLog.innerHTML += `<br/><span style="color:red">> Error: ${lbData.error}</span>`;
+          debugLog.innerHTML += `<br/><span style="color:var(--danger)">> Error: ${lbData.error}</span>`;
           icon.classList.remove("spinning"); 
           return;
         }
