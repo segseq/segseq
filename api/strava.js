@@ -63,11 +63,21 @@ export default async function handler(req, res) {
       const athleteRes = await fetch("https://www.strava.com/api/v3/athlete", {
         headers: { Authorization: `Bearer ${validAccessToken}` }
       });
+
       if (!athleteRes.ok) throw new Error('Échec de la récupération du profil Strava');
 
       const athlete = await athleteRes.json();
+
+      // On récupère le statut is_admin depuis notre propre base de données
+      const localDbRes = await query(`SELECT is_admin, premium FROM athletes WHERE id = $1`, [athleteId]);
+      if (localDbRes.length > 0) {
+          athlete.is_admin = localDbRes[0].is_admin;
+          // Optionnel mais recommandé : on s'assure de renvoyer le statut premium local
+          athlete.premium = localDbRes[0].premium; 
+      } else {
+          athlete.is_admin = false;
+      }
       return res.status(200).json(athlete);
-    }
 
     else if (action === 'getStarredSegments') {
       if (!athleteId) return res.status(401).json({ error: "Non authentifié" });
