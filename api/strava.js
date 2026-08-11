@@ -68,14 +68,24 @@ export default async function handler(req, res) {
 
       const athlete = await athleteRes.json();
 
-      // On récupère le statut is_admin depuis notre propre base de données
-      const localDbRes = await query(`SELECT is_admin FROM athletes WHERE id = $1`, [athleteId]);
-      if (localDbRes.length > 0) {
-          athlete.is_admin = localDbRes[0].is_admin;
-      } else {
-          athlete.is_admin = false;
+      // --- DÉBUT DE LA MODIFICATION (CORRIGÉE ET SÉCURISÉE) ---
+      try {
+          // On ne demande QUE is_admin pour éviter tout crash SQL
+          const localDbRes = await query(`SELECT is_admin FROM athletes WHERE id = $1`, [athleteId]);
+          if (localDbRes.length > 0) {
+              athlete.is_admin = localDbRes[0].is_admin;
+          } else {
+              athlete.is_admin = false;
+          }
+      } catch (dbErr) {
+          // Si la requête échoue, on log l'erreur mais on ne bloque pas le chargement du profil
+          console.error("Erreur lors de la récupération de is_admin:", dbErr);
+          athlete.is_admin = false; 
       }
+      // --- FIN DE LA MODIFICATION ---
+
       return res.status(200).json(athlete);
+
 
     else if (action === 'getStarredSegments') {
       if (!athleteId) return res.status(401).json({ error: "Non authentifié" });
