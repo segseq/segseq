@@ -118,12 +118,21 @@
     let segments = [{ id: '', name: '', isValidated: false }, { id: '', name: '', isValidated: false }];
     let dragStartIndex = null;
     let currentStep = 1;
-
-    // Vérification Admin (à adapter selon ta logique d'authentification)
-    const isAdmin = localStorage.getItem('is_admin') === 'true'; 
-    if (isAdmin) {
-      document.getElementById('admin-image-section').style.display = 'block';
+     let isAdmin = false;
+    
+    // Vérification Admin via l'API pour la création d'un nouveau défi
+    async function checkAdminStatus() {
+      try {
+        const res = await fetch('/api/stats?scope=me', { credentials: "include" });
+        const data = await res.json();
+        if (data.is_admin === true) {
+          isAdmin = true;
+          document.getElementById('admin-image-section').style.display = 'block';
+        }
+      } catch (err) { console.error("Erreur vérification admin:", err); }
     }
+    checkAdminStatus();
+
 
     async function fetchStarredSegments() {
       try {
@@ -368,7 +377,14 @@
             document.getElementById("duration").value = challenge.duration_hours;
             document.getElementById("strict-sequence").checked = challenge.strict_sequence;
             document.getElementById("is-public").checked = challenge.is_public;
+            
+            // Réutilisation de la logique de challenge.html en mode édition
+            if (challenge.is_admin === true) {
+              isAdmin = true;
+              document.getElementById('admin-image-section').style.display = 'block';
+            }
             if(isAdmin && challenge.image_url) document.getElementById("image-url").value = challenge.image_url;
+
             
             segments = challenge.segments.map(s => ({ id: String(s.id), name: s.name, isValidated: true }));
             renderSegments();

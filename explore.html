@@ -106,20 +106,20 @@
       filteredChallenges = allChallenges.filter(c => {
         const matchName = c.name.toLowerCase().includes(searchTerm);
         
-        // Extraction des sports uniques depuis les segments (si fournis) ou depuis c.sports
-        let sports = c.sports || [];
-        if (sports.length === 0 && c.segments) {
-          sports = [...new Set(c.segments.map(s => (s.activity_type || s.sport || '').toLowerCase()))];
-        } else {
-          sports = sports.map(s => s.toLowerCase());
-        }
+        // Extraction robuste des sports (gère les tableaux, les chaînes "Ride,Run", et les segments imbriqués)
+        let sportsArr = [];
+        if (Array.isArray(c.sports)) sportsArr = c.sports;
+        else if (typeof c.sports === 'string') sportsArr = c.sports.split(',');
+        else if (Array.isArray(c.segments)) sportsArr = c.segments.map(s => s.activity_type || s.sport);
+
+        // Nettoyage et normalisation (ex: "Ride" devient "ride")
+        const sports = [...new Set(sportsArr.map(s => String(s).toLowerCase().trim()))].filter(Boolean);
 
         let matchSport = true;
-        const isMulti = sports.length >= 2;
-        
         if (sportValue === 'run') matchSport = sports.includes('run');
         else if (sportValue === 'ride') matchSport = sports.includes('ride');
-        else if (sportValue === 'multi') matchSport = isMulti;
+        else if (sportValue === 'multi') matchSport = sports.length >= 2;
+
 
         return matchName && matchSport;
       });

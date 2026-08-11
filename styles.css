@@ -1,13 +1,14 @@
 /* ------------------------------ */
-/* styles.css */
+/* styles.css (Refonte Premium & Mobile) */
 /* ------------------------------ */
 
 :root {
-  --navy: #072B57;
-  --navy-light: #0E487D;
-  --orange: #FF6B1A;
-  --white: #FFFFFF;
-  --gray: #D6E3F2;
+  /* Nouvelle Palette SegSeq */
+  --color-accent: #FC4C02;        /* Orange Strava */
+  --color-bg-main: #1B241F;       /* Vert Mat Profond */
+  --color-bg-surface: #26332C;    /* Vert Mat Secondaire */
+  --color-text-main: #F0F4F2;     /* Blanc Cassé */
+  --color-text-muted: #8D9F95;    /* Gris-Vert Muted */
   --danger: #E63946;
 }
 
@@ -18,12 +19,13 @@
 }
 
 body {
-  font-family: Inter, sans-serif;
-  background: var(--navy);
-  color: white;
+  font-family: 'Inter', sans-serif;
+  background: var(--color-bg-main);
+  color: var(--color-text-main);
   min-height: 100vh;
   position: relative;
   z-index: 0;
+  -webkit-font-smoothing: antialiased; /* Rend le texte plus net sur mobile */
 }
 
 .container {
@@ -32,848 +34,131 @@ body {
   padding: 0 30px;
 }
 
-/* Style pour le Toggle Switch */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 26px;
-}
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-  border-radius: 26px;
-}
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%;
-}
-input:checked + .slider {
-  background-color: var(--orange); /* Utilise ton orange */
-}
-input:checked + .slider:before {
-  transform: translateX(24px);
-}
-
-/* --- NAVIGATION HEADER --- */
-.main-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 30px;
-  max-width: 1200px;
-  margin: auto;
-  position: relative;
-  z-index: 99999;
-}
-
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-}
-
-.nav-logo {
-  font-size: 1.8rem;
-  color: white;
-  text-decoration: none;
-  font-weight: 800;
-  letter-spacing: -1px;
-}
-
-.nav-logo span {
-  color: var(--orange);
-}
-
-/* Dropdown Menu */
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.dropbtn {
-  background: transparent;
-  color: white;
-  font-size: 1rem;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: 600;
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: var(--white);
-  min-width: 120px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 999999;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-top: 10px;
-}
-
-.dropdown-content a {
-  color: var(--navy);
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-  font-weight: 600;
-}
-
-.dropdown-content a:hover {
-  background-color: var(--gray);
-}
-
-.dropdown-content {
-  display: none;
-}
-
-.dropdown.open .dropdown-content {
-  display: block;
-}
-
-/* Conteneur du bouton de rafraîchissement */
-.refresh-container {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 15px;
-}
-
-/* Bouton discret (Orange et Blanc) */
-.btn-refresh {
-  background-color: var(--orange);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-  display: flex;
+/* --- BOUTONS MODERNISÉS --- */
+.btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.btn-refresh:hover {
-  opacity: 0.85;
-  transform: scale(1.05); /* Léger grossissement au survol */
-}
-
-/* Animation de rotation pour l'icône SVG */
-@keyframes spin {
-  100% { transform: rotate(360deg); }
-}
-
-.spinning {
-  animation: spin 1s linear infinite;
-}
-
-
-/* Profile Photo in Header */
-.nav-profile-pic {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  border: 2px solid var(--orange);
-  object-fit: cover;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.nav-profile-pic:hover {
-  transform: scale(1.05);
-}
-
-/* --- BUTTONS --- */
-.btn {
-  display: inline-block;
-  padding: 16px 34px;
-  border-radius: 12px;
-  font-weight: 700;
+  padding: 14px 28px;
+  border-radius: 16px; /* Plus arrondi et moderne */
+  font-weight: 600;
   text-decoration: none;
-  transition: .2s;
+  transition: all 0.3s ease;
   cursor: pointer;
-  text-align: center;
   border: none;
-  font-family: Inter, sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1rem;
+  gap: 8px;
 }
 
 .btn-primary {
-  background: var(--orange);
-  color: white;
+  background: var(--color-accent);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(252, 76, 2, 0.3);
 }
 
-.btn:hover, .btn-primary:hover {
+.btn-primary:hover {
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(252, 76, 2, 0.4);
 }
 
 .btn-view-feature {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: white;
-  color: var(--orange);
-  padding: 12px 22px;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(252, 76, 2, 0.1);
+  color: var(--color-accent);
   border-radius: 12px;
   text-decoration: none;
   font-weight: 700;
-  transition: .2s;
-  white-space: nowrap;
-  border: 2px solid var(--orange);
+  transition: all 0.3s ease;
 }
 
 .btn-view-feature:hover {
-  transform: translateY(-2px);
-  background: var(--orange);
-  color: white;
+  background: var(--color-accent);
+  color: #fff;
+  transform: scale(1.05);
 }
 
-.btn-delete {
-  background: transparent;
-  color: var(--danger);
-  border: 1px solid var(--danger);
-  padding: 12px 22px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 700;
-}
+/* --- TYPOGRAPHIE & LAYOUT --- */
+.hero { text-align: center; padding: 80px 20px 40px; }
+.logo { font-size: 4rem; color: var(--color-text-main); margin-bottom: 10px; }
+.logo span { color: var(--color-accent); }
+.brand { font-size: 4rem; font-weight: 800; letter-spacing: -2px; }
+.brand .accent { color: var(--color-accent); }
+.tagline { font-size: 1.5rem; margin-top: 20px; color: var(--color-text-main); font-weight: 500;}
+.subtitle { font-size: 1.1rem; color: var(--color-text-muted); margin-top: 20px; line-height: 1.6; max-width: 600px; margin-inline: auto;}
+.section { padding: 60px 0; margin-bottom: 40px; }
+.section-title { text-align: center; font-size: 2.2rem; margin-bottom: 40px; font-weight: 700;}
 
-.btn-delete:hover {
-  background: var(--danger);
-  color: white;
-}
-
-/* --- TYPOGRAPHY & LAYOUT --- */
-.hero {
-  text-align: center;
-  padding: 60px 20px 40px;
-}
-
-.logo {
-  font-size: 5rem;
-  color: white;
-  margin-bottom: 20px;
-}
-
-.logo span { color: var(--orange); }
-
-.brand {
-  font-size: 5rem;
-  font-weight: 800;
-  letter-spacing: -2px;
-}
-
-.brand .accent { color: var(--orange); }
-
-.tagline {
-  font-size: 1.6rem;
-  margin-top: 25px;
-  color: white;
-}
-
-.subtitle {
-  font-size: 1.1rem;
-  opacity: .8;
-  margin-top: 25px;
-  line-height: 1.7;
-}
-
-.section {
-  padding: 60px 0;      
-  margin-bottom: 80px;  
-}
-
-
-.section-title {
-  text-align: center;
-  font-size: 2.5rem;
-  margin-bottom: 40px;
-}
-
-.cta {
-  text-align: center;
-  margin-top: 40px;
-}
-
-/* --- CARDS & GRIDS --- */
-.card, .form-card, .profile-card {
-  background: white;
-  color: #222;
+/* --- CARTES (Adaptées au fond sombre) --- */
+.card, .form-card, .profile-card, .stat-card, .challenge-card, .example {
+  background: var(--color-bg-surface);
+  color: var(--color-text-main);
   border-radius: 24px;
-  padding: 40px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.30);
-  margin-top: 40px;
+  padding: 35px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.05); /* Légère bordure pour détacher du fond */
 }
 
-.steps {
+.steps, .examples {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 24px;
 }
 
-.step-card {
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 20px;
-  padding: 30px;
-}
-
 .number {
-  color: var(--orange);
-  font-size: 1.8rem;
+  color: var(--color-accent);
+  font-size: 2rem;
   font-weight: 800;
   margin-bottom: 15px;
 }
 
-.examples {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-}
-
 .example {
-  background: white;
-  color: #222;
-  border-radius: 24px;
-  padding: 35px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin: 20px 0 40px;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,.2);
-}
-
-.stat-value {
-  font-size: 3rem;
-  font-weight: 800;
-  color: var(--orange);
-}
-
-.stat-label {
-  color: var(--navy);
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 0.9rem;
-}
-
-.challenge-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.challenge-card {
-  background: white;
-  color: #222;
-  border-radius: 16px;
   padding: 25px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.2);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
-/* --- PROFILE & FORMS --- */
-.profile-photo {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  border: 6px solid var(--orange);
-  object-fit: cover;
-}
+.example-meta { color: var(--color-text-muted); font-size: 0.9rem; margin-top: 5px; }
 
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-top: 40px;
-}
+/* --- CAROUSEL --- */
+.carousel-container { overflow: hidden; position: relative; width: 100%; max-width: 700px; margin: 0 auto; padding-bottom: 20px; }
+.carousel-track { display: flex; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
+.carousel-slide { min-width: 100%; box-sizing: border-box; text-align: center; }
+.carousel-slide .number { font-size: 3rem; margin-bottom: 20px; }
+.carousel-dots { display: flex; justify-content: center; gap: 12px; margin-top: 25px; }
+.carousel-dot { width: 10px; height: 10px; background: var(--color-text-muted); border-radius: 50%; cursor: pointer; transition: all 0.3s ease; opacity: 0.5;}
+.carousel-dot.active { background: var(--color-accent); transform: scale(1.3); opacity: 1;}
 
-.info-box {
-  background: #F5F8FC;
-  border-radius: 16px;
-  padding: 24px;
-}
+/* --- HEADER & FOOTER --- */
+.main-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; max-width: 1200px; margin: auto; }
+.nav-group { display: flex; align-items: center; gap: 24px; }
+.nav-icon { color: var(--color-text-main); transition: color 0.2s; }
+.nav-icon:hover { color: var(--color-accent); }
+.nav-logo { font-weight: 800; font-size: 1.5rem; text-decoration: none; color: var(--color-text-main); display: flex; align-items: center; gap: 5px;}
+.nav-logo span { color: var(--color-accent); }
 
-label {
-  display: block;
-  margin-top: 20px;
-  font-weight: 600;
-  color: var(--navy);
-}
+.lang-selector { display: flex; gap: 8px; font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted);}
+.lang-btn { cursor: pointer; transition: color 0.2s; }
+.lang-btn:hover { color: var(--color-text-main); }
+.lang-btn.active { color: var(--color-accent); }
 
-input, select, textarea {
-  width: 100%;
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  margin-top: 8px;
-  font-size: 1rem;
-}
+.nav-profile-pic { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-accent); }
 
-/* --- TABLES & SEGMENTS --- */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
+.main-footer { text-align: center; padding: 40px 20px; color: var(--color-text-muted); display: flex; flex-direction: column; gap: 15px; align-items: center;}
+.footer-icons { display: flex; gap: 20px; }
+.footer-icon { color: var(--color-text-muted); transition: color 0.2s; }
+.footer-icon:hover { color: var(--color-accent); }
 
-th, td {
-  padding: 12px;
-  text-align: left;
-}
-
-th { background: var(--navy-light); color: white; }
-tr:nth-child(even) { background: #F5F8FC; color: #222; }
-tr:nth-child(odd) { background: #E9F1FA; color: #222; }
-
-.segment-item {
-  background: #F5F8FC;
-  padding: 12px 16px;
-  border-radius: 10px;
-  margin-top: 10px;
-  color: #072B57;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.debug-console {
-  background: #0a192f;
-  color: #00ff41;
-  font-family: monospace;
-  padding: 15px;
-  border-radius: 8px;
-  height: 250px;
-  overflow-y: auto;
-  margin-top: 10px;
-}
-
-
-/* --- FOOTER --- */
-footer {
-  text-align: center;
-  margin-top: 60px;
-  padding: 60px 20px;
-  color: rgba(255,255,255,.6);
-}
-
-@media(max-width: 900px) {
-  .steps, .examples { grid-template-columns: 1fr; }
-}
-
-/* --- SÉLECTEUR DE LANGUE --- */
-.lang-selector {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-
-.lang-btn {
-  cursor: pointer;
-  color: var(--white);
-  opacity: 0.5; /* Grisé par défaut */
-  transition: opacity 0.2s ease, color 0.2s ease;
-}
-
-.lang-btn:hover {
-  opacity: 0.8;
-}
-
-.lang-btn.active {
-  color: var(--orange);
-  opacity: 1; /* Pleine opacité pour la langue active */
-}
-
-.lang-sep {
-  color: var(--white);
-  opacity: 0.3;
-  cursor: default;
-}
-
-/* =========================================
-   📱 OPTIMISATIONS MOBILES (RESPONSIVE)
-   ========================================= */
+/* --- RESPONSIVE MOBILE --- */
 @media (max-width: 768px) {
-  /* 1. Conteneurs et espacements généraux */
-  .container { padding: 0 15px; }
-  .section { padding: 40px 0; margin-bottom: 40px; }
   .hero { padding: 40px 15px 20px; }
-  
-  /* Réduction des marges internes des cartes */
-  .card, .form-card, .profile-card, .challenge-card { 
-    padding: 25px 20px; 
-  }
-
-  /* 2. Typographie (Réduction drastique des gros titres) */
-  .logo, .brand { font-size: 3rem; }
-  .tagline { font-size: 1.3rem; margin-top: 15px; }
-  .section-title { font-size: 1.8rem; margin-bottom: 25px; }
-  .stat-value { font-size: 2.2rem; }
-
-  /* 3. Header / Navigation (Réorganisation sur 2 lignes) */
-  .main-header { 
-    flex-direction: column; 
-    padding: 15px; 
-    gap: 15px;
-  }
-  .nav-left, .nav-right {
-    width: 100%;
-    justify-content: space-between; /* Écarte les éléments aux extrémités */
-  }
-  .nav-logo { font-size: 1.5rem; }
-
-  /* 4. Grilles (Forcer sur 1 seule colonne) */
-  .steps, .examples, .stats-grid, .info-grid { 
-    grid-template-columns: 1fr; 
-    gap: 15px; 
-  }
-
-  /* 5. Boutons et Call-to-Actions (Empilement) */
-  .cta {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .cta a.btn { 
-    margin-left: 0 !important; 
-    width: 100%; 
-  }
-
-  /* 6. Ajustements spécifiques aux cartes de défis */
-  .challenge-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  
-  /* 7. Tableau du classement (Permettre le scroll horizontal) */
-  .table-responsive {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* Scroll fluide sur iOS */
-  }
-  table {
-    min-width: 500px; /* Force le tableau à garder sa taille, l'utilisateur pourra scroller de gauche à droite */
-  }
-  
-  /* 8. Formulaire de création */
-  .mobile-stack {
-    flex-direction: column !important;
-    gap: 10px !important;
-  }
-}
-
-.strava-btn {
-  height: 48px;
-  display: block;
-  margin: 0 auto;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.strava-btn:hover {
-  opacity: 0.85;
-}
-
-/* --- ICÔNE LIEN EXTERNE (STRAVA) --- */
-.strava-link-icon {
-  color: var(--navy-light);
-  opacity: 0.5;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px; /* Zone de clic confortable pour mobile */
-  border-radius: 50%;
-}
-
-.strava-link-icon:hover {
-  opacity: 1;
-  color: var(--orange);
-  background: rgba(255, 107, 26, 0.1); /* Léger fond orange au survol */
-  transform: translateY(-2px);
-}
-
-
-/* --- DRAG & DROP SEGMENTS --- */
-.segment-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #F5F8FC;
-  padding: 12px 16px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 1px solid transparent;
-}
-
-/* État quand on survole la ligne avec un élément en cours de glissement */
-.segment-row.over {
-  border: 1px dashed var(--orange);
-  background: #fff3eb;
-}
-
-/* État de l'élément qu'on est en train de glisser */
-.segment-row.dragging {
-  opacity: 0.4;
-}
-
-.drag-handle {
-  cursor: grab;
-  color: #999;
-  display: flex;
-  align-items: center;
-  padding: 5px;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-}
-
-.segment-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.segment-content input {
-  margin-top: 0;
-  padding: 12px;
-}
-
-/* Bouton pour ajouter une ligne */
-.btn-add-row {
-  background: transparent;
-  border: 2px dashed #ccc;
-  color: #777;
-  width: 100%;
-  padding: 15px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 10px;
-}
-
-.btn-add-row:hover {
-  border-color: var(--orange);
-  color: var(--orange);
-  background: rgba(255, 107, 26, 0.05);
-}
-
-
-.btn-filter {
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  padding: 6px 15px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: #555;
-  transition: all 0.2s;
-}
-.btn-filter:hover {
-  background: #e4e4e4;
-}
-.btn-filter.active {
-  background: var(--navy, #001f3f);
-  color: white;
-  border-color: var(--navy, #001f3f);
-  font-weight: 600;
-}
-
-.autocomplete-wrapper {
-  position: relative;
-  width: 100%;
-}
-.autocomplete-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-  display: none;
-  text-align: left;
-}
-.autocomplete-item {
-  padding: 8px 12px;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-  font-size: 0.9rem;
-  line-height: 1.4;
-}
-.autocomplete-item:hover {
-  background-color: #f0f8ff;
-}
-.segment-input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-family: inherit;
-}
-
-/* ========================================= */
-/* HEADER & NAVIGATION (Injectés via app.js) */
-/* ========================================= */
-.main-header { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  padding: 10px 20px; 
-  flex-wrap: nowrap; 
-}
-.nav-group { 
-  display: flex; 
-  align-items: center; 
-  gap: 20px; 
-}
-.nav-icon { 
-  color: inherit; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  text-decoration: none; 
-  transition: opacity 0.2s; 
-}
-.nav-icon:hover { 
-  opacity: 0.7; 
-}
-.nav-logo { 
-  font-weight: bold; 
-  text-decoration: none; 
-  font-size: 1.2rem; 
-  display: flex; 
-  align-items: center; 
-}
-.lang-selector { 
-  display: flex; 
-  gap: 5px; 
-  cursor: pointer; 
-  font-size: 0.9rem; 
-}
-.lang-btn.active { 
-  font-weight: bold; 
-  text-decoration: underline; 
-}
-.strava-connect-btn img { 
-  height: 35px; 
-  width: auto; 
-  object-fit: contain; 
-}
-.nav-profile-pic { 
-  width: 32px; 
-  height: 32px; 
-  border-radius: 50%; 
-  object-fit: cover; 
-  border: 1px solid #ccc; 
-}
-
-/* Ajustements pour les écrans mobiles */
-@media (max-width: 600px) {
-  .main-header { 
-    padding: 10px 10px; 
-  }
-  .nav-group { 
-    gap: 12px; /* Réduit l'espace entre les icônes sur mobile */
-  }
-  .strava-connect-btn img { 
-    height: 30px; 
-  }
-}
-
-
-/* =========================================
-   CAROUSEL WAYS TO COMPETE
-   ========================================= */
-.carousel-container {
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-  max-width: 700px; /* Garde une largeur lisible sur grand écran */
-  margin: 0 auto;
-  padding-bottom: 20px;
-}
-
-.carousel-track {
-  display: flex;
-  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-  will-change: transform;
-}
-
-.carousel-slide {
-  min-width: 100%; /* Chaque carte prend 100% du conteneur */
-  box-sizing: border-box;
-  margin-top: 10px; /* Remplace le margin-top: 40px générique des .card */
-  text-align: center; /* Centre le contenu pour un meilleur rendu visuel */
-}
-
-.carousel-slide .number {
-  font-size: 3rem; /* Agrandit un peu l'émoji/icône */
-  margin-bottom: 20px;
-}
-
-.carousel-dots {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 25px;
-}
-
-.carousel-dot {
-  width: 12px;
-  height: 12px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.3s ease;
-}
-
-.carousel-dot.active {
-  background: var(--orange);
-  transform: scale(1.3); /* Met en valeur le point actif */
+  .brand { font-size: 3rem; }
+  .main-header { padding: 15px; flex-direction: column; gap: 20px; }
+  .nav-group { width: 100%; justify-content: space-between; gap: 15px; }
+  .card, .example { padding: 20px; }
 }

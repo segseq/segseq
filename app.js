@@ -2,52 +2,31 @@
 /* app.js */
 /* ------------------------------ */
 
-// Cette fonction DOIT être globale pour que le onclick="" du HTML la trouve
 function setLanguage(lang) {
     localStorage.setItem('userLang', lang);
     applyCurrentLanguage();
 }
 
-// Fonction pour appliquer la langue au DOM et gérer la surbrillance
 function applyCurrentLanguage() {
-    const lang = localStorage.getItem('userLang') || 'en'; // Anglais par défaut
+    const lang = localStorage.getItem('userLang') || 'en';
     
-    // 1. Traduction du texte normal
     const elements = document.querySelectorAll('.lang-element');
     elements.forEach(element => {
-        if (element.dataset[lang]) {
-            element.textContent = element.dataset[lang];
-        }
-        
-        // 2. Traduction des placeholders
+        if (element.dataset[lang]) element.textContent = element.dataset[lang];
         const placeholderKey = 'placeholder' + lang.charAt(0).toUpperCase() + lang.slice(1);
-        if (element.dataset[placeholderKey]) {
-            element.placeholder = element.dataset[placeholderKey];
-        }
-
-        // 3. Traduction des infobulles (title)
+        if (element.dataset[placeholderKey]) element.placeholder = element.dataset[placeholderKey];
         const titleKey = 'title' + lang.charAt(0).toUpperCase() + lang.slice(1);
-        if (element.dataset[titleKey]) {
-            element.title = element.dataset[titleKey];
-        }
+        if (element.dataset[titleKey]) element.title = element.dataset[titleKey];
     });
 
-    // 4. Gestion de la surbrillance du sélecteur
     const btnEn = document.getElementById('btn-en');
     const btnFr = document.getElementById('btn-fr');
-
     if (btnEn && btnFr) {
-        if (lang === 'en') {
-            btnEn.classList.add('active');
-            btnFr.classList.remove('active');
-        } else {
-            btnFr.classList.add('active');
-            btnEn.classList.remove('active');
-        }
+        if (lang === 'en') { btnEn.classList.add('active'); btnFr.classList.remove('active'); } 
+        else { btnFr.classList.add('active'); btnEn.classList.remove('active'); }
     }
 }
 
-// Appliquer la langue au chargement initial de la page
 document.addEventListener("DOMContentLoaded", applyCurrentLanguage);
 
 /* ------------------------------ */
@@ -55,127 +34,85 @@ document.addEventListener("DOMContentLoaded", applyCurrentLanguage);
 /* ------------------------------ */
 
 async function injectComponents() {
-  // 1. Définition des templates avec styles intégrés pour la responsivité
   const headerHTML = `
     <header class="main-header">
-      <!-- GAUCHE : Logo et Navigation Principale -->
       <div class="nav-group">
         <a href="index.html" class="nav-logo" title="Home"><span>∿</span>segseq</a>
-        
-        <!-- Explorer (Loupe) -->
         <a href="explore.html" class="nav-icon lang-element" data-titleFr="Explorer" data-titleEn="Explore">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         </a>
-        
-        <!-- Créer (+) -->
         <a href="create.html" class="nav-icon lang-element" data-titleFr="Créer un défi" data-titleEn="Create challenge">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </a>
-        
-        <!-- Info (i) -->
-        <a href="terms.html" class="nav-icon lang-element" data-titleFr="Informations" data-titleEn="Information">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-        </a>
       </div>
       
-      <!-- DROITE : Notifications, Langue et Auth -->
       <div class="nav-group">
-        <!-- Notifications (Cloche) -->
-        <a href="#" class="nav-icon lang-element" data-titleFr="Notifications (Bientôt)" data-titleEn="Notifications (Coming soon)" onclick="alert('Notifications coming soon!'); return false;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-        </a>
-
-        <!-- Sélecteur EN | FR -->
         <div class="lang-selector">
           <span id="btn-en" class="lang-btn" onclick="setLanguage('en')">EN</span>
-          <span class="lang-sep">|</span>
+          <span>|</span>
           <span id="btn-fr" class="lang-btn" onclick="setLanguage('fr')">FR</span>
         </div>
-
-        <!-- Zone d'authentification dynamique -->
-        <div id="nav-auth-section" style="display: flex; align-items: center; gap: 12px;">
-          <!-- Rempli dynamiquement par JS -->
-        </div>
+        <div id="nav-auth-section" style="display: flex; align-items: center; gap: 12px;"></div>
       </div>
     </header>
   `;
 
-  const footerHTML = `
-    <footer>
-      <div class="logo"><span>∿</span>∿</div>
-      <div style="margin-bottom: 15px;">
+   const footerHTML = `
+    <footer class="main-footer">
+      <div class="logo" style="font-size: 2rem; color: var(--color-text-main);"><span>∿</span>∿</div>
+      <div class="footer-tagline">
         <span class="lang-element" data-fr="SegSeq • Défis Multi-Segments" data-en="SegSeq • Multi-Segment Challenges">SegSeq • Multi-Segment Challenges</span>
       </div>
-      <a href="mailto:info.segseq@gmail.com" class="contact-link lang-element" data-fr="Contactez-nous" data-en="Contact us">Contact us</a>
+      <div class="footer-icons">
+        <a href="mailto:info.segseq@gmail.com" class="footer-icon lang-element" data-titleFr="Nous contacter" data-titleEn="Contact us">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        </a>
+      </div>
     </footer>
   `;
 
-  // 2. Injection dans le DOM
   const headerPlaceholder = document.getElementById('header-placeholder');
   const footerPlaceholder = document.getElementById('footer-placeholder');
   
   if(headerPlaceholder) headerPlaceholder.innerHTML = headerHTML;
   if(footerPlaceholder) footerPlaceholder.innerHTML = footerHTML;
 
-  // 3. Logique d'authentification Strava pour le header
   try {
     const res = await fetch("/api/strava?action=getProfile", { credentials: "include" });
     const authSection = document.getElementById('nav-auth-section');
     
     if (res.ok) {
       const athlete = await res.json();
-      // Utilisateur Connecté : Photo de profil + Icône Logout
       authSection.innerHTML = `
         <a href="profile.html" class="lang-element" data-titleFr="Mon Profil" data-titleEn="My Profile">
           <img src="${athlete.profile}" alt="Profile" class="nav-profile-pic">
         </a>
         <a href="#" onclick="logout(); return false;" class="nav-icon lang-element" data-titleFr="Se déconnecter" data-titleEn="Logout">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
         </a>
       `;
     } else {
-      // Utilisateur Déconnecté : Bouton image Strava
       authSection.innerHTML = `
         <a href="https://segseq.vercel.app/api/strava/auth" class="strava-connect-btn">
-          <img src="btn_strava_connect_with_orange.png" alt="Connect with Strava">
+          <img src="btn_strava_connect_with_orange.png" alt="Connect with Strava" style="height:35px;">
         </a>
       `;
     }
   } catch (err) {
-    console.error("Erreur de chargement du statut auth:", err);
+    console.error("Auth status error:", err);
   }
 
-  // 4. Appliquer la langue au chargement des composants
-  if (typeof applyCurrentLanguage === 'function') {
-    applyCurrentLanguage();
-  }
+  if (typeof applyCurrentLanguage === 'function') applyCurrentLanguage();
 }
 
 async function logout() {
   const lang = localStorage.getItem('userLang') || 'en';
-  const confirmMsg = lang === 'fr' ? "Êtes-vous sûr de vouloir vous déconnecter ?" : "Are you sure you want to log out?";
-
-  if (confirm(confirmMsg)) {
+  if (confirm(lang === 'fr' ? "Se déconnecter ?" : "Log out?")) {
     try {
-      const res = await fetch('/api/strava?action=logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
-
-      if (res.ok) {
-        window.location.href = '/';
-      } else {
-        const errorMsg = lang === 'fr' ? "Échec de la déconnexion." : "Logout failed.";
-        alert(errorMsg);
-      }
+      const res = await fetch('/api/strava?action=logout', { method: 'POST', credentials: 'include' });
+      if (res.ok) window.location.href = '/';
     } catch (err) {
-      console.error("Erreur réseau lors de la déconnexion:", err);
-      const errorMsg = lang === 'fr' ? "Erreur réseau." : "Network error.";
-      alert(errorMsg);
+      console.error(err);
     }
   }
 }
@@ -194,25 +131,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const slides = Array.from(track.children);
     let currentIndex = 0;
     let autoSlideInterval;
-    const intervalTime = 5000; // 5 secondes par slide
 
-    // 1. Créer les points de navigation (dots)
     slides.forEach((_, index) => {
       const dot = document.createElement('div');
       dot.classList.add('carousel-dot');
       if (index === 0) dot.classList.add('active');
-      
-      dot.addEventListener('click', () => {
-        goToSlide(index);
-        resetInterval();
-      });
-      
+      dot.addEventListener('click', () => { goToSlide(index); resetInterval(); });
       dotsContainer.appendChild(dot);
     });
 
     const dots = Array.from(dotsContainer.children);
 
-    // 2. Fonction pour changer de slide
     function goToSlide(index) {
       track.style.transform = `translateX(-${index * 100}%)`;
       dots[currentIndex].classList.remove('active');
@@ -220,19 +149,34 @@ document.addEventListener('DOMContentLoaded', () => {
       currentIndex = index;
     }
 
-    // 3. Fonction pour passer au suivant
-    function nextSlide() {
-      let nextIndex = (currentIndex + 1) % slides.length;
-      goToSlide(nextIndex);
-    }
-
-    // 4. Gestion du défilement automatique
     function resetInterval() {
       clearInterval(autoSlideInterval);
-      autoSlideInterval = setInterval(nextSlide, intervalTime);
+      autoSlideInterval = setInterval(() => goToSlide((currentIndex + 1) % slides.length), 5000);
     }
-
     resetInterval();
   }
 });
 
+/* ------------------------------ */
+/* PWA: Enregistrement Service Worker dynamique */
+/* ------------------------------ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // Création d'un Service Worker basique à la volée (évite de créer un fichier sw.js)
+    const swCode = `
+      const CACHE_NAME = 'segseq-v1';
+      self.addEventListener('install', (e) => {
+        e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['/', '/index.html', '/styles.css', '/app.js'])));
+      });
+      self.addEventListener('fetch', (e) => {
+        e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request)));
+      });
+    `;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    
+    navigator.serviceWorker.register(swUrl)
+      .then(reg => console.log('PWA: Service Worker enregistré (Blob)'))
+      .catch(err => console.log('PWA: Erreur Service Worker', err));
+  });
+}
