@@ -41,9 +41,10 @@ async function injectComponents() {
         <a href="index.html" class="nav-icon lang-element" data-titleFr="Accueil" data-titleEn="Home">
           <!-- SVG Maison avec porte en tilde (~) -->
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Contour de la maison -->
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <path d="M9 22V12h6v10"></path>
-            <path d="M10.5 17c.5-.5 1.5-.5 2 0s1.5.5 2 0"></path>
+            <!-- Tilde (~) recentré et agrandi, sans la porte -->
+            <path d="M8.5 15c1.5-1.5 3-1.5 4 0s3 1.5 4 0"></path>
           </svg>
         </a>
         <a href="explore.html" class="nav-icon lang-element" data-titleFr="Explorer" data-titleEn="Explore">
