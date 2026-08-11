@@ -100,7 +100,7 @@ export default async function handler(req, res) {
       if (!stravaRes.ok) return res.status(404).json({ error: "Segment introuvable ou privé." });
 
       const data = await stravaRes.json();
-      return res.status(200).json({ name: data.name, distance: data.distance });
+      return res.status(200).json({ name: data.name, distance: data.distance, activity_type: data.activity_type });
     }
 
     else {
