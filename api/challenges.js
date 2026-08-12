@@ -39,17 +39,19 @@ export default async function handler(req, res) {
       if (!currentAthleteId) return res.status(401).json({ error: "Not authenticated" });
       
       // On ajoute image_url ici
-      const { name, description, duration, strict_sequence, segments, image_url } = req.body;
+      const { name, description, duration, strict_sequence, segments, image_url, is_featured, end_date } = req.body;
+
       if (!name || !duration || !Array.isArray(segments) || segments.length < 2) {
         return res.status(400).json({ error: "Invalid payload" });
       }
 
       // On l'ajoute dans la requête SQL
       const rows = await query(
-        `INSERT INTO challenges (creator_id, name, description, duration_hours, strict_sequence, image_url)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [currentAthleteId, name, description, duration, strict_sequence, image_url]
+        `INSERT INTO challenges (creator_id, name, description, duration_hours, strict_sequence, image_url, is_featured, end_date)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+        [currentAthleteId, name, description, duration, strict_sequence, image_url, is_featured || false, end_date || null]
       );
+
       const challengeId = rows[0].id;
 
       // Récupérer le token de l'utilisateur pour fetch les métadonnées
@@ -122,7 +124,7 @@ export default async function handler(req, res) {
       if (!currentAthleteId) return res.status(401).json({ error: "Not authenticated" });
       
        // On ajoute image_url ici
-      const { id, name, description, duration, strict_sequence, segments, image_url } = req.body;
+      const { id, name, description, duration, strict_sequence, segments, image_url, is_featured, end_date } = req.body;
       if (!id || !name || !duration || !Array.isArray(segments) || segments.length < 2) {
         return res.status(400).json({ error: "Invalid payload" });
       }
@@ -134,10 +136,11 @@ export default async function handler(req, res) {
       }
 
       // 1. Mettre à jour le défi (avec image_url)
-      await query(
-        `UPDATE challenges SET name = $1, description = $2, duration_hours = $3, strict_sequence = $4, image_url = $5 WHERE id = $6`,
-        [name, description, duration, strict_sequence, image_url, id]
+     await query(
+        `UPDATE challenges SET name = $1, description = $2, duration_hours = $3, strict_sequence = $4, image_url = $5, is_featured = $6, end_date = $7 WHERE id = $8`,
+        [name, description, duration, strict_sequence, image_url, is_featured || false, end_date || null, id]
       );
+
 
 
          // 2. Remplacer les segments (Fetch Strava pour les métadonnées)
@@ -211,7 +214,7 @@ export default async function handler(req, res) {
       if (!id) {
          // Liste des défis (pour explore.html)
         const rows = await query(`
-          SELECT c.id, c.creator_id, c.name, c.description, c.duration_hours, c.created_at, c.image_url, 
+          SELECT c.id, c.creator_id, c.name, c.description, c.duration_hours, c.created_at, c.image_url, c.is_featured, c.end_date, 
                  ARRAY_AGG(DISTINCT cs.sport_type) as sports,
                  COUNT(cs.segment_id) as segment_count
           FROM challenges c

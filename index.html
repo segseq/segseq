@@ -65,6 +65,19 @@
   </div>
 </section>
 
+<section class="section" id="featured-section" style="display: none;">
+  <div class="container">
+    <h2 class="section-title lang-element" data-en="Featured Challenges" data-fr="Défis à la une">Featured Challenges</h2>
+    <div class="carousel-container" style="max-width: 900px;">
+      <div class="carousel-track" id="featured-carousel-track" style="gap: 24px;">
+        <!-- Injecté dynamiquement via JS -->
+      </div>
+      <div class="carousel-dots" id="featured-carousel-dots"></div>
+    </div>
+  </div>
+</section>
+
+
 <section class="section">
   <div class="container">
     <h2 class="section-title lang-element" data-en="Ways To Compete" data-fr="Façons de participer">Ways To Compete</h2>
@@ -106,28 +119,6 @@
   </div>
 </section>
 
-<section class="section">
-  <div class="container">
-    <h2 class="section-title lang-element" data-en="Featured Challenges" data-fr="Défis à la une">Featured Challenges</h2>
-    <div class="examples">
-      <div class="example">
-        <div class="example-left">
-          <h3 class="lang-element" data-en="UTMB in 4 Days" data-fr="UTMB en 4 jours">UTMB in 4 Days</h3>
-          <div class="example-meta lang-element" data-en="4 Segments • Trail Running" data-fr="4 Segments • Trail">4 Segments • Trail Running</div>
-        </div>
-        <a href="/challenge.html?id=19" class="btn-view-feature"><span class="icon">∿</span></a>
-      </div>
-      <div class="example">
-        <div class="example-left">
-          <h3 class="lang-element" data-en="Flanders classics" data-fr="Classiques Flandriennes">Flanders classics</h3>
-          <div class="example-meta lang-element" data-en="5 Segments • Cycling" data-fr="5 Segments • Cyclisme">5 Segments • Cycling</div>
-        </div>
-        <a href="/challenge.html?id=17" class="btn-view-feature"><span class="icon">∿</span></a>
-      </div>
-    </div>
-  </div>
-</section>
-
 <section class="section waitlist">
   <div class="container">
     <h2 class="section-title lang-element" data-en="Try now" data-fr="Essayez maintenant">Try now</h2>
@@ -147,5 +138,82 @@
 
 <div id="footer-placeholder"></div>
 <script src="app.js"></script> 
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch("/api/challenges");
+      if (!res.ok) return;
+      const challenges = await res.json();
+      
+      const featured = challenges.filter(c => c.is_featured);
+      if (featured.length === 0) return; // On cache la section s'il n'y en a pas
+      
+      document.getElementById('featured-section').style.display = 'block';
+      const track = document.getElementById('featured-carousel-track');
+      const dotsContainer = document.getElementById('featured-carousel-dots');
+      const lang = localStorage.getItem('userLang') || 'en';
+
+      featured.forEach((challenge, index) => {
+        // Formatage de la date de fin
+        let endDateStr = lang === 'fr' ? "Pas de date limite" : "No time limit";
+        if (challenge.end_date) {
+          const d = new Date(challenge.end_date);
+          endDateStr = `⏳ ${lang === 'fr' ? 'Fin le' : 'Ends on'} ${d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', {day: 'numeric', month: 'short'})}`;
+        }
+
+        // Formatage de l'image (fallback sur un fond sombre si pas d'image)
+        const imgStyle = challenge.image_url 
+          ? `background-image: linear-gradient(to top, rgba(27,36,31,1) 0%, rgba(27,36,31,0) 100%), url('${challenge.image_url}'); background-size: cover; background-position: center;` 
+          : `background: var(--color-bg-surface);`;
+
+        const slide = document.createElement('div');
+        slide.className = 'carousel-slide challenge-card';
+        slide.style.cssText = `min-width: 100%; flex-shrink: 0; text-align: left; padding: 0; overflow: hidden; border: 1px solid var(--color-accent); position: relative; ${imgStyle}`;
+        
+        slide.innerHTML = `
+          <div style="padding: 180px 30px 30px 30px; position: relative; z-index: 2;">
+            <span class="featured-badge">Featured</span>
+            <h3 style="font-size: 1.8rem; margin: 10px 0; font-weight: 800;">
+              <a href="challenge.html?id=${challenge.id}" style="color: var(--color-text-main); text-decoration: none;">${challenge.name}</a>
+            </h3>
+            <div style="color: var(--color-text-main); font-weight: 600; display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px;">
+              <span style="background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 8px;">📍 ${challenge.segment_count || 0} Segments</span>
+              <span style="background: rgba(252,76,2,0.2); color: var(--color-accent); padding: 5px 12px; border-radius: 8px;">${endDateStr}</span>
+            </div>
+          </div>
+        `;
+        track.appendChild(slide);
+
+        // Points de navigation
+        const dot = document.createElement('div');
+        dot.className = `carousel-dot ${index === 0 ? 'active' : ''}`;
+        dot.addEventListener('click', () => goToFeaturedSlide(index));
+        dotsContainer.appendChild(dot);
+      });
+
+      // Logique du carrousel Featured
+      const slides = Array.from(track.children);
+      const dots = Array.from(dotsContainer.children);
+      let currentIndex = 0;
+      let interval;
+
+      function goToFeaturedSlide(index) {
+        track.style.transform = `translateX(-${index * 100}%)`;
+        dots[currentIndex].classList.remove('active');
+        dots[index].classList.add('active');
+        currentIndex = index;
+        resetInterval();
+      }
+
+      function resetInterval() {
+        clearInterval(interval);
+        interval = setInterval(() => goToFeaturedSlide((currentIndex + 1) % slides.length), 6000);
+      }
+      if(slides.length > 1) resetInterval();
+
+    } catch (err) { console.error("Erreur chargement featured:", err); }
+  });
+</script>
+
 </body>
 </html>

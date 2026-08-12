@@ -501,3 +501,33 @@ body.view-admin .admin-feature-inline-flex {
   flex-direction: column;
   height: auto; /* Laisse la carte prendre sa taille naturelle */
 }
+
+/* =========================================
+   FEATURED CHALLENGES & ISOLATION
+   ========================================= */
+body.isolated-mode .nav-group-1 {
+  display: none !important; /* Cache Accueil, Explore, Create */
+}
+
+.featured-badge {
+  display: inline-block;
+  background: var(--color-accent);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.end-date-warning {
+  color: var(--danger);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+
+

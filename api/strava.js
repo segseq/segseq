@@ -60,20 +60,22 @@ export default async function handler(req, res) {
       if (!athleteRes.ok) throw new Error('Échec de la récupération du profil Strava');
 
       const athlete = await athleteRes.json();
-
-      // --- AJOUT POUR L'ADMIN ---
-      try {
-          const localDbRes = await query(`SELECT is_admin FROM athletes WHERE id = $1`, [athleteId]);
+	  
+	  try {
+          const localDbRes = await query(`SELECT is_admin, restricted_challenge_ids FROM athletes WHERE id = $1`, [athleteId]);
           if (localDbRes.length > 0) {
               athlete.is_admin = localDbRes[0].is_admin;
+              athlete.restricted_challenge_ids = localDbRes[0].restricted_challenge_ids || [];
           } else {
               athlete.is_admin = false;
+              athlete.restricted_challenge_ids = [];
           }
       } catch (dbErr) {
           console.error("Erreur SQL (ignorée) :", dbErr);
           athlete.is_admin = false;
+          athlete.restricted_challenge_ids = [];
       }
-      // --- FIN DE L'AJOUT ---
+
 
       return res.status(200).json(athlete);
     }

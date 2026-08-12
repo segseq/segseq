@@ -41,7 +41,7 @@ export default async function handler(req, res) {
 }
 
 async function processActivity(athleteId, activityId) {
-   const athletes = await query(`SELECT firstname, lastname, access_token, refresh_token, expires_at, scope FROM athletes WHERE id = $1`, [athleteId]);
+   const athletes = await query(`SELECT firstname, lastname, access_token, refresh_token, expires_at, scope, restricted_challenge_ids FROM athletes WHERE id = $1`, [athleteId]);
     if (athletes.length === 0) return;
     let athlete = athletes[0];
     const athleteScope = athlete.scope || '';
@@ -86,8 +86,18 @@ async function processActivity(athleteId, activityId) {
     // ============================
 	
 
-  const activeSegments = await query(`SELECT DISTINCT segment_id FROM challenge_segments`);
+  const isRestricted = athlete.restricted_challenge_ids && athlete.restricted_challenge_ids.length > 0;
+  
+  let activeSegments;
+  if (isRestricted) {
+    // Si restreint, on n'écoute QUE les segments de ses défis autorisés
+    activeSegments = await query(`SELECT DISTINCT segment_id FROM challenge_segments WHERE challenge_id = ANY($1::int[])`, [athlete.restricted_challenge_ids]);
+  } else {
+    // Si complet, on écoute tous les segments
+    activeSegments = await query(`SELECT DISTINCT segment_id FROM challenge_segments`);
+  }
   const activeSegIds = new Set(activeSegments.map(s => s.segment_id.toString()));
+
 
   let inserted = 0;
   let impactedSegments = []; // Pour tracker les segments touchés

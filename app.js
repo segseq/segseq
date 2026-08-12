@@ -91,7 +91,24 @@ async function injectComponents() {
     const authSection = document.getElementById('nav-auth-section');
     
     if (res.ok) {
+         if (res.ok) {
       const athlete = await res.json();
+      
+      // --- LOGIQUE D'ISOLATION (FEATURED) ---
+      const isRestricted = athlete.restricted_challenge_ids && athlete.restricted_challenge_ids.length > 0;
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentChallengeId = urlParams.get('id');
+      
+      if (isRestricted) {
+        // L'utilisateur est restreint. On cache la navigation globale.
+        document.body.classList.add('isolated-mode');
+        
+        // Sécurité : S'il tente d'aller ailleurs que sur son défi autorisé, on le redirige
+        if (window.location.pathname.includes('explore.html') || window.location.pathname.includes('create.html')) {
+            window.location.href = `/challenge.html?id=${athlete.restricted_challenge_ids[0]}`;
+        }
+      }
+
       authSection.innerHTML = `
         <a href="#" class="nav-icon lang-element" data-titleFr="Notifications" data-titleEn="Notifications">
           <!-- SVG Cloche de notification -->
@@ -109,13 +126,24 @@ async function injectComponents() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
         </a>
       `;
-    } else {
+     } else {
+      // Si non connecté, sur une page challenge, on cache la nav pour le forcer à s'inscrire au défi
+      if (window.location.pathname.includes('challenge.html')) {
+          document.body.classList.add('isolated-mode');
+      }
+      
+      // NOUVEAU : Bouton dynamique pour capturer l'ID du défi
+      const urlParams = new URLSearchParams(window.location.search);
+      const challengeId = urlParams.get('id');
+      const authUrl = challengeId ? `/api/strava/auth?source_challenge=${challengeId}` : `/api/strava/auth`;
+
       authSection.innerHTML = `
-        <a href="https://segseq.vercel.app/api/strava/auth" class="strava-connect-btn">
+        <a href="${authUrl}" class="strava-connect-btn">
           <img src="btn_strava_connect_with_orange.png" alt="Connect with Strava" style="height:35px;">
         </a>
       `;
     }
+
   } catch (err) {
     console.error("Auth status error:", err);
   }

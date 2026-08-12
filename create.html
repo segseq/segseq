@@ -136,6 +136,26 @@
           <input id="image-url" type="text" placeholder="https://example.com/image.jpg">
         </div>
 
+		<!-- Options Featured challenge (Admin Only) -->
+        <div class="admin-feature" style="margin-top: 25px; background: rgba(252, 76, 2, 0.05); padding: 20px; border-radius: 12px; border: 1px dashed var(--color-accent);">
+          <h4 style="color: var(--color-accent); margin-bottom: 15px; margin-top: 0;">Admin: Featured Challenge</h4>
+          
+          <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+            <label class="switch" style="margin: 0; flex-shrink: 0;">
+              <input type="checkbox" id="is-featured">
+              <span class="slider"></span>
+            </label>
+            <div>
+              <strong style="display: block; color: var(--color-text-main);">Mettre en avant (Featured)</strong>
+              <small style="color: var(--color-text-muted);">Affichera ce défi sur la page d'accueil avec sa propre landing page.</small>
+            </div>
+          </div>
+
+          <label style="margin-top: 10px; color: var(--color-text-main);">Date de fin (Obligatoire si Featured)</label>
+          <input id="end-date" type="datetime-local" style="background: var(--color-bg-main);">
+        </div>
+
+
         <div class="wizard-nav">
           <button class="icon-btn" onclick="confirmCancel()" title="Cancel">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -354,9 +374,14 @@ async function publishChallenge(event) {
       const strictSequence = document.getElementById("strict-sequence").checked;
       const isPublic = document.getElementById("is-public").checked;
       const imageUrl = document.getElementById("image-url").value.trim();
+      const isFeatured = document.getElementById("is-featured").checked;
+      const endDateStr = document.getElementById("end-date").value;
+
       
       if (!name) return alert(lang === 'fr' ? "Veuillez donner un nom." : "Please give a name.");
       if (!description) return alert(lang === 'fr' ? "Veuillez ajouter une description." : "Please add a description.");
+	  if (isFeatured && !endDateStr) return alert(lang === 'fr' ? "Une date de fin est obligatoire pour un défi Featured." : "End date is required for a Featured challenge.");
+
       
       const validSegments = segments.filter(s => s.isValidated);
       const publishBtn = document.getElementById("publish-btn");
@@ -380,8 +405,11 @@ async function publishChallenge(event) {
         strict_sequence: strictSequence,
         is_public: isPublic,
         image_url: isViewAdminActive ? imageUrl : null,
+        is_featured: isViewAdminActive ? isFeatured : false,
+        end_date: (isViewAdminActive && endDateStr) ? new Date(endDateStr).toISOString() : null,
         segments: validSegments.map(s => s.id) 
       };
+
 
 
       if (editId) payload.id = editId;
@@ -435,6 +463,15 @@ async function publishChallenge(event) {
             // On pré-remplit le champ si une image existe. 
             // Il ne sera visible que si le mode admin est activé via le CSS.
             if(challenge.image_url) document.getElementById("image-url").value = challenge.image_url;
+			 if (challenge.is_featured) document.getElementById("is-featured").checked = true;
+            if (challenge.end_date) {
+              // Formatage pour l'input datetime-local (YYYY-MM-DDTHH:mm)
+              const d = new Date(challenge.end_date);
+              const tzOffset = d.getTimezoneOffset() * 60000;
+              const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
+              document.getElementById("end-date").value = localISOTime;
+            }
+
 
             
             segments = challenge.segments.map(s => ({ id: String(s.id), name: s.name, isValidated: true }));

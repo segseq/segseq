@@ -42,39 +42,50 @@ export default async function handler(req, res) {
     const athleteId = data.athlete.id;
     const athleteName = `${data.athlete.firstname || ''} ${data.athlete.lastname || ''}`.trim();
 
+    const state = urlObj.searchParams.get("state"); // ID du Featured Challenge
+
+    // Vérifier si l'utilisateur existe déjà AVANT l'upsert
+    const existingUser = await query(`SELECT id, restricted_challenge_ids FROM athletes WHERE id = $1`, [athleteId]);
+    const isNewUser = existingUser.length === 0;
+
     // --- 2. UPSERT dans la base (Athlète) ---
-		await query(
-  `INSERT INTO athletes (
-    id, firstname, lastname, profile, country, sex,
-    access_token, refresh_token, expires_at, scope,
-    premium
-  )
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
-  ON CONFLICT (id) DO UPDATE SET
-    firstname = COALESCE(EXCLUDED.firstname, athletes.firstname),
-    lastname = COALESCE(EXCLUDED.lastname, athletes.lastname),
-    profile = COALESCE(EXCLUDED.profile, athletes.profile),
-    country = COALESCE(EXCLUDED.country, athletes.country),
-    sex = COALESCE(EXCLUDED.sex, athletes.sex),
-    access_token = EXCLUDED.access_token,
-    refresh_token = EXCLUDED.refresh_token,
-    expires_at = EXCLUDED.expires_at,
-    scope = EXCLUDED.scope,
-    premium = EXCLUDED.premium; `,
-  [
-    athleteId,
-    data.athlete.firstname || null,
-    data.athlete.lastname || null,
-    data.athlete.profile || null,
-    data.athlete.country || null,
-    data.athlete.sex || null,
-    data.access_token,
-    data.refresh_token,
-    data.expires_at,
-    data.scope,
-    data.athlete.premium || false 
-  ]
-);
+    await query(
+      `INSERT INTO athletes (
+        id, firstname, lastname, profile, country, sex,
+        access_token, refresh_token, expires_at, scope, premium
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
+      ON CONFLICT (id) DO UPDATE SET
+        firstname = COALESCE(EXCLUDED.firstname, athletes.firstname),
+        lastname = COALESCE(EXCLUDED.lastname, athletes.lastname),
+        profile = COALESCE(EXCLUDED.profile, athletes.profile),
+        country = COALESCE(EXCLUDED.country, athletes.country),
+        sex = COALESCE(EXCLUDED.sex, athletes.sex),
+        access_token = EXCLUDED.access_token,
+        refresh_token = EXCLUDED.refresh_token,
+        expires_at = EXCLUDED.expires_at,
+        scope = EXCLUDED.scope,
+        premium = EXCLUDED.premium;`,
+      [
+        athleteId, data.athlete.firstname || null, data.athlete.lastname || null,
+        data.athlete.profile || null, data.athlete.country || null, data.athlete.sex || null,
+        data.access_token, data.refresh_token, data.expires_at, data.scope, data.athlete.premium || false 
+      ]
+    );
+
+    // GESTION DES UTILISATEURS RESTREINTS (FEATURED CHALLENGES)
+    if (state) {
+      const challengeIdInt = parseInt(state);
+      if (isNewUser) {
+        // Nouvel utilisateur depuis la page : on le restreint à ce défi
+        await query(`UPDATE athletes SET restricted_challenge_ids = array_append(restricted_challenge_ids, $1) WHERE id = $2`, [challengeIdInt, athleteId]);
+      } else if (existingUser[0].restricted_challenge_ids && existingUser[0].restricted_challenge_ids.length > 0) {
+        // Utilisateur DÉJÀ restreint qui rejoint un AUTRE défi featured : on ajoute l'ID
+        await query(`UPDATE athletes SET restricted_challenge_ids = array_append(restricted_challenge_ids, $1) WHERE id = $2 AND NOT ($1 = ANY(restricted_challenge_ids))`, [challengeIdInt, athleteId]);
+      }
+      // Si c'est un utilisateur complet (tableau vide/null), on ne fait rien, il reste complet !
+    }
+
 
 
     // --- 3. DÉCLENCHEMENT DU BACKFILL EN ARRIÈRE-PLAN ---
@@ -102,7 +113,9 @@ export default async function handler(req, res) {
             `session=${sessionToken}; ${cookieFlags}`
 		]);
 
-        return res.redirect("https://segseq.vercel.app/profile.html");
+         const redirectUrl = state ? `https://segseq.vercel.app/challenge.html?id=${state}` : "https://segseq.vercel.app/profile.html";
+        return res.redirect(redirectUrl);
+
 
     } catch (err) {
         console.error("Callback crash:", err);

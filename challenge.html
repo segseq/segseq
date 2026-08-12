@@ -30,7 +30,11 @@
     <div class="card">
        <!-- En-tête avec Titre et Boutons d'action -->
       <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
-        <h2 id="challenge-name" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size: 2rem; margin: 0; color: var(--color-text-main);">Loading...</h2>
+        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+          <h2 id="challenge-name" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size: 2rem; margin: 0; color: var(--color-text-main);">Loading...</h2>
+          <span id="featured-badge" class="featured-badge" style="display: none;">Featured</span>
+        </div>
+
         <!-- Nouveaux boutons d'action (SVG) déplacés en haut -->
         <div id="top-action-buttons" class="action-icons" style="display:none;">
           <a href="#" id="btn-edit-challenge-top" class="icon-btn" title="Modifier">
@@ -69,6 +73,11 @@
           <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Distance:" data-fr="Distance :">Distance:</strong> <br><span id="challenge-distance" style="font-weight: 500; color: var(--color-text-main);"></span> km</p>
           <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Elevation:" data-fr="Dénivelé :">Elevation:</strong> <br><span id="challenge-elevation" style="font-weight: 500; color: var(--color-text-main);"></span> m</p>
           <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Sequence:" data-fr="Séquence :">Sequence:</strong> <br><span id="challenge-sequence" style="font-weight: 500; color: var(--color-text-main);"></span></p>
+		  <p id="end-date-container" style="display: none;">
+            <strong style="color: var(--color-text-main);" class="lang-element" data-en="Ends on:" data-fr="Fin :">Ends on:</strong> <br>
+            <span id="challenge-end-date" class="end-date-warning"></span>
+          </p>
+
         </div>
 
         
@@ -206,6 +215,21 @@
         document.getElementById("challenge-distance").textContent = (data.total_distance / 1000).toFixed(2);
         document.getElementById("challenge-elevation").textContent = Math.round(data.total_elevation);
         
+		 // GESTION FEATURED & DATE DE FIN
+        if (data.is_featured) {
+          document.getElementById("featured-badge").style.display = "inline-block";
+        }
+        if (data.end_date) {
+          const endDateEl = document.getElementById("challenge-end-date");
+          const containerEl = document.getElementById("end-date-container");
+          const d = new Date(data.end_date);
+          endDateEl.textContent = d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', {
+            weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'
+          });
+          containerEl.style.display = "block";
+        }
+
+		
 		// GESTION DE L'IMAGE
         if (data.image_url) {
           const imgEl = document.getElementById("challenge-image");

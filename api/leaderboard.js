@@ -19,7 +19,11 @@ export function formatTime(sec) {
 export async function calculateLeaderboard(challengeId, allAthletes, logStep = console.log) {
   logStep(`📊 --- STARTING LEADERBOARD CALCULATION ---`);
   
-  const challengeRows = await query(`SELECT duration_hours, strict_sequence FROM challenges WHERE id = $1`, [challengeId]);
+  const challengeRows = await query(`SELECT duration_hours, strict_sequence, end_date FROM challenges WHERE id = $1`, [challengeId]);
+
+const challengeEndDateMs = challengeRows[0].end_date ? new Date(challengeRows[0].end_date).getTime() : Infinity;
+
+
   if (challengeRows.length === 0) {
     logStep(`❌ Error: Challenge ${challengeId} not found in DB.`);
     return [];
@@ -116,7 +120,7 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
         const effortsInWindow = effortsBySeg[segId].filter(e => {
           const tStart = new Date(e.start_date).getTime();
           const tEnd = tStart + (Number(e.elapsed_time) * 1000);
-          return tStart >= windowStartMs && tEnd <= windowEndMs;
+          return tStart >= windowStartMs && tEnd <= windowEndMs && tStart <= challengeEndDateMs;
         });
         
         if (effortsInWindow.length < requiredCounts[segId]) {
