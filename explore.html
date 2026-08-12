@@ -154,16 +154,14 @@ function applySearchAndSort() {
       
       container.innerHTML = "";
       
-      paginatedData.forEach(challenge => {
+paginatedData.forEach(challenge => {
         const card = document.createElement("div");
         card.className = "challenge-card";
         
-        // Bouton ~ centralisé
+        // 1. Boutons d'action (Édition/Suppression uniquement si on est le créateur, plus de bouton ~)
         let actionsHtml = ``;
-        
-        // Remplacement des boutons grossiers par des icônes SVG
         if (challenge.can_delete) {
-          actionsHtml += `
+          actionsHtml = `
             <div class="action-icons">
               <a href="create.html?edit=${challenge.id}" class="icon-btn" title="${lang === 'fr' ? 'Modifier' : 'Edit'}">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -175,26 +173,15 @@ function applySearchAndSort() {
           `;
         }
 
-        // Affichage robuste des sports
+        // 2. Formatage du Sport (Sécurisé contre les valeurs nulles)
         let sportsList = [];
         if (Array.isArray(challenge.sports)) sportsList = challenge.sports;
         else if (typeof challenge.sports === 'string') sportsList = challenge.sports.split(',');
-        else if (challenge.segments) sportsList = challenge.segments.map(s => s.activity_type || s.sport || 'Unknown');
         
-        const sports = [...new Set(sportsList.map(s => s.trim()))];
-
-        const tagsHtml = sports.map(s => {
-          let sName = s;
-          if (lang === 'fr') {
-            if (s.toLowerCase().includes('run')) sName = 'Course';
-            if (s.toLowerCase().includes('ride') || s.toLowerCase().includes('cycl')) sName = 'Vélo';
-          }
-          return `<span class="sport-tag">${sName}</span>`;
-        }).join('');
-
-         // 1. Formatage élégant du Sport
+        const sports = [...new Set(sportsList.map(s => s ? s.trim() : ''))].filter(s => s && s !== 'Unknown');
+        
         let displaySport = "Multi-sports";
-        if (sports.length === 1 && sports[0] !== 'Unknown') {
+        if (sports.length === 1) {
           let s = sports[0].toLowerCase();
           if (lang === 'fr') {
             if (s.includes('run')) displaySport = 'Course';
@@ -203,16 +190,18 @@ function applySearchAndSort() {
           } else {
             displaySport = s.charAt(0).toUpperCase() + s.slice(1);
           }
+        } else if (sports.length === 0) {
+          displaySport = "N/A";
         }
 
-        // 2. L'image (si elle existe)
+        // 3. L'image (si elle existe, sinon on ne met rien)
         const imgHtml = challenge.image_url 
           ? `<a href="challenge.html?id=${challenge.id}" style="display: block; margin-bottom: 15px; flex-shrink: 0;">
                <img src="${challenge.image_url}" alt="Challenge Image" style="width: 100%; height: 180px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
              </a>` 
           : ``;
 
-        // 3. Le Layout Final (Titre -> Description -> Image -> Footer)
+        // 4. Le Layout Final (Titre -> Description -> Image -> Footer)
         card.innerHTML = `
           <div style="display: flex; flex-direction: column; height: 100%;">
             
@@ -228,7 +217,7 @@ function applySearchAndSort() {
               </div>
             </div>
 
-            <!-- Description (Tronquée à 2 lignes) -->
+            <!-- Description (Tronquée à 2 lignes max) -->
             <p style="color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
               ${challenge.description || (lang === 'fr' ? 'Aucune description.' : 'No description.')}
             </p>
@@ -236,7 +225,7 @@ function applySearchAndSort() {
             <!-- Image -->
             ${imgHtml}
 
-            <!-- Espace flexible pour toujours pousser le footer tout en bas -->
+            <!-- Espace flexible pour pousser le footer tout en bas -->
             <div style="flex-grow: 1;"></div>
 
             <!-- Footer : Segments • Sport • Durée -->
@@ -252,82 +241,7 @@ function applySearchAndSort() {
 
           </div>
         `;
-
-        // 3. Le Layout "Premium" (Titre -> Métadonnées -> Image -> Description)
-        card.innerHTML = `
-          <div style="display: flex; flex-direction: column; height: 100%;">
-            
-            <!-- En-tête : Titre & Actions -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
-              <h3 style="font-size: 1.3rem; margin: 0; line-height: 1.3; font-weight: 700; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                <a href="challenge.html?id=${challenge.id}" style="color: var(--color-text-main); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-text-main)'">
-                  ${challenge.name}
-                </a>
-              </h3>
-              <div style="display: flex; gap: 8px; flex-shrink: 0;">
-                ${actionsHtml}
-              </div>
-            </div>
-
-            <!-- Ligne de Métadonnées (Segments • Sport • Durée) -->
-            <div style="color: var(--color-text-muted); font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <span>${challenge.segment_count || 0} Segments</span>
-              <span style="opacity: 0.4;">•</span>
-              <span style="color: var(--color-accent);">${displaySport}</span>
-              <span style="opacity: 0.4;">•</span>
-              <span>⏱ ${challenge.duration_hours}h</span>
-            </div>
-
-            <!-- Image -->
-            ${imgHtml}
-
-            <!-- Description (Fluide en bas) -->
-            <p style="color: var(--color-text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1;">
-              ${challenge.description || ''}
-            </p>
-
-          </div>
-        `;
-
-        // 2. Le nouveau Layout Vertical (Uniformisé et Responsive)
-        card.innerHTML = `
-          <div style="display: flex; flex-direction: column; height: 100%;">
-            
-            <!-- En-tête : Titre à gauche, Boutons d'action à droite (Hauteur fixe pour alignement) -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 15px; min-height: 55px;">
-              <h3 style="font-size: 1.25rem; margin: 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;">
-                <a href="challenge.html?id=${challenge.id}" style="color: var(--color-text-main); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-text-main)'">
-                  ${challenge.name}
-                </a>
-              </h3>
-              <div style="display: flex; gap: 8px; flex-shrink: 0;">
-                ${actionsHtml}
-              </div>
-            </div>
-
-            <!-- Image (Pleine largeur ou Placeholder) -->
-            ${imgHtml}
-
-            <!-- Tags des Sports -->
-            <div class="sport-tags" style="margin-bottom: 12px; margin-top: 0;">
-              ${tagsHtml}
-            </div>
-
-            <!-- Description (Limitée à 2 lignes) -->
-            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1;">
-              ${challenge.description || ''}
-            </p>
-
-            <!-- Footer : Durée (Toujours poussé en bas) -->
-            <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; margin-top: auto;">
-              <p style="color: var(--color-text-muted); margin: 0; font-size: 0.9rem;">
-                <strong style="color: var(--color-text-main);">${lang === 'fr' ? 'Durée :' : 'Duration:'}</strong> ${challenge.duration_hours}h
-              </p>
-            </div>
-
-          </div>
-        `;
-
+        
         container.appendChild(card);
 
 
