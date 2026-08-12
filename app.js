@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ------------------------------ */
 /* PWA: Enregistrement Service Worker dynamique */
-/* ------------------------------ */
+/* ------------------------------ 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     // Création d'un Service Worker basique à la volée (évite de créer un fichier sw.js)
@@ -199,6 +199,7 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.log('PWA: Erreur Service Worker', err));
   });
 }
+*/
 
 /* ------------------------------ */
 /* Gestion Globale de la Vue Admin */

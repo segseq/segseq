@@ -12,7 +12,8 @@
   <meta name="theme-color" content="#1B241F">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SegSeq">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -54,25 +55,19 @@
           <div class="lang-element" data-en="Membership" data-fr="Abonnement" style="font-size:.9rem; text-transform:uppercase; color:var(--color-text-muted); margin-bottom:8px;">Membership</div>
           <div id="subscription-status" class="lang-element" data-en="Loading..." data-fr="Chargement..." style="font-size:1.3rem; font-weight:700; color:var(--color-text-main);">Loading...</div>
         </div>
-
-		<!-- DÉBUT : Interrupteur Vue Admin (Caché par défaut) -->
-        <div id="admin-toggle-container" class="info-box" style="display: none; grid-column: 1 / -1; background: rgba(252, 76, 2, 0.05); border: 1px solid var(--color-accent);">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div id="admin-toggle-container" class="info-box" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px;">
             <div>
               <div class="lang-element" data-en="Admin Mode" data-fr="Mode Administrateur" style="font-size:.9rem; text-transform:uppercase; color:var(--color-accent); margin-bottom:4px; font-weight: bold;">Mode Administrateur</div>
-              <div class="lang-element" data-en="Enable advanced admin features" data-fr="Activer les fonctionnalités avancées" style="font-size:0.85rem; color:var(--color-text-main);">Activer les fonctionnalités avancées</div>
+              <div class="lang-element" data-en="Enable advanced features" data-fr="Activer les fonctions avancées" style="font-size:0.85rem; color:var(--color-text-muted);">Activer les fonctions avancées</div>
             </div>
-            <label class="switch">
+            <label class="switch" style="margin: 0; flex-shrink: 0;">
               <input type="checkbox" id="admin-view-toggle">
               <span class="slider"></span>
             </label>
           </div>
         </div>
-        <!-- FIN : Interrupteur Vue Admin -->
-
-
-	      <!-- Bannière d'information Strava -->
-        <div id="sync-info-banner" style="background-color: rgba(252, 76, 2, 0.05); border-left: 4px solid var(--color-accent); padding: 15px; margin-bottom: 30px; border-radius: 4px;">
+        <div id="sync-info-banner" style="grid-column: span 2; background-color: rgba(252, 76, 2, 0.05); border-left: 4px solid var(--color-accent); padding: 15px; border-radius: 4px;">
           <p style="margin: 0; font-size: 0.9rem; color: var(--color-text-main); line-height: 1.5;">
             <strong style="color: var(--color-accent);">ℹ️ <span class="lang-element" data-en="Info:" data-fr="Info:">Info:</span></strong> 
             <span class="lang-element" data-en="As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized." data-fr="En tant qu'abonné gratuit à Strava, seules les activités futures sont incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
@@ -151,13 +146,20 @@
         }
         const athlete = await athleteRes.json();
 		
-		    const banner = document.getElementById("sync-info-banner");
+		const banner = document.getElementById("sync-info-banner");
+        
+        // Le code SVG de l'icône Info (réutilisable)
+        const infoSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top: -2px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+
         if (athlete.premium) {
             banner.style.backgroundColor = "rgba(24, 144, 255, 0.1)";
             banner.style.borderLeftColor = "#1890ff";
             banner.innerHTML = `
                 <p style="margin: 0; font-size: 0.9rem; color: var(--color-text-main); line-height: 1.5;">
-                  <strong style="color: #1890ff;">ℹ️ <span class="lang-element" data-en="Info:" data-fr="Info:">Info:</span></strong> 
+                  <strong style="color: #1890ff; display: inline-flex; align-items: center; gap: 6px;">
+                    ${infoSvg}
+                    <span class="lang-element" data-en="Info:" data-fr="Info:">Info:</span>
+                  </strong> 
                   <span class="lang-element" data-en="As a Strava premium subscriber, past activities can be synchronized for challenges." data-fr="En tant qu'abonné premium Strava, les activités passées peuvent être synchronisées pour les défis.">
                       As a Strava premium subscriber, past activities can be synchronized for challenges.
                   </span>
@@ -167,7 +169,10 @@
         } else {
             banner.innerHTML = `
                 <p style="margin: 0; font-size: 0.9rem; color: var(--color-text-main); line-height: 1.5;">
-                  <strong style="color: var(--color-accent);">ℹ️ <span class="lang-element" data-en="Sync:" data-fr="Info:">Info:</span></strong> 
+                  <strong style="color: var(--color-accent); display: inline-flex; align-items: center; gap: 6px;">
+                    ${infoSvg}
+                    <span class="lang-element" data-en="Info:" data-fr="Info:">Info:</span>
+                  </strong> 
                   <span class="lang-element" data-en="As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized." data-fr="En tant qu'abonné gratuit à Strava, seules les activités futures sont incluses dans les défis. Les données passées ne peuvent pas être synchronisées.">
                       As a free Strava user, only future activities are included in challenges. Past data cannot be synchronized.
                   </span>

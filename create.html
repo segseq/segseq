@@ -12,7 +12,8 @@
   <meta name="theme-color" content="#1B241F">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SegSeq">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -124,8 +125,8 @@
             <span class="slider"></span>
           </label>
           <div style="line-height: 1.4;">
-            <strong class="lang-element" data-en="Public Challenge" data-fr="Défi Public" style="display: block; color: var(--color-text-main);">Public Challenge</strong>
-            <small class="lang-element" data-en="If unchecked, the challenge remains private." data-fr="Si décoché, le défi reste privé." style="color: var(--color-text-muted);">If unchecked, the challenge remains private.</small>
+            <strong class="lang-element" data-en="Public" data-fr="Public" style="display: block; color: var(--color-text-main);">Public</strong>
+            <small class="lang-element" data-en="The filter on Private challenges is yet to be implemented :P" data-en="Le filtre sur les défis Privés n'est pas encore implémenté :P" style="color: var(--color-text-muted);">The filter on Private challenges is yet to be implemented :P</small>
           </div>
         </div>
 
@@ -419,8 +420,9 @@ async function publishChallenge(event) {
       const lang = localStorage.getItem('userLang') || 'en';
 
       if (editId) {
-        document.querySelector('h2').textContent = lang === 'fr' ? "Modifier le défi" : "Edit Challenge";
-        document.getElementById('publish-btn').textContent = lang === 'fr' ? "Enregistrer" : "Save changes";
+		document.getElementById('publish-btn').title = lang === 'fr' ? "Enregistrer" : "Save changes";
+		document.getElementById('publish-btn').innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>`;
+        document.getElementById('publish-btn').title = lang === 'fr' ? "Enregistrer" : "Save changes";
         try {
           const res = await fetch(`/api/challenges?id=${editId}`);
           if (res.ok) {

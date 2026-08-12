@@ -12,7 +12,8 @@
   <meta name="theme-color" content="#1B241F">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SegSeq">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -70,12 +71,13 @@
     <div style="display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;">
       <input type="text" id="search-input" class="lang-element" data-placeholder-en="Search by name..." data-placeholder-fr="Rechercher par nom..." placeholder="Search by name..." style="flex: 2; min-width: 200px; margin-top: 0;">
       
-      <select id="sport-select" style="flex: 1; min-width: 150px; margin-top: 0; cursor: pointer;">
+      <!-- Filtre multi-sport ne marche pas... on lenleve temproairement 
+	  <select id="sport-select" style="flex: 1; min-width: 150px; margin-top: 0; cursor: pointer;">
         <option value="all" class="lang-element" data-en="All Sports" data-fr="Tous les sports">All Sports</option>
         <option value="run" class="lang-element" data-en="Running" data-fr="Course à pied">Running</option>
         <option value="ride" class="lang-element" data-en="Cycling" data-fr="Vélo">Cycling</option>
         <option value="multi" class="lang-element" data-en="Multisport" data-fr="Multisports">Multisport</option>
-      </select>
+      </select> -->
 
       <select id="sort-select" style="flex: 1; min-width: 150px; margin-top: 0; cursor: pointer;">
         <option value="newest" class="lang-element" data-en="Sort: Newest first" data-fr="Tri : Plus récents">Sort: Newest first</option>
@@ -223,8 +225,8 @@
         }).join('');
 
         const imgHtml = challenge.image_url 
-          ? `<img src="${challenge.image_url}" class="challenge-img" alt="Challenge Image">` 
-          : '';
+		  ? `<a href="challenge.html?id=${challenge.id}"><img src="${challenge.image_url}" class="challenge-img" alt="Challenge Image" style="transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"></a>` 
+		  : '';
 
         // Application du titre Orange (challenge-title-accent)
         card.innerHTML = `
@@ -232,7 +234,10 @@
             ${imgHtml}
             <div class="challenge-details">
               <div class="challenge-info">
-                <h3 style="color: var(--color-text-main); font-size: 1.4rem; margin-bottom: 8px;">${challenge.name}</h3>
+                <h3 style="font-size: 1.4rem; margin-bottom: 8px;">
+				  <a href="challenge.html?id=${challenge.id}" style="color: var(--color-text-main); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-text-main)'">
+					${challenge.name}
+				  </a>		</h3>
                 <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${challenge.description || ''}</p>
                 <p style="color: var(--color-text-muted); margin-bottom: 10px;"><strong style="color: var(--color-text-main);">${lang === 'fr' ? 'Durée :' : 'Duration:'}</strong> ${challenge.duration_hours}h</p>
                 <div class="sport-tags">${tagsHtml}</div>
