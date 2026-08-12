@@ -38,15 +38,17 @@ export default async function handler(req, res) {
     if (method === "POST") {
       if (!currentAthleteId) return res.status(401).json({ error: "Not authenticated" });
       
-      const { name, description, duration, strict_sequence, segments } = req.body;
+      // On ajoute image_url ici
+      const { name, description, duration, strict_sequence, segments, image_url } = req.body;
       if (!name || !duration || !Array.isArray(segments) || segments.length < 2) {
         return res.status(400).json({ error: "Invalid payload" });
       }
 
+      // On l'ajoute dans la requête SQL
       const rows = await query(
-        `INSERT INTO challenges (creator_id, name, description, duration_hours, strict_sequence)
-         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-        [currentAthleteId, name, description, duration, strict_sequence]
+        `INSERT INTO challenges (creator_id, name, description, duration_hours, strict_sequence, image_url)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [currentAthleteId, name, description, duration, strict_sequence, image_url]
       );
       const challengeId = rows[0].id;
 
@@ -96,7 +98,8 @@ export default async function handler(req, res) {
     else if (method === "PUT") {
       if (!currentAthleteId) return res.status(401).json({ error: "Not authenticated" });
       
-      const { id, name, description, duration, strict_sequence, segments } = req.body;
+       // On ajoute image_url ici
+      const { id, name, description, duration, strict_sequence, segments, image_url } = req.body;
       if (!id || !name || !duration || !Array.isArray(segments) || segments.length < 2) {
         return res.status(400).json({ error: "Invalid payload" });
       }
@@ -107,11 +110,12 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: "Forbidden: You can only edit your own challenges." });
       }
 
-      // 1. Mettre à jour le défi
+      // 1. Mettre à jour le défi (avec image_url)
       await query(
-        `UPDATE challenges SET name = $1, description = $2, duration_hours = $3, strict_sequence = $4 WHERE id = $5`,
-        [name, description, duration, strict_sequence, id]
+        `UPDATE challenges SET name = $1, description = $2, duration_hours = $3, strict_sequence = $4, image_url = $5 WHERE id = $6`,
+        [name, description, duration, strict_sequence, image_url, id]
       );
+
 
       // 2. Remplacer les segments (On supprime les anciens, on insère les nouveaux)
       await query(`DELETE FROM challenge_segments WHERE challenge_id = $1`, [id]);
