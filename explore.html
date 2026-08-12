@@ -123,35 +123,16 @@
       }
     }
 
-     function applySearchAndSort() {
+function applySearchAndSort() {
       const searchTerm = document.getElementById('search-input').value.toLowerCase();
       const sortValue = document.getElementById('sort-select').value;
-      const sportValue = document.getElementById('sport-select').value;
       
+      // On ne filtre plus que sur le nom
       filteredChallenges = allChallenges.filter(c => {
-        const matchName = c.name.toLowerCase().includes(searchTerm);
-        
-        // Correction du bug : gestion robuste des formats (Tableau ou String)
-        let sportsList = [];
-        if (Array.isArray(c.sports)) sportsList = c.sports;
-        else if (typeof c.sports === 'string') sportsList = c.sports.split(',');
-        else if (c.segments) sportsList = c.segments.map(s => s.activity_type || s.sport || '');
-        
-        // Nettoyage et suppression des doublons
-        const sportsNormalized = [...new Set(sportsList.map(s => s.toLowerCase().trim()))];
-
-        let matchSport = true;
-        if (sportValue === 'run') {
-          matchSport = sportsNormalized.some(s => s.includes('run') || s.includes('course'));
-        } else if (sportValue === 'ride') {
-          matchSport = sportsNormalized.some(s => s.includes('ride') || s.includes('cycl') || s.includes('vélo') || s.includes('velo'));
-        } else if (sportValue === 'multi') {
-          matchSport = sportsNormalized.length >= 2;
-        }
-
-        return matchName && matchSport;
+        return c.name.toLowerCase().includes(searchTerm);
       });
 
+      // Le tri reste identique
       filteredChallenges.sort((a, b) => {
         if (sortValue === 'newest') return b.id - a.id;
         if (sortValue === 'name') return a.name.localeCompare(b.name);
@@ -260,7 +241,6 @@
 
     document.getElementById('search-input').addEventListener('input', applySearchAndSort);
     document.getElementById('sort-select').addEventListener('change', applySearchAndSort);
-    document.getElementById('sport-select').addEventListener('change', applySearchAndSort);
 
     async function deleteChallenge(id) {
       const lang = localStorage.getItem('userLang') || 'en';
