@@ -23,29 +23,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   
-  <style>
-    /* Styles spécifiques à la page Explore (Adaptés au thème sombre) */
-    .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 40px; }
-    .btn-page { background: rgba(255,255,255,0.1); color: var(--color-text-main); border: 1px solid rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; }
-    .btn-page:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
-    .btn-page:disabled { opacity: 0.3; cursor: not-allowed; }
-    
-    .challenge-card-inner { display: flex; gap: 20px; align-items: center; width: 100%; }
-    .challenge-img { width: 120px; height: 120px; object-fit: cover; border-radius: 16px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
-    .challenge-details { flex: 1; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
-    .challenge-info { flex: 1; }
-    .challenge-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
-    
-    .sport-tags { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-    .sport-tag { background: rgba(255,255,255,0.05); color: var(--color-text-muted); font-size: 0.8rem; padding: 6px 12px; border-radius: 8px; font-weight: 600; border: 1px solid rgba(255,255,255,0.05); }
-    
-    @media (max-width: 600px) {
-      .challenge-card-inner { flex-direction: column; align-items: flex-start; }
-      .challenge-img { width: 100%; height: 180px; }
-      .challenge-details { flex-direction: column; align-items: flex-start; width: 100%; }
-      .challenge-actions { width: 100%; justify-content: flex-start; margin-top: 10px; }
-    }
-  </style>
 </head>
 <body>
   <div id="header-placeholder"></div>
@@ -205,20 +182,20 @@ function applySearchAndSort() {
           return `<span class="sport-tag">${sName}</span>`;
         }).join('');
 
-        // 1. L'image (adaptée pour prendre toute la largeur de la tuile)
+         // 1. L'image (Juste l'image si elle existe, sinon RIEN)
         const imgHtml = challenge.image_url 
-          ? `<a href="challenge.html?id=${challenge.id}" style="display: block; margin-bottom: 15px;">
+          ? `<a href="challenge.html?id=${challenge.id}" style="display: block; margin-bottom: 15px; flex-shrink: 0;">
                <img src="${challenge.image_url}" alt="Challenge Image" style="width: 100%; height: 180px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
              </a>` 
-          : '';
+          : ``;
 
-        // 2. Le nouveau Layout Vertical
+        // 2. Le nouveau Layout Vertical (Uniformisé et Responsive)
         card.innerHTML = `
           <div style="display: flex; flex-direction: column; height: 100%;">
             
-            <!-- En-tête : Titre à gauche, Boutons d'action à droite -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 15px;">
-              <h3 style="font-size: 1.35rem; margin: 0; line-height: 1.3;">
+            <!-- En-tête : Titre à gauche, Boutons d'action à droite (Hauteur fixe pour alignement) -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 15px; min-height: 55px;">
+              <h3 style="font-size: 1.25rem; margin: 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;">
                 <a href="challenge.html?id=${challenge.id}" style="color: var(--color-text-main); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-text-main)'">
                   ${challenge.name}
                 </a>
@@ -228,28 +205,29 @@ function applySearchAndSort() {
               </div>
             </div>
 
-            <!-- Image (Pleine largeur) -->
+            <!-- Image (Pleine largeur ou Placeholder) -->
             ${imgHtml}
 
             <!-- Tags des Sports -->
-            <div class="sport-tags" style="margin-bottom: 15px; margin-top: 0;">
+            <div class="sport-tags" style="margin-bottom: 12px; margin-top: 0;">
               ${tagsHtml}
             </div>
 
-            <!-- Description (Optionnelle, limitée à 2 lignes, pousse la durée vers le bas) -->
-            <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1;">
+            <!-- Description (Limitée à 2 lignes) -->
+            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1;">
               ${challenge.description || ''}
             </p>
 
-            <!-- Footer : Durée -->
+            <!-- Footer : Durée (Toujours poussé en bas) -->
             <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; margin-top: auto;">
-              <p style="color: var(--color-text-muted); margin: 0; font-size: 0.95rem;">
+              <p style="color: var(--color-text-muted); margin: 0; font-size: 0.9rem;">
                 <strong style="color: var(--color-text-main);">${lang === 'fr' ? 'Durée :' : 'Duration:'}</strong> ${challenge.duration_hours}h
               </p>
             </div>
 
           </div>
         `;
+
         container.appendChild(card);
 
 

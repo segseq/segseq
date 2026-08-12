@@ -61,13 +61,16 @@
       </div>
 	  
       <div id="challenge-details-section">
-        <h3 class="lang-element" data-en="Details" data-fr="Détails" style="margin-bottom: 15px;">Details</h3>
-        <div style="display: flex; flex-direction: column; gap: 8px; color: var(--color-text-muted);">
-          <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Duration:" data-fr="Durée :">Duration:</strong> <span id="challenge-duration"></span> <span class="lang-element" data-en="hours" data-fr="heures">hours</span></p>
-          <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Distance:" data-fr="Distance :">Distance:</strong> <span id="challenge-distance"></span> km</p>
-          <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Elevation:" data-fr="Dénivelé :">Elevation:</strong> <span id="challenge-elevation"></span> m</p>
-		      <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Sequence:" data-fr="Séquence :">Sequence:</strong> <span id="challenge-sequence"></span></p>
+        <div id="challenge-details-section">
+        <!-- Section Détails remaniée : En grille, sans titre, avec fond subtil -->
+        <div class="challenge-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; color: var(--color-text-muted); background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 30px;">
+          <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Sport:" data-fr="Sport :">Sport:</strong> <br><span id="challenge-sport" style="font-weight: 500; color: var(--color-accent);">...</span></p>
+          <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Duration:" data-fr="Durée :">Duration:</strong> <br><span id="challenge-duration" style="font-weight: 500; color: var(--color-text-main);"></span> <span class="lang-element" data-en="h" data-fr="h">h</span></p>
+          <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Distance:" data-fr="Distance :">Distance:</strong> <br><span id="challenge-distance" style="font-weight: 500; color: var(--color-text-main);"></span> km</p>
+          <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Elevation:" data-fr="Dénivelé :">Elevation:</strong> <br><span id="challenge-elevation" style="font-weight: 500; color: var(--color-text-main);"></span> m</p>
+          <p><strong style="color: var(--color-text-main);" class="lang-element" data-en="Sequence:" data-fr="Séquence :">Sequence:</strong> <br><span id="challenge-sequence" style="font-weight: 500; color: var(--color-text-main);"></span></p>
         </div>
+
         
         <h3 class="lang-element" data-en="Segments" data-fr="Segments" style="margin: 35px 0 15px;">Segments</h3>
         <div id="segments-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
@@ -214,6 +217,31 @@
         document.getElementById("challenge-sequence").textContent = lang === 'fr' 
           ? (isStrict ? "Stricte (Dans l'ordre exact)" : "Libre (Dans n'importe quel ordre)") 
           : (isStrict ? "Strict (Must follow order)" : "Free (Any order)");
+
+		//  Logique de détection du Sport ---
+        const sportsSet = new Set();
+        data.segments.forEach(seg => {
+          if (seg.activity_type || seg.sport) {
+            sportsSet.add((seg.activity_type || seg.sport).toLowerCase());
+          }
+        });
+
+        let displaySport = "N/A";
+        if (sportsSet.size === 1) {
+          const s = Array.from(sportsSet)[0];
+          if (lang === 'fr') {
+            if (s === 'run') displaySport = 'Course à pied';
+            else if (s === 'ride') displaySport = 'Cyclisme';
+            else displaySport = s.charAt(0).toUpperCase() + s.slice(1);
+          } else {
+            displaySport = s.charAt(0).toUpperCase() + s.slice(1);
+          }
+        } else if (sportsSet.size > 1) {
+          displaySport = "Multi-sports";
+        }
+        document.getElementById("challenge-sport").textContent = displaySport;
+   
+
 
         if (data.can_edit === true) {
           const editBtn = document.getElementById("btn-edit-challenge-top");
