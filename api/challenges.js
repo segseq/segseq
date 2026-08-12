@@ -209,9 +209,9 @@ export default async function handler(req, res) {
     // ==========================================
     else if (method === "GET") {
       if (!id) {
-         // Liste des défis (pour explore.html) avec agrégation des sports ET comptage des segments
+         // Liste des défis (pour explore.html)
         const rows = await query(`
-          SELECT c.id, c.creator_id, c.name, c.duration_hours, c.created_at, c.image_url, 
+          SELECT c.id, c.creator_id, c.name, c.description, c.duration_hours, c.created_at, c.image_url, 
                  ARRAY_AGG(DISTINCT cs.sport_type) as sports,
                  COUNT(cs.segment_id) as segment_count
           FROM challenges c

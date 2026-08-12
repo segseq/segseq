@@ -201,7 +201,14 @@ paginatedData.forEach(challenge => {
              </a>` 
           : ``;
 
-        // 4. Le Layout Final (Titre -> Description -> Image -> Footer)
+         // Génération de la description uniquement si elle existe
+        const descHtml = challenge.description 
+          ? `<p style="color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${challenge.description}
+             </p>`
+          : ``;
+		  
+ // 4. Le Layout Final
         card.innerHTML = `
           <div style="display: flex; flex-direction: column; height: 100%;">
             
@@ -217,10 +224,8 @@ paginatedData.forEach(challenge => {
               </div>
             </div>
 
-            <!-- Description (Tronquée à 2 lignes max) -->
-            <p style="color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-              ${challenge.description || (lang === 'fr' ? 'Aucune description.' : 'No description.')}
-            </p>
+            <!-- Description (Seulement si présente) -->
+            ${descHtml}
 
             <!-- Image -->
             ${imgHtml}
