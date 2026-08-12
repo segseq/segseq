@@ -164,7 +164,7 @@ export default async function handler(req, res) {
     // ==========================================
     else if (method === "GET") {
       if (!id) {
-        const rows = await query(`SELECT id, creator_id, name, duration_hours, created_at FROM challenges ORDER BY created_at DESC`);
+        const rows = await query(`SELECT id, creator_id, name, duration_hours, created_at, image_url FROM challenges ORDER BY created_at DESC`);
         return res.status(200).json(rows.map(row => ({ ...row, can_delete: String(row.creator_id) === String(currentAthleteId) })));
       } else {
         const challengeRows = await query(`SELECT * FROM challenges WHERE id = $1`, [id]);

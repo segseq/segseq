@@ -42,12 +42,15 @@
         </div>
       </div>
 
-      <!-- Layout Image + Description -->
-      <div class="challenge-header-layout" style="margin-bottom: 30px;">
-        <div style="flex: 1;">
-          <p id="challenge-description" class="lang-element" data-en="Loading description..." data-fr="Chargement de la description..." style="color: var(--color-text-muted); line-height:1.6; margin: 0;">Loading description...</p>
+      <!-- Layout Image + Description (Mode Bannière Premium) -->
+      <div style="margin-bottom: 30px; display: flex; flex-direction: column; gap: 20px;">
+        <!-- L'image passe en haut, en pleine largeur -->
+        <img id="challenge-image" src="" alt="Challenge" style="display: none; width: 100%; height: 320px; object-fit: cover; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+        
+        <!-- La description passe en dessous -->
+        <div>
+          <p id="challenge-description" class="lang-element" data-en="Loading description..." data-fr="Chargement de la description..." style="color: var(--color-text-muted); line-height: 1.6; margin: 0; font-size: 1.05rem;">Loading description...</p>
         </div>
-        <img id="challenge-image" src="" alt="Challenge" class="challenge-main-img" style="display: none;">
       </div>
 
       
