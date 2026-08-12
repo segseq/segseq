@@ -236,13 +236,49 @@ export default async function handler(req, res) {
           if (userDb.length > 0 && userDb[0].is_admin) isAdmin = true;
         }
 		
-        // Récupérer les segments avec leurs métadonnées depuis NOTRE base de données
-        const segmentRows = await query(`
-          SELECT segment_id, order_index, name, distance, elevation, grade as average_grade, sport_type as activity_type 
+        // Récupérer les segments (on ajoute "id as row_id" pour pouvoir les mettre à jour si besoin)
+        let segmentRows = await query(`
+          SELECT id as row_id, segment_id, order_index, name, distance, elevation, grade as average_grade, sport_type as activity_type 
           FROM challenge_segments 
           WHERE challenge_id = $1 
           ORDER BY order_index ASC
         `, [id]);
+
+        // --- AUTO-GUÉRISON (SELF-HEALING) POUR LES ANCIENS DÉFIS ---
+        // Si on détecte un ancien segment sans nom, on va le chercher sur Strava et on met à jour la DB
+        const needsBackfill = segmentRows.some(s => s.name === null);
+        
+        if (needsBackfill) {
+          // On récupère le token du créateur pour avoir le droit d'interroger Strava
+          const creatorDb = await query(`SELECT access_token FROM athletes WHERE id = $1`, [challengeRows[0].creator_id]);
+          const token = creatorDb.length > 0 ? creatorDb[0].access_token : null;
+
+          if (token) {
+            for (let i = 0; i < segmentRows.length; i++) {
+              if (segmentRows[i].name === null) {
+                try {
+                  const res = await fetch(`https://www.strava.com/api/v3/segments/${segmentRows[i].segment_id}`, { headers: { Authorization: `Bearer ${token}` } });
+                  if (res.ok) {
+                    const data = await res.json();
+                    
+                    // 1. Mettre à jour la base de données pour toujours
+                    await query(
+                      `UPDATE challenge_segments SET name=$1, distance=$2, elevation=$3, grade=$4, sport_type=$5 WHERE id=$6`,
+                      [data.name, data.distance || 0, data.total_elevation_gain || 0, data.average_grade || 0, data.activity_type, segmentRows[i].row_id]
+                    );
+                    
+                    // 2. Mettre à jour l'objet en mémoire pour l'affichage immédiat
+                    segmentRows[i].name = data.name;
+                    segmentRows[i].distance = data.distance || 0;
+                    segmentRows[i].elevation = data.total_elevation_gain || 0;
+                    segmentRows[i].average_grade = data.average_grade || 0;
+                    segmentRows[i].activity_type = data.activity_type;
+                  }
+                } catch(e) { console.error("Erreur auto-guérison Strava:", e); }
+              }
+            }
+          }
+        }
 
         let totalDistance = 0, totalElevation = 0;
         
