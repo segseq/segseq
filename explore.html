@@ -182,12 +182,61 @@ function applySearchAndSort() {
           return `<span class="sport-tag">${sName}</span>`;
         }).join('');
 
-         // 1. L'image (Juste l'image si elle existe, sinon RIEN)
+         // 1. Formatage élégant du Sport
+        let displaySport = "Multi-sports";
+        if (sports.length === 1 && sports[0] !== 'Unknown') {
+          let s = sports[0].toLowerCase();
+          if (lang === 'fr') {
+            if (s.includes('run')) displaySport = 'Course';
+            else if (s.includes('ride') || s.includes('cycl')) displaySport = 'Vélo';
+            else displaySport = s.charAt(0).toUpperCase() + s.slice(1);
+          } else {
+            displaySport = s.charAt(0).toUpperCase() + s.slice(1);
+          }
+        }
+
+        // 2. L'image (si elle existe)
         const imgHtml = challenge.image_url 
           ? `<a href="challenge.html?id=${challenge.id}" style="display: block; margin-bottom: 15px; flex-shrink: 0;">
                <img src="${challenge.image_url}" alt="Challenge Image" style="width: 100%; height: 180px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
              </a>` 
           : ``;
+
+        // 3. Le Layout "Premium" (Titre -> Métadonnées -> Image -> Description)
+        card.innerHTML = `
+          <div style="display: flex; flex-direction: column; height: 100%;">
+            
+            <!-- En-tête : Titre & Actions -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
+              <h3 style="font-size: 1.3rem; margin: 0; line-height: 1.3; font-weight: 700; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                <a href="challenge.html?id=${challenge.id}" style="color: var(--color-text-main); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-text-main)'">
+                  ${challenge.name}
+                </a>
+              </h3>
+              <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                ${actionsHtml}
+              </div>
+            </div>
+
+            <!-- Ligne de Métadonnées (Segments • Sport • Durée) -->
+            <div style="color: var(--color-text-muted); font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span>${challenge.segment_count || 0} Segments</span>
+              <span style="opacity: 0.4;">•</span>
+              <span style="color: var(--color-accent);">${displaySport}</span>
+              <span style="opacity: 0.4;">•</span>
+              <span>⏱ ${challenge.duration_hours}h</span>
+            </div>
+
+            <!-- Image -->
+            ${imgHtml}
+
+            <!-- Description (Fluide en bas) -->
+            <p style="color: var(--color-text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1;">
+              ${challenge.description || ''}
+            </p>
+
+          </div>
+        `;
 
         // 2. Le nouveau Layout Vertical (Uniformisé et Responsive)
         card.innerHTML = `
