@@ -131,12 +131,18 @@ async function injectComponents() {
           document.body.classList.add('isolated-mode');
       }
       
-      // NOUVEAU : Bouton dynamique pour capturer l'ID du défi
+      // Bouton dynamique pour capturer l'ID du défi
       const urlParams = new URLSearchParams(window.location.search);
       const challengeId = urlParams.get('id');
       const authUrl = challengeId ? `/api/strava/auth?source_challenge=${challengeId}` : `/api/strava/auth`;
 
+      // On injecte le sélecteur de langue ET le bouton Strava
       authSection.innerHTML = `
+        <div class="lang-selector" style="margin-right: 15px;">
+          <span id="btn-en" class="lang-btn" onclick="setLanguage('en')">EN</span>
+          <span>|</span>
+          <span id="btn-fr" class="lang-btn" onclick="setLanguage('fr')">FR</span>
+        </div>
         <a href="${authUrl}" class="strava-connect-btn">
           <img src="btn_strava_connect_with_orange.png" alt="Connect with Strava" style="height:35px;">
         </a>
