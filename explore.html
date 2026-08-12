@@ -67,11 +67,21 @@
       <p style="text-align: center; color: var(--color-text-muted);" class="lang-element" data-en="Loading challenges..." data-fr="Chargement des défis...">Loading challenges...</p>
     </div>
 
-    <!-- Pagination -->
+   <!-- Pagination -->
     <div class="pagination-controls" id="pagination-controls" style="display: none;">
-      <button class="btn-page lang-element" data-en="Previous" data-fr="Précédent" id="btn-prev" onclick="changePage(-1)">Previous</button>
+      <button class="btn-page lang-element" data-title-en="Previous" data-title-fr="Précédent" id="btn-prev" onclick="changePage(-1)" style="padding: 0; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      
       <span id="page-info" style="font-weight: 600; color: var(--color-text-main);">1 / 1</span>
-      <button class="btn-page lang-element" data-en="Next" data-fr="Suivant" id="btn-next" onclick="changePage(1)">Next</button>
+      
+      <button class="btn-page lang-element" data-title-en="Next" data-title-fr="Suivant" id="btn-next" onclick="changePage(1)" style="padding: 0; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
     </div>
   </div>
 
@@ -201,6 +211,47 @@ function applySearchAndSort() {
                <img src="${challenge.image_url}" alt="Challenge Image" style="width: 100%; height: 180px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
              </a>` 
           : ``;
+
+        // 3. Le Layout Final (Titre -> Description -> Image -> Footer)
+        card.innerHTML = `
+          <div style="display: flex; flex-direction: column; height: 100%;">
+            
+            <!-- En-tête : Titre & Actions -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px;">
+              <h3 style="font-size: 1.25rem; margin: 0; line-height: 1.3; font-weight: 700; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;">
+                <a href="challenge.html?id=${challenge.id}" style="color: var(--color-text-main); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-text-main)'">
+                  ${challenge.name}
+                </a>
+              </h3>
+              <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                ${actionsHtml}
+              </div>
+            </div>
+
+            <!-- Description (Tronquée à 2 lignes) -->
+            <p style="color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${challenge.description || (lang === 'fr' ? 'Aucune description.' : 'No description.')}
+            </p>
+
+            <!-- Image -->
+            ${imgHtml}
+
+            <!-- Espace flexible pour toujours pousser le footer tout en bas -->
+            <div style="flex-grow: 1;"></div>
+
+            <!-- Footer : Segments • Sport • Durée -->
+            <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; margin-top: auto;">
+              <div style="color: var(--color-text-muted); font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span>${challenge.segment_count || 0} Segments</span>
+                <span style="opacity: 0.4;">•</span>
+                <span style="color: var(--color-accent);">${displaySport}</span>
+                <span style="opacity: 0.4;">•</span>
+                <span>⏱ ${challenge.duration_hours}h</span>
+              </div>
+            </div>
+
+          </div>
+        `;
 
         // 3. Le Layout "Premium" (Titre -> Métadonnées -> Image -> Description)
         card.innerHTML = `
