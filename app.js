@@ -89,28 +89,28 @@ async function injectComponents() {
  try {
     const res = await fetch("/api/strava?action=getProfile", { credentials: "include" });
     const authSection = document.getElementById('nav-auth-section');
+    const path = window.location.pathname;
     
     if (res.ok) {
-      const athlete = await res.json();
+      // --- UTILISATEUR CONNECTÉ ---
+      sessionStorage.removeItem('locked_challenge'); // On nettoie le verrouillage visiteur
       
-      // --- LOGIQUE D'ISOLATION (FEATURED) ---
+      const athlete = await res.json();
       const isRestricted = athlete.restricted_challenge_ids && athlete.restricted_challenge_ids.length > 0;
-      const urlParams = new URLSearchParams(window.location.search);
-      const currentChallengeId = urlParams.get('id');
       
       if (isRestricted) {
-        // L'utilisateur est restreint. On cache la navigation globale.
         document.body.classList.add('isolated-mode');
         
-        // Sécurité : S'il tente d'aller ailleurs que sur son défi autorisé, on le redirige
-        if (window.location.pathname.includes('explore.html') || window.location.pathname.includes('create.html')) {
+        // Lockdown : On bloque l'accès à l'accueil, explore et create.
+        // On autorise uniquement challenge, terms et profile.
+        if (!path.includes('challenge.html') && !path.includes('terms.html') && !path.includes('profile.html')) {
             window.location.href = `/challenge.html?id=${athlete.restricted_challenge_ids[0]}`;
+            return; // Stoppe l'exécution
         }
       }
 
       authSection.innerHTML = `
         <a href="#" class="nav-icon lang-element" data-titleFr="Notifications" data-titleEn="Notifications">
-          <!-- SVG Cloche de notification -->
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         </a>
         <div class="lang-selector">
@@ -126,17 +126,29 @@ async function injectComponents() {
         </a>
       `;
     } else {
-      // Si non connecté, sur une page challenge, on cache la nav pour le forcer à s'inscrire au défi
-      if (window.location.pathname.includes('challenge.html')) {
+      // --- UTILISATEUR NON CONNECTÉ (VISITEUR) ---
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlChallengeId = urlParams.get('id');
+
+      // S'il atterrit sur un défi, on verrouille sa session
+      if (path.includes('challenge.html') && urlChallengeId) {
+          sessionStorage.setItem('locked_challenge', urlChallengeId);
+      }
+
+      const lockedChallenge = sessionStorage.getItem('locked_challenge');
+
+      if (lockedChallenge) {
           document.body.classList.add('isolated-mode');
+          
+          // Lockdown : S'il tente d'aller sur l'accueil (/) ou ailleurs que challenge/terms, on le ramène
+          if (!path.includes('challenge.html') && !path.includes('terms.html')) {
+              window.location.href = `/challenge.html?id=${lockedChallenge}`;
+              return; // Stoppe l'exécution
+          }
       }
       
-      // Bouton dynamique pour capturer l'ID du défi
-      const urlParams = new URLSearchParams(window.location.search);
-      const challengeId = urlParams.get('id');
-      const authUrl = challengeId ? `/api/strava/auth?source_challenge=${challengeId}` : `/api/strava/auth`;
+      const authUrl = lockedChallenge ? `/api/strava/auth?source_challenge=${lockedChallenge}` : `/api/strava/auth`;
 
-      // On injecte le sélecteur de langue ET le bouton Strava
       authSection.innerHTML = `
         <div class="lang-selector" style="margin-right: 15px;">
           <span id="btn-en" class="lang-btn" onclick="setLanguage('en')">EN</span>
@@ -161,7 +173,10 @@ async function logout() {
   if (confirm(lang === 'fr' ? "Se déconnecter ?" : "Log out?")) {
     try {
       const res = await fetch('/api/strava?action=logout', { method: 'POST', credentials: 'include' });
-      if (res.ok) window.location.href = '/';
+      if (res.ok) {
+        sessionStorage.removeItem('locked_challenge'); // <-- LIGNE AJOUTÉE
+        window.location.href = '/';
+      }
     } catch (err) {
       console.error(err);
     }
