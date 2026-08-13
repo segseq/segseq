@@ -166,40 +166,6 @@ body {
 .carousel-dots { display: flex; justify-content: center; gap: 12px; margin-top: 25px; }
 .carousel-dot { width: 10px; height: 10px; background: var(--color-text-muted); border-radius: 50%; cursor: pointer; transition: all 0.3s ease; opacity: 0.5;}
 .carousel-dot.active { background: var(--color-accent); transform: scale(1.3); opacity: 1;}
-/* --- ARROWS --- */
-.carousel-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0,0,0,0.05);
-    border: none;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-    color: var(--color-text-muted);
-    cursor: pointer;
-    transition: all 0.25s ease;
-    backdrop-filter: blur(4px);
-}
-
-.carousel-arrow:hover {
-    background: rgba(0,0,0,0.12);
-    color: var(--color-accent);
-    transform: translateY(-50%) scale(1.08);
-}
-
-.carousel-arrow.left {
-    left: 10px;
-}
-
-.carousel-arrow.right {
-    right: 10px;
-}
-
 
 /* --- HEADER & NAVIGATION --- */
 .main-header { 
@@ -255,19 +221,6 @@ body {
 .footer-icons { display: flex; gap: 20px; }
 .footer-icon { color: var(--color-text-muted); transition: color 0.2s; }
 .footer-icon:hover { color: var(--color-accent); transform: scale(1.1); }
-
-.segseq-link {
-  color: var(--color-text-main);
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.2s ease, opacity 0.2s ease;
-}
-
-.segseq-link:hover {
-  color: var(--color-accent); /* Orange Strava */
-  opacity: 0.85;
-}
-
 
 /* --- FORMULAIRES & INPUTS (Adaptés au thème sombre) --- */
 label { display: block; margin-top: 20px; font-weight: 600; color: var(--color-text-muted); }
