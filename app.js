@@ -66,8 +66,12 @@ async function injectComponents() {
     <footer class="main-footer">
       <div class="logo" style="font-size: 2rem; color: var(--color-text-main);"><span>∿</span>∿</div>
       <div class="footer-tagline">
-        <span class="lang-element" data-fr="SegSeq • Défis Multi-Segments" data-en="SegSeq • Multi-Segment Challenges">SegSeq • Multi-Segment Challenges</span>
-      </div>
+  <span class="lang-element"
+        data-fr='<a href="https://segseq.com" class="segseq-link">SegSeq</a> • Défis Multi-Segments'
+        data-en='<a href="https://segseq.com" class="segseq-link">SegSeq</a> • Multi-Segment Challenges'>
+    <a href="https://segseq.com" class="segseq-link">SegSeq</a> • Multi-Segment Challenges
+  </span>
+</div>
       <div class="footer-icons">
         <a href="terms.html" class="footer-icon lang-element" data-titleFr="Conditions d'utilisation" data-titleEn="Terms and conditions">
           <!-- SVG icône Information (i) -->
