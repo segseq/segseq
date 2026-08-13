@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/stats?sitemap=true"
+    },
+    {
+      "source": "/challenge.html",
+      "destination": "/api/challenges?render_html=true"
+    }
+  ]
+}

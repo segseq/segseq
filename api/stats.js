@@ -7,7 +7,38 @@ import { parse } from "cookie-es";
 import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+  // INJECTION SEO : Interception pour le Sitemap dynamique
+if (req.query.sitemap === 'true') {
+  try {
+    // Remplacer par votre logique de pool de base de données existante
+    const { rows } = await pool.query('SELECT id FROM challenges'); 
+    
+    // Définissez votre domaine principal ici
+    const baseUrl = 'https://votre-domaine-segseq.com'; 
+    
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+    
+    // Pages statiques
+    xml += `\n  <url><loc>${baseUrl}/</loc><changefreq>weekly</changefreq></url>`;
+    xml += `\n  <url><loc>${baseUrl}/explore.html</loc><changefreq>daily</changefreq></url>`;
+    
+    // Pages dynamiques (Challenges)
+    rows.forEach(row => {
+      xml += `\n  <url><loc>${baseUrl}/challenge.html?id=${row.id}</loc><changefreq>daily</changefreq></url>`;
+    });
+    
+    xml += '\n</urlset>';
+
+    res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate'); // Cache Vercel
+    return res.status(200).send(xml);
+  } catch (error) {
+    console.error('Erreur Sitemap:', error);
+    return res.status(500).send('Erreur génération sitemap');
+  }
+}
+
+if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
   const scope = req.query.scope;
 

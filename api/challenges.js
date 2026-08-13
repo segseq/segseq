@@ -1,6 +1,9 @@
 /* ------------------------------ */
 /* ./api/challenges.js */
 /* ------------------------------ */
+const fs = require('fs');
+const path = require('path');
+
 
 // --- CONFIG ---
 export const config = { api: { bodyParser: true } };
@@ -14,6 +17,60 @@ import jwt from "jsonwebtoken";
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 export default async function handler(req, res) {
+// INJECTION SEO : Interception pour servir le HTML pré-rendu
+if (req.method === 'GET' && req.query.render_html === 'true') {
+  const challengeId = req.query.id;
+  
+  // Chemin absolu vers le fichier HTML statique dans l'environnement Vercel
+  const htmlPath = path.join(process.cwd(), 'challenge.html');
+  let html = fs.readFileSync(htmlPath, 'utf8');
+
+  if (!challengeId) {
+    res.setHeader('Content-Type', 'text/html');
+    return res.status(200).send(html);
+  }
+
+  try {
+    // Récupérer les métadonnées du challenge (utilisez votre instance 'pool' existante)
+    const { rows } = await pool.query(
+      'SELECT name, description, image_url FROM challenges WHERE id = $1', 
+      [challengeId]
+    );
+
+    if (rows.length > 0) {
+      const challenge = rows[0];
+      const title = `${challenge.name} | SegSeq`;
+      const desc = challenge.description || 'Rejoignez ce challenge sur SegSeq !';
+      const imgUrl = challenge.image_url || 'https://votre-domaine-segseq.com/default-banner.jpg'; // URL de fallback
+
+      const metaTags = `
+        <title>${title}</title>
+        <meta name="description" content="${desc}">
+        <meta property="og:title" content="${title}">
+        <meta property="og:description" content="${desc}">
+        <meta property="og:image" content="${imgUrl}">
+        <meta property="twitter:card" content="summary_large_image">
+      `;
+
+      // Nettoie la balise title existante pour éviter les doublons
+      html = html.replace(/<title>.*<\/title>/i, ''); 
+      // Injecte les nouvelles balises juste avant la fermeture du head
+      html = html.replace('</head>', `${metaTags}\n</head>`);
+    }
+
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
+    return res.status(200).send(html);
+    
+  } catch (error) {
+    console.error('Erreur Injection SEO:', error);
+    // En cas d'erreur DB, on sert quand même le HTML brut pour ne pas bloquer l'utilisateur
+    res.setHeader('Content-Type', 'text/html');
+    return res.status(200).send(html); 
+  }
+}
+
+	
   const { method } = req;
   const id = req.query.id;
 
