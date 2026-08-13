@@ -415,7 +415,6 @@ async function publishChallenge(event) {
       const isPublic = document.getElementById("is-public").checked;
       const imageUrl = document.getElementById("image-url").value.trim();
       const isFeatured = document.getElementById("is-featured").checked;
-      const endDateStr = document.getElementById("end-date").value;
 
       
       if (!name) return alert(lang === 'fr' ? "Veuillez donner un nom." : "Please give a name.");
