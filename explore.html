@@ -54,7 +54,8 @@
         <option value="run" class="lang-element" data-en="Running" data-fr="Course à pied">Running</option>
         <option value="ride" class="lang-element" data-en="Cycling" data-fr="Vélo">Cycling</option>
         <option value="multi" class="lang-element" data-en="Multisport" data-fr="Multisports">Multisport</option>
-      </select> -->
+      </select> 
+	  -->
 
       <select id="sort-select" style="flex: 1; min-width: 150px; margin-top: 0; cursor: pointer;">
         <option value="newest" class="lang-element" data-en="Sort: Newest first" data-fr="Tri : Plus récents">Sort: Newest first</option>
@@ -68,20 +69,21 @@
     </div>
 
    <!-- Pagination -->
-    <div class="pagination">
-  <!-- Bouton Précédent -->
-  <button id="prev-page" class="pagination-btn">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-  </button>
-  
-  <!-- Texte central (Page X sur Y) -->
-  <span id="page-info" class="pagination-text">Page 1</span>
-  
-  <!-- Bouton Suivant -->
-  <button id="next-page" class="pagination-btn">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-  </button>
-</div>
+    <div id="pagination-controls" class="pagination">
+      <!-- Bouton Précédent -->
+      <button id="btn-prev" class="pagination-btn" onclick="changePage(-1)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      
+      <!-- Texte central (Page X sur Y) -->
+      <span id="page-info" class="pagination-text">Page 1</span>
+      
+      <!-- Bouton Suivant -->
+      <button id="btn-next" class="pagination-btn" onclick="changePage(1)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div>
+
 
   </div>
 
