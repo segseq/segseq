@@ -1,8 +1,8 @@
 /* ------------------------------ */
 /* ./api/challenges.js */
 /* ------------------------------ */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 
 // --- CONFIG ---
@@ -31,8 +31,8 @@ if (req.method === 'GET' && req.query.render_html === 'true') {
   }
 
   try {
-    // Récupérer les métadonnées du challenge (utilisez votre instance 'pool' existante)
-    const { rows } = await pool.query(
+    // Récupérer les métadonnées du challenge 
+    const { rows } = await query(
       'SELECT name, description, image_url FROM challenges WHERE id = $1', 
       [challengeId]
     );
