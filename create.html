@@ -57,6 +57,20 @@
         <button id="btn-add-row" class="btn-add-row" onclick="addEmptySegment()">
           + <span class="lang-element" data-en="Add another segment" data-fr="Ajouter un autre segment">Add another segment</span>
         </button>
+		
+		<!-- Séquence -->
+            <div style="flex: 1; min-width: 200px; display: flex; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 15px;">
+                <label class="switch" style="margin: 0; flex-shrink: 0;">
+                  <input type="checkbox" id="strict-sequence" checked>
+                  <span class="slider"></span>
+                </label>
+                <div style="line-height: 1.4;">
+                  <strong class="lang-element" data-en="Strict sequence" data-fr="Séquence stricte" style="display: block; color: var(--color-text-main);">Strict sequence</strong>
+                  <small class="lang-element" data-en="Segments must be completed in exact order" data-fr="Les segments doivent être complétés dans l'ordre exact" style="color: var(--color-text-muted);">Segments must be completed in exact order</small>
+                </div>
+              </div>
+            </div>
         
         <div class="wizard-nav">
           <button class="icon-btn" onclick="confirmCancel()" title="Cancel">
@@ -71,7 +85,7 @@
 
       <!-- ETAPE 2 : DUREE ET SEQUENCE -->
 		<div id="step-2" class="wizard-step">
-        <h3 class="lang-element" data-en="Step 2: Rules & Dates" data-fr="Étape 2 : Règles & Dates" style="margin-bottom: 15px;">Step 2: Rules & Dates</h3>
+        <h3 class="lang-element" data-en="Step 2: Duration & Dates" data-fr="Étape 2 : Durée & Dates" style="margin-bottom: 15px;">Step 2: Duration & Dates</h3>
         
         <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
           
@@ -93,20 +107,6 @@
               <label style="margin-top: 0;"><span class="lang-element" data-en="Max Duration (Hours)" data-fr="Durée Max (Heures)">Max Duration (Hours)</span> <span id="duration-req" style="color: var(--color-accent);">*</span></label>
               <input id="duration" type="number" min="1" placeholder="Ex: 48">
               <small id="duration-hint" style="color: var(--color-text-muted); display: block; margin-top: 5px;" class="lang-element" data-en="Required if dates are not set." data-fr="Obligatoire si les dates ne sont pas définies.">Required if dates are not set.</small>
-            </div>
-            
-            <!-- Séquence -->
-            <div style="flex: 1; min-width: 200px; display: flex; align-items: center;">
-              <div style="display: flex; align-items: center; gap: 15px;">
-                <label class="switch" style="margin: 0; flex-shrink: 0;">
-                  <input type="checkbox" id="strict-sequence" checked>
-                  <span class="slider"></span>
-                </label>
-                <div style="line-height: 1.4;">
-                  <strong class="lang-element" data-en="Strict sequence" data-fr="Séquence stricte" style="display: block; color: var(--color-text-main);">Strict sequence</strong>
-                  <small class="lang-element" data-en="Segments must be completed in exact order" data-fr="Les segments doivent être complétés dans l'ordre exact" style="color: var(--color-text-muted);">Segments must be completed in exact order</small>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -171,6 +171,7 @@
               <small style="color: var(--color-text-muted);">Affichera ce défi sur la page d'accueil avec sa propre landing page.</small>
             </div>
           </div>
+		  </div>
 
 
         <div class="wizard-nav">
