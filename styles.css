@@ -389,6 +389,38 @@ input:checked + .slider:before { transform: translateX(24px); }
 
   .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table { min-width: 500px; }
+
+ /* --- OPTIMISATION CAROUSEL MOBILE (Swipe Natif) --- */
+  .carousel-container {
+    overflow: visible; /* Permet au track de gérer son propre débordement */
+    padding: 0;
+  }
+  
+  .carousel-track {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory; /* Force l'arrêt sur une carte */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* Défilement inertiel ultra-fluide sur iOS */
+    transform: none !important; /* DÉSACTIVE le déplacement JavaScript sur mobile */
+    gap: 15px; /* Espace entre les cartes */
+    padding-bottom: 20px;
+  }
+  
+  /* Masquer la barre de défilement disgracieuse */
+  .carousel-track::-webkit-scrollbar { display: none; }
+  .carousel-track { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .carousel-slide {
+    min-width: 85%; /* Laisse deviner la carte suivante sur le côté droit ! */
+    scroll-snap-align: center; /* Centre la carte quand on lâche le doigt */
+  }
+  
+  /* On cache les flèches et les points sur mobile : le swipe naturel suffit */
+  .carousel-arrow, .carousel-dots {
+    display: none !important;
+  }
+
+
 }
 
 /* --- SEGMENTS & FILTRES (Thème sombre) --- */
@@ -574,4 +606,48 @@ body.isolated-mode .nav-group-1 {
 }
 
 
+/* =========================================
+   PAGINATION ÉLÉGANTE (explore.html)
+   ========================================= */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 40px;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-main);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+.pagination-text {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  min-width: 80px;
+  text-align: center;
+}
 

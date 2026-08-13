@@ -68,21 +68,21 @@
     </div>
 
    <!-- Pagination -->
-    <div class="pagination-controls" id="pagination-controls" style="display: none;">
-      <button class="btn-page lang-element" data-title-en="Previous" data-title-fr="Précédent" id="btn-prev" onclick="changePage(-1)" style="padding: 0; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-      </button>
-      
-      <span id="page-info" style="font-weight: 600; color: var(--color-text-main);">1 / 1</span>
-      
-      <button class="btn-page lang-element" data-title-en="Next" data-title-fr="Suivant" id="btn-next" onclick="changePage(1)" style="padding: 0; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </button>
-    </div>
+    <div class="pagination">
+  <!-- Bouton Précédent -->
+  <button id="prev-page" class="pagination-btn">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  </button>
+  
+  <!-- Texte central (Page X sur Y) -->
+  <span id="page-info" class="pagination-text">Page 1</span>
+  
+  <!-- Bouton Suivant -->
+  <button id="next-page" class="pagination-btn">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  </button>
+</div>
+
   </div>
 
   <div id="footer-placeholder"></div>
