@@ -62,11 +62,11 @@ async function injectComponents() {
     </header>
   `;
 
-   const footerHTML = `
+    const footerHTML = `
     <footer class="main-footer">
       <div class="logo" style="font-size: 2rem; color: var(--color-text-main);"><span>∿</span>∿</div>
       <div class="footer-tagline">
-        <span class="lang-element" data-fr="SegSeq • Défis Multi-Segments" data-en="SegSeq • Multi-Segment Challenges">SegSeq • Multi-Segment Challenges</span>
+        <a href="https://segseq.com" class="segseq-link">SegSeq</a><span class="lang-element" data-fr=" • Défis Multi-Segments" data-en=" • Multi-Segment Challenges"> • Multi-Segment Challenges</span>
       </div>
       <div class="footer-icons">
         <a href="terms.html" class="footer-icon lang-element" data-titleFr="Conditions d'utilisation" data-titleEn="Terms and conditions">
@@ -79,6 +79,7 @@ async function injectComponents() {
       </div>
     </footer>
   `;
+
 
   const headerPlaceholder = document.getElementById('header-placeholder');
   const footerPlaceholder = document.getElementById('footer-placeholder');
@@ -192,6 +193,8 @@ document.addEventListener("DOMContentLoaded", injectComponents);
 document.addEventListener('DOMContentLoaded', () => {
   const track = document.getElementById('ways-carousel');
   const dotsContainer = document.getElementById('carousel-dots');
+  const prevBtn = document.getElementById('ways-prev');
+  const nextBtn = document.getElementById('ways-next');
   
   if (track && dotsContainer) {
     const slides = Array.from(track.children);
@@ -209,6 +212,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const dots = Array.from(dotsContainer.children);
 
     function goToSlide(index) {
+      if (index < 0) index = slides.length - 1;
+      if (index >= slides.length) index = 0;
       track.style.transform = `translateX(-${index * 100}%)`;
       dots[currentIndex].classList.remove('active');
       dots[index].classList.add('active');
@@ -217,11 +222,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetInterval() {
       clearInterval(autoSlideInterval);
-      autoSlideInterval = setInterval(() => goToSlide((currentIndex + 1) % slides.length), 5000);
+      autoSlideInterval = setInterval(() => goToSlide(currentIndex + 1), 5000);
     }
+
+    if (prevBtn) prevBtn.addEventListener('click', () => { goToSlide(currentIndex - 1); resetInterval(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { goToSlide(currentIndex + 1); resetInterval(); });
+
     resetInterval();
   }
 });
+
 
 /* ------------------------------ */
 /* PWA: Enregistrement Service Worker dynamique */

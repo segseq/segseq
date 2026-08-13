@@ -167,6 +167,37 @@ body {
 .carousel-dot { width: 10px; height: 10px; background: var(--color-text-muted); border-radius: 50%; cursor: pointer; transition: all 0.3s ease; opacity: 0.5;}
 .carousel-dot.active { background: var(--color-accent); transform: scale(1.3); opacity: 1;}
 
+/* --- FLÈCHES CAROUSEL --- */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(38, 51, 44, 0.6); /* var(--color-bg-surface) avec transparence */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px); /* Effet verre élégant */
+}
+
+.carousel-arrow:hover {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-arrow.left { left: 10px; }
+.carousel-arrow.right { right: 10px; }
+
+
 /* --- HEADER & NAVIGATION --- */
 .main-header { 
   display: flex; 
@@ -221,6 +252,19 @@ body {
 .footer-icons { display: flex; gap: 20px; }
 .footer-icon { color: var(--color-text-muted); transition: color 0.2s; }
 .footer-icon:hover { color: var(--color-accent); transform: scale(1.1); }
+
+/* Lien discret SegSeq dans le footer */
+.segseq-link {
+    color: inherit; /* Reste de la même couleur que le texte environnant */
+    text-decoration: none; /* Pas de soulignement par défaut pour rester propre */
+    transition: color 0.2s ease-in-out;
+}
+
+.segseq-link:hover {
+    /* J'utilise un fallback sur le orange classique Strava au cas où la variable n'existe pas exactement sous ce nom */
+    color: var(--color-accent, #fc4c02); 
+}
+
 
 /* --- FORMULAIRES & INPUTS (Adaptés au thème sombre) --- */
 label { display: block; margin-top: 20px; font-weight: 600; color: var(--color-text-muted); }
