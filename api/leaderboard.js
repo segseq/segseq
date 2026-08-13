@@ -21,16 +21,20 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
   
   const challengeRows = await query(`SELECT duration_hours, strict_sequence, end_date FROM challenges WHERE id = $1`, [challengeId]);
 
-const challengeEndDateMs = challengeRows[0].end_date ? new Date(challengeRows[0].end_date).getTime() : Infinity;
-
-
+ const challengeRows = await query(`SELECT duration_hours, strict_sequence, start_date, end_date FROM challenges WHERE id = $1`, [challengeId]);
   if (challengeRows.length === 0) {
     logStep(`❌ Error: Challenge ${challengeId} not found in DB.`);
     return [];
   }
+
   
-  const durationHoursLimit = Number(challengeRows[0].duration_hours);
+   // La durée peut désormais être nulle
+  const durationHoursLimit = challengeRows[0].duration_hours ? Number(challengeRows[0].duration_hours) : null;
   const isStrictSequence = challengeRows[0].strict_sequence !== false;
+  
+  const challengeStartMs = challengeRows[0].start_date ? new Date(challengeRows[0].start_date).getTime() : 0;
+  const challengeEndMs = challengeRows[0].end_date ? new Date(challengeRows[0].end_date).getTime() : Infinity;
+
   
   logStep(`⚙️ Rules: Max Duration = ${durationHoursLimit}h | Strict Sequence = ${isStrictSequence ? 'YES' : 'NO'}`);
 
@@ -109,9 +113,10 @@ const challengeEndDateMs = challengeRows[0].end_date ? new Date(challengeRows[0]
       }
     }
 
-    for (const startEffort of startingEfforts) {
+     for (const startEffort of startingEfforts) {
       const windowStartMs = new Date(startEffort.start_date).getTime();
-      const windowEndMs = windowStartMs + (durationHoursLimit * 3600 * 1000);
+      // Si aucune durée n'est fixée, la fenêtre est infinie (limitée uniquement par challengeEndMs)
+      const windowEndMs = durationHoursLimit ? windowStartMs + (durationHoursLimit * 3600 * 1000) : Infinity;
 
       let possibleEffortsBySeg = {};
       let hasAllInWindow = true;
@@ -120,8 +125,10 @@ const challengeEndDateMs = challengeRows[0].end_date ? new Date(challengeRows[0]
         const effortsInWindow = effortsBySeg[segId].filter(e => {
           const tStart = new Date(e.start_date).getTime();
           const tEnd = tStart + (Number(e.elapsed_time) * 1000);
-          return tStart >= windowStartMs && tEnd <= windowEndMs && tStart <= challengeEndDateMs;
+          // On vérifie la fenêtre relative (duration) ET la fenêtre absolue (dates du défi)
+          return tStart >= windowStartMs && tEnd <= windowEndMs && tStart >= challengeStartMs && tEnd <= challengeEndMs;
         });
+
         
         if (effortsInWindow.length < requiredCounts[segId]) {
           hasAllInWindow = false;
