@@ -19,23 +19,21 @@ export function formatTime(sec) {
 export async function calculateLeaderboard(challengeId, allAthletes, logStep = console.log) {
   logStep(`📊 --- STARTING LEADERBOARD CALCULATION ---`);
   
-  const challengeRows = await query(`SELECT duration_hours, strict_sequence, end_date FROM challenges WHERE id = $1`, [challengeId]);
-
- const challengeRows = await query(`SELECT duration_hours, strict_sequence, start_date, end_date FROM challenges WHERE id = $1`, [challengeId]);
+  // CORRECTION : Une seule déclaration de challengeRows
+  const challengeRows = await query(`SELECT duration_hours, strict_sequence, start_date, end_date FROM challenges WHERE id = $1`, [challengeId]);
+  
   if (challengeRows.length === 0) {
     logStep(`❌ Error: Challenge ${challengeId} not found in DB.`);
     return [];
   }
 
-  
-   // La durée peut désormais être nulle
+  // La durée peut désormais être nulle
   const durationHoursLimit = challengeRows[0].duration_hours ? Number(challengeRows[0].duration_hours) : null;
   const isStrictSequence = challengeRows[0].strict_sequence !== false;
   
   const challengeStartMs = challengeRows[0].start_date ? new Date(challengeRows[0].start_date).getTime() : 0;
   const challengeEndMs = challengeRows[0].end_date ? new Date(challengeRows[0].end_date).getTime() : Infinity;
 
-  
   logStep(`⚙️ Rules: Max Duration = ${durationHoursLimit}h | Strict Sequence = ${isStrictSequence ? 'YES' : 'NO'}`);
 
   const segmentsRows = await query(`SELECT segment_id FROM challenge_segments WHERE challenge_id = $1 ORDER BY order_index ASC`, [challengeId]);
@@ -226,6 +224,16 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
 
   logStep(`\n🏆 Leaderboard generated with ${finalLeaderboard.length} athlete(s). Updating DB...`);
   
+  // --- 1. SNAPSHOT AVANT MISE À JOUR ---
+  let beforeMap = new Map();
+  try {
+      const beforeResults = await query(`SELECT athlete_id, rank, moving_seconds FROM challenge_results WHERE challenge_id = $1`, [challengeId]);
+      beforeMap = new Map(beforeResults.map(r => [r.athlete_id, { rank: r.rank, time: r.moving_seconds }]));
+  } catch (err) {
+      logStep(`⚠️ Info: Impossible de lire le snapshot précédent (normal si premier calcul).`);
+  }
+
+  // --- 2. MISE À JOUR DU CLASSEMENT ---
   await query(`DELETE FROM challenge_results WHERE challenge_id = $1`, [challengeId]);
   for (const row of finalLeaderboard) {
     await query(`
@@ -234,6 +242,44 @@ export async function calculateLeaderboard(challengeId, allAthletes, logStep = c
     `, [challengeId, row.athlete_id, row.athlete, row.rank, row.start_date, row.total_time_human, row.moving_time_human, row.moving_seconds]);
   }
   
+  // --- 3. COMPARAISON ET NOTIFICATIONS MULTIPLES (ISOLÉ) ---
+  try {
+      for (const row of finalLeaderboard) {
+          const aId = row.athlete_id;
+          const newRank = row.rank;
+          const newTime = row.moving_seconds;
+          const oldData = beforeMap.get(aId);
+
+          if (!oldData) {
+              // CAS A : Vient de compléter
+              await query(`INSERT INTO notifications (athlete_id, challenge_id, type, message) VALUES ($1, $2, 'COMPLETED', $3)`, 
+                  [aId, challengeId, `🏁 Défi complété ! Vous êtes maintenant classé ${newRank}e.`]);
+
+              if (newRank === 1) {
+                  await query(`INSERT INTO notifications (athlete_id, challenge_id, type, message) VALUES ($1, $2, 'CROWN', '👑 Incroyable ! Vous prenez directement la 1ère place du défi.')`, 
+                      [aId, challengeId]);
+              }
+          } else {
+              // CAS B : Évolution
+              if (newRank > oldData.rank) {
+                  await query(`INSERT INTO notifications (athlete_id, challenge_id, type, message) VALUES ($1, $2, 'OVERTAKEN', $3)`, 
+                      [aId, challengeId, `⚠️ Vous avez reculé au classement ! Nouveau rang : ${newRank}e.`]);
+              }
+              if (newTime < oldData.time) {
+                  await query(`INSERT INTO notifications (athlete_id, challenge_id, type, message) VALUES ($1, $2, 'IMPROVED', '⏱️ Vous avez amélioré votre temps sur ce défi !')`, 
+                      [aId, challengeId]);
+              }
+              if (newRank === 1 && oldData.rank > 1) {
+                  await query(`INSERT INTO notifications (athlete_id, challenge_id, type, message) VALUES ($1, $2, 'CROWN', '👑 Félicitations ! Vous avez pris la 1ère place du défi.')`, 
+                      [aId, challengeId]);
+              }
+          }
+      }
+  } catch (err) {
+      console.error("Erreur lors de la génération des notifications:", err);
+      logStep(`⚠️ Erreur non-critique: Notifications ignorées. Vérifiez que la table 'notifications' existe.`);
+  }
+
   return finalLeaderboard;
 }
 
