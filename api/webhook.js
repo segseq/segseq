@@ -3,8 +3,8 @@
 /* ------------------------------ */
 
 import { query } from "../db.js";
-import { calculateLeaderboard } from "../segseq/leaderboards.js"; 
-import cookie from 'cookie';
+import { calculateLeaderboard } from "./leaderboard.js";
+import { parse } from "cookie-es";
 import jwt from 'jsonwebtoken';
 
 
@@ -19,10 +19,9 @@ export default async function handler(req, res) {
   if (req.method === 'GET' && action === 'getNotifications') {
     try {
       const cookies = cookie.parse(req.headers.cookie || '');
-      if (!cookies.segseq_jwt) return res.status(401).json({ error: 'Unauthorized' });
-      
-      const decoded = jwt.verify(cookies.segseq_jwt, JWT_SECRET);
-      const notifs = await query('SELECT * FROM notifications WHERE athlete_id = $1 ORDER BY created_at DESC LIMIT 20', [decoded.id]);
+     if (!cookies.session) return res.status(401).json({ error: 'Unauthorized' });
+	const decoded = jwt.verify(cookies.session, JWT_SECRET);
+      const notifs = await query('SELECT * FROM notifications WHERE athlete_id = $1 ORDER BY created_at DESC LIMIT 20', [decoded.athleteid]);
       return res.status(200).json(notifs);
     } catch (e) {
       return res.status(401).json({ error: 'Invalid token' });
@@ -32,10 +31,9 @@ export default async function handler(req, res) {
   if (req.method === 'POST' && action === 'markNotificationsRead') {
     try {
       const cookies = cookie.parse(req.headers.cookie || '');
-      if (!cookies.segseq_jwt) return res.status(401).json({ error: 'Unauthorized' });
-      
-      const decoded = jwt.verify(cookies.segseq_jwt, JWT_SECRET);
-      await query('UPDATE notifications SET is_read = true WHERE athlete_id = $1', [decoded.id]);
+      if (!cookies.session) return res.status(401).json({ error: 'Unauthorized' });
+	const decoded = jwt.verify(cookies.session, JWT_SECRET);
+      await query('UPDATE notifications SET is_read = true WHERE athlete_id = $1', [decoded.athleteid]);
       return res.status(200).json({ success: true });
     } catch (e) {
       return res.status(401).json({ error: 'Invalid token' });

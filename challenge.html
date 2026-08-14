@@ -216,7 +216,6 @@
         // Durée
         const durationContainer = document.getElementById("duration-container");
         if (data.duration_hours) {
-            document.getElementById("challenge-duration").textContent = data.duration_hours;
             if (durationContainer) durationContainer.style.display = "block";
         } else {
             if (durationContainer) durationContainer.style.display = "none";
@@ -251,15 +250,6 @@
 		    // GESTION FEATURED & DATE DE FIN
         if (data.is_featured) {
           document.getElementById("featured-badge").style.display = "inline-block";
-        }
-        if (data.end_date) {
-          const endDateEl = document.getElementById("challenge-end-date");
-          const containerEl = document.getElementById("end-date-container");
-          const d = new Date(data.end_date);
-          endDateEl.textContent = d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', {
-            weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'
-          });
-          if (containerEl) containerEl.style.display = "block";
         }
 
 		    // GESTION DE L'IMAGE
@@ -386,7 +376,7 @@
       const lang = localStorage.getItem('userLang') || 'en';
       if (!confirm(lang === 'fr' ? "Êtes-vous sûr ?" : "Are you sure?")) return;
       
-      const btn = document.getElementById("btn-delete-challenge");
+      const btn = document.getElementById("btn-delete-challenge-top");
       btn.textContent = lang === 'fr' ? "Suppression..." : "Deleting...";
       btn.disabled = true;
 

@@ -486,55 +486,65 @@ async function publishChallenge(event) {
 
 
     document.addEventListener("DOMContentLoaded", async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const editId = urlParams.get('edit');
-      const lang = localStorage.getItem('userLang') || 'en';
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get('edit');
+    const lang = localStorage.getItem('userLang') || 'en';
 
-      if (editId) {
-		    if (challenge.duration_hours) document.getElementById("duration").value = challenge.duration_hours;
-            
-            const formatForInput = (isoString) => {
-              const d = new Date(isoString);
-              return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-            };
-            if (challenge.start_date) document.getElementById("start-date").value = formatForInput(challenge.start_date);
-            if (challenge.end_date) document.getElementById("end-date").value = formatForInput(challenge.end_date);
-            updateDurationRequirement();
-
-		document.getElementById('publish-btn').title = lang === 'fr' ? "Enregistrer" : "Save changes";
-		document.getElementById('publish-btn').innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>`;
+    if (editId) {
+        // 1. On met à jour l'UI du bouton d'abord
         document.getElementById('publish-btn').title = lang === 'fr' ? "Enregistrer" : "Save changes";
+        document.getElementById('publish-btn').innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>`;
+
         try {
-          const res = await fetch(`/api/challenges?id=${editId}`);
-          if (res.ok) {
-            const challenge = await res.json();
-            document.getElementById("challenge-name").value = challenge.name;
-            document.getElementById("description").value = challenge.description;
-            document.getElementById("duration").value = challenge.duration_hours;
-            document.getElementById("strict-sequence").checked = challenge.strict_sequence;
-            document.getElementById("is-public").checked = challenge.is_public;
-            // On pré-remplit le champ si une image existe. 
-            // Il ne sera visible que si le mode admin est activé via le CSS.
-            if(challenge.image_url) document.getElementById("image-url").value = challenge.image_url;
-			 if (challenge.is_featured) document.getElementById("is-featured").checked = true;
-            if (challenge.end_date) {
-              // Formatage pour l'input datetime-local (YYYY-MM-DDTHH:mm)
-              const d = new Date(challenge.end_date);
-              const tzOffset = d.getTimezoneOffset() * 60000;
-              const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
-              document.getElementById("end-date").value = localISOTime;
+            // 2. On récupère les données du challenge
+            const res = await fetch(`/api/challenges?id=${editId}`);
+            if (res.ok) {
+                const challenge = await res.json();
+                
+                // 3. On pré-remplit les champs SEULEMENT MAINTENANT que "challenge" existe
+                document.getElementById("challenge-name").value = challenge.name;
+                document.getElementById("description").value = challenge.description;
+                
+                if (challenge.duration_hours) {
+                    document.getElementById("duration").value = challenge.duration_hours;
+                }
+                
+                document.getElementById("strict-sequence").checked = challenge.strict_sequence;
+                document.getElementById("is-public").checked = challenge.is_public;
+                
+                if(challenge.image_url) {
+                    document.getElementById("image-url").value = challenge.image_url;
+                }
+                if (challenge.is_featured) {
+                    document.getElementById("is-featured").checked = true;
+                }
+
+                // Fonction pour formater les dates pour l'input datetime-local
+                const formatForInput = (isoString) => {
+                    const d = new Date(isoString);
+                    return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+                };
+
+                if (challenge.start_date) {
+                    document.getElementById("start-date").value = formatForInput(challenge.start_date);
+                }
+                if (challenge.end_date) {
+                    document.getElementById("end-date").value = formatForInput(challenge.end_date);
+                }
+                
+                updateDurationRequirement();
+
+                segments = challenge.segments.map(s => ({ id: String(s.id), name: s.name, isValidated: true }));
+                renderSegments();
             }
-
-
-            
-            segments = challenge.segments.map(s => ({ id: String(s.id), name: s.name, isValidated: true }));
-            renderSegments();
-          }
-        } catch (err) { console.error(err); }
-      } else {
+        } catch (err) { 
+            console.error(err); 
+        }
+    } else {
+        // Mode création : on affiche juste les segments vides
         renderSegments();
-      }
-    });
+    }
+});
   </script>
 </body>
 </html>

@@ -104,10 +104,6 @@ async function injectComponents() {
         
         // Lockdown : On bloque l'accès à l'accueil, explore et create.
         // On autorise uniquement challenge, terms et profile.
-        if (!path.includes('challenge.html') && !path.includes('terms.html') && !path.includes('profile.html')) {
-            window.location.href = `/challenge.html?id=${athlete.restricted_challenge_ids[0]}`;
-            return; // Stoppe l'exécution
-        }
       }
 
         authSection.innerHTML = `
