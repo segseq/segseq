@@ -59,6 +59,14 @@ export default async function handler(req, res) {
   } 
   else if (req.method === 'POST') {
     const event = req.body;
+	if (event.object_type === 'activity' && event.aspect_type === 'create') {
+    try {
+        await processActivity(event.owner_id, event.object_id);
+    } catch (err) {
+        console.error("Error processing webhook activity:", err);
+        // Ne pas retourner d'erreur 500 à Strava sinon ils vont réessayer en boucle
+    }
+}
     res.status(200).send('EVENT_RECEIVED'); // Ack immédiat
 
     if (event.object_type === 'activity' && event.aspect_type === 'create') {

@@ -200,6 +200,12 @@ if (req.method === 'GET' && req.query.render_html === 'true') {
 
       // ... (Vérification du checkOwner) ...
 
+	const checkOwner = await query(`SELECT creator_id FROM challenges WHERE id = $1`, [id]);
+
+	if (checkOwner.length === 0 || String(checkOwner[0].creator_id) !== String(currentAthleteId)) {
+    return res.status(403).json({ error: "Forbidden: You are not the owner of this challenge" });
+	}
+
       await query(
         `UPDATE challenges SET name = $1, description = $2, duration_hours = $3, strict_sequence = $4, image_url = $5, is_featured = $6, start_date = $7, end_date = $8 WHERE id = $9`,
         [name, description, duration || null, strict_sequence, image_url, is_featured || false, start_date || null, end_date || null, id]
