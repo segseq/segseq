@@ -3,12 +3,47 @@
 /* ------------------------------ */
 
 import { query } from "../db.js";
-// ATTENTION: Ajuste le chemin relatif ci-dessous selon la structure de tes dossiers
 import { calculateLeaderboard } from "../segseq/leaderboards.js"; 
+import cookie from 'cookie';
+import jwt from 'jsonwebtoken';
+
 
 const VERIFY_TOKEN = process.env.STRAVA_VERIFY_TOKEN || "segseq_secure_webhook_123";
+const JWT_SECRET = process.env.JWT_SECRET; // Ajout pour vérifier l'auth
+
 
 export default async function handler(req, res) {
+  // --- NOUVEAU : Routes API pour le Frontend (Notifications) ---
+  const { action } = req.query;
+
+  if (req.method === 'GET' && action === 'getNotifications') {
+    try {
+      const cookies = cookie.parse(req.headers.cookie || '');
+      if (!cookies.segseq_jwt) return res.status(401).json({ error: 'Unauthorized' });
+      
+      const decoded = jwt.verify(cookies.segseq_jwt, JWT_SECRET);
+      const notifs = await query('SELECT * FROM notifications WHERE athlete_id = $1 ORDER BY created_at DESC LIMIT 20', [decoded.id]);
+      return res.status(200).json(notifs);
+    } catch (e) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+  }
+
+  if (req.method === 'POST' && action === 'markNotificationsRead') {
+    try {
+      const cookies = cookie.parse(req.headers.cookie || '');
+      if (!cookies.segseq_jwt) return res.status(401).json({ error: 'Unauthorized' });
+      
+      const decoded = jwt.verify(cookies.segseq_jwt, JWT_SECRET);
+      await query('UPDATE notifications SET is_read = true WHERE athlete_id = $1', [decoded.id]);
+      return res.status(200).json({ success: true });
+    } catch (e) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+  }
+  // -------------------------------------------------------------
+
+  // --- LOGIQUE ORIGINALE STRAVA WEBHOOK ---
   if (req.method === 'GET') {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
@@ -39,6 +74,7 @@ export default async function handler(req, res) {
     res.status(405).send('Method Not Allowed');
   }
 }
+
 
 async function processActivity(athleteId, activityId) {
    const athletes = await query(`SELECT firstname, lastname, access_token, refresh_token, expires_at, scope, restricted_challenge_ids FROM athletes WHERE id = $1`, [athleteId]);
@@ -117,23 +153,24 @@ async function processActivity(athleteId, activityId) {
   if (inserted > 0) {
     console.log(`✅ Webhook: Saved ${inserted} efforts for ${athleteName}`);
     
-    // === NOUVEAU: DÉCLENCHEMENT DU CALCUL ===
+   // === NOUVEAU: DÉCLENCHEMENT DU CALCUL ===
     try {
-      // Trouver tous les challenges impactés par ces nouveaux segments
       const affectedChallenges = await query(`
         SELECT DISTINCT challenge_id 
         FROM challenge_segments 
         WHERE segment_id = ANY($1::bigint[])
       `, [impactedSegments]);
 
-      // Lancer le recalcul pour chaque challenge en arrière-plan
       for (const row of affectedChallenges) {
         console.log(`🔄 Webhook: Recalcul du challenge ${row.challenge_id} en arrière-plan...`);
-        // On passe une fonction vide pour les logs pour ne pas polluer la console
+        // Le calcul et les notifications sont maintenant gérés par calculateLeaderboard
         await calculateLeaderboard(row.challenge_id, () => {}); 
       }
     } catch (err) {
       console.error("Erreur lors du recalcul via Webhook:", err);
     }
+
+
+
   }
 }

@@ -110,10 +110,17 @@ async function injectComponents() {
         }
       }
 
-      authSection.innerHTML = `
-        <a href="#" class="nav-icon lang-element" data-titleFr="Notifications" data-titleEn="Notifications">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-        </a>
+        authSection.innerHTML = `
+        <div class="notification-wrapper" style="position: relative; display: flex; align-items: center;">
+          <a href="#" id="notification-bell" class="nav-icon lang-element" data-titleFr="Notifications" data-titleEn="Notifications" onclick="toggleNotifications(event)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span id="notification-badge" class="notification-badge" style="display: none;"></span>
+          </a>
+          <div id="notification-panel" class="notification-panel" style="display: none;">
+            <div class="notification-header lang-element" data-fr="Notifications" data-en="Notifications">Notifications</div>
+            <div id="notification-list" class="notification-list"></div>
+          </div>
+        </div>
         <div class="lang-selector">
           <span id="btn-en" class="lang-btn" onclick="setLanguage('en')">EN</span>
           <span>|</span>
@@ -126,6 +133,10 @@ async function injectComponents() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
         </a>
       `;
+      
+      // Appel pour récupérer les notifications juste après l'injection
+      fetchUnreadNotifications();
+
     } else {
       // --- UTILISATEUR NON CONNECTÉ (VISITEUR) ---
       const urlParams = new URLSearchParams(window.location.search);
@@ -267,3 +278,71 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+/* ------------------------------ */
+/* Système de Notifications       */
+/* ------------------------------ */
+
+async function fetchUnreadNotifications() {
+    try {
+        // On utilisera webhook.js (ou un autre fichier API existant) pour gérer cette route GET
+        const res = await fetch('/api/webhook?action=getNotifications', { credentials: 'include' });
+        if (res.ok) {
+            const notifications = await res.json();
+            const unread = notifications.filter(n => !n.is_read);
+            const badge = document.getElementById('notification-badge');
+            
+            // Afficher la pastille rouge s'il y a des non-lus
+            if (badge && unread.length > 0) {
+                badge.style.display = 'block';
+            }
+            
+            // Remplir le panneau de notifications
+            const list = document.getElementById('notification-list');
+            if (list) {
+                if (notifications.length === 0) {
+                    list.innerHTML = '<div style="padding: 15px; text-align: center; opacity: 0.7;">Aucune notification</div>';
+                } else {
+                    list.innerHTML = notifications.map(n => `
+                        <div class="notif-item ${n.is_read ? '' : 'unread'}" style="padding: 10px; border-bottom: 1px solid var(--color-border); font-size: 0.9rem;">
+                            ${n.message}
+                            <div style="font-size: 0.75rem; opacity: 0.6; margin-top: 5px;">${new Date(n.created_at).toLocaleDateString()}</div>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+    } catch (err) {
+        console.error("Erreur récupération notifications:", err);
+    }
+}
+
+function toggleNotifications(event) {
+    event.preventDefault();
+    const panel = document.getElementById('notification-panel');
+    const badge = document.getElementById('notification-badge');
+    
+    if (panel.style.display === 'none' || panel.style.display === '') {
+        panel.style.display = 'block';
+        
+        // Si on ouvre et qu'il y a une pastille, on marque tout comme lu en arrière-plan
+        if (badge.style.display === 'block') {
+            fetch('/api/webhook?action=markNotificationsRead', { method: 'POST', credentials: 'include' })
+                .catch(err => console.error(err));
+            badge.style.display = 'none';
+            
+            // Retirer visuellement le statut "non lu" des items
+            document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+        }
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+// Fermer le panneau si l'utilisateur clique ailleurs sur la page
+document.addEventListener('click', (e) => {
+    const panel = document.getElementById('notification-panel');
+    const bell = document.getElementById('notification-bell');
+    if (panel && panel.style.display === 'block' && !panel.contains(e.target) && !bell.contains(e.target)) {
+        panel.style.display = 'none';
+    }
+});

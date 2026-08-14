@@ -651,3 +651,100 @@ body.isolated-mode .nav-group-1 {
   text-align: center;
 }
 
+
+/* =========================================
+   SYSTÈME DE NOTIFICATIONS
+   ========================================= */
+
+/* Pastille rouge sur l'icône cloche */
+.notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  background-color: var(--danger);
+  border-radius: 50%;
+  border: 2px solid var(--color-bg-main); /* Effet de détourage */
+  pointer-events: none; /* Empêche de bloquer le clic sur l'icône */
+}
+
+/* Panneau déroulant */
+.notification-panel {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  width: 320px;
+  background: var(--color-bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  overflow: hidden;
+  text-align: left;
+}
+
+/* En-tête du panneau */
+.notification-header {
+  padding: 15px 20px;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--color-text-main);
+}
+
+/* Liste scrollable */
+.notification-list {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+/* Item de notification standard */
+.notif-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--color-text-main);
+  transition: background 0.2s ease;
+}
+
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Item de notification NON LU */
+.notif-item.unread {
+  background: rgba(252, 76, 2, 0.05); /* Teinte orange très légère */
+  border-left: 3px solid var(--color-accent);
+}
+
+/* Customisation de la barre de défilement pour la liste */
+.notification-list::-webkit-scrollbar {
+  width: 6px;
+}
+.notification-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.notification-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+/* Adaptation Mobile */
+@media (max-width: 768px) {
+  .notification-panel {
+    position: fixed; /* Détaché de l'icône sur mobile pour éviter de casser la largeur */
+    top: 70px;
+    right: 15px;
+    width: calc(100% - 30px);
+    max-width: 400px;
+  }
+}
+
+
+
