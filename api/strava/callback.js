@@ -113,7 +113,6 @@ export default async function handler(req, res) {
             `session=${sessionToken}; ${cookieFlags}`
 		]);
 
-        Remplacez par :
 		const redirectUrl = state ? 
 		`/challenge.html?id=${state}` : 
 		"/profile.html";
