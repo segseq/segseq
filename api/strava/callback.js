@@ -113,7 +113,10 @@ export default async function handler(req, res) {
             `session=${sessionToken}; ${cookieFlags}`
 		]);
 
-         const redirectUrl = state ? `https://segseq.vercel.app/challenge.html?id=${state}` : "https://segseq.vercel.app/profile.html";
+        Remplacez par :
+		const redirectUrl = state ? 
+		`/challenge.html?id=${state}` : 
+		"/profile.html";
         return res.redirect(redirectUrl);
 
 
