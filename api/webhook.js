@@ -13,32 +13,38 @@ const JWT_SECRET = process.env.JWT_SECRET; // Ajout pour vérifier l'auth
 
 
 export default async function handler(req, res) {
-  // --- NOUVEAU : Routes API pour le Frontend (Notifications) ---
+    // --- NOUVEAU : Routes API pour le Frontend (Notifications) ---
   const { action } = req.query;
 
   if (req.method === 'GET' && action === 'getNotifications') {
     try {
-      const cookies = cookie.parse(req.headers.cookie || '');
-     if (!cookies.session) return res.status(401).json({ error: 'Unauthorized' });
-	const decoded = jwt.verify(cookies.session, JWT_SECRET);
+      // CORRECTION ICI : utilisation de parse() au lieu de cookie.parse()
+      const cookies = parse(req.headers.cookie || '');
+      if (!cookies.session) return res.status(401).json({ error: 'Unauthorized' });
+      
+      const decoded = jwt.verify(cookies.session, JWT_SECRET);
       const notifs = await query('SELECT * FROM notifications WHERE athlete_id = $1 ORDER BY created_at DESC LIMIT 20', [decoded.athleteid]);
       return res.status(200).json(notifs);
     } catch (e) {
+      console.error("Auth error:", e); // Ajout d'un log pour faciliter le debug futur
       return res.status(401).json({ error: 'Invalid token' });
     }
   }
 
   if (req.method === 'POST' && action === 'markNotificationsRead') {
     try {
-      const cookies = cookie.parse(req.headers.cookie || '');
+      // CORRECTION ICI AUSSI
+      const cookies = parse(req.headers.cookie || '');
       if (!cookies.session) return res.status(401).json({ error: 'Unauthorized' });
-	const decoded = jwt.verify(cookies.session, JWT_SECRET);
+      
+      const decoded = jwt.verify(cookies.session, JWT_SECRET);
       await query('UPDATE notifications SET is_read = true WHERE athlete_id = $1', [decoded.athleteid]);
       return res.status(200).json({ success: true });
     } catch (e) {
       return res.status(401).json({ error: 'Invalid token' });
     }
   }
+
   // -------------------------------------------------------------
 
   // --- LOGIQUE ORIGINALE STRAVA WEBHOOK ---

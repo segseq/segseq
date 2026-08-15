@@ -43,33 +43,42 @@
     <div class="steps">
       <div class="card">
         <div class="number">01</div>
-        <h3 class="lang-element" data-en="Select Segments" data-fr="Sélectionnez les segments">Select Segments</h3>
-        <p class="lang-element" data-en="Choose 2 to 5 Strava segments." data-fr="Choisissez de 2 à 5 segments Strava.">Choose 2 to 5 Strava segments.</p>
+        <h3 class="lang-element" data-en="Build your route" data-fr="Créez votre parcours">Build your route</h3>
+        <p class="lang-element" data-en="Handpick 2 to 5 of your favorite Strava segments to create the ultimate stage race." data-fr="Piochez 2 à 5 de vos segments Strava favoris pour créer la course par étapes ultime.">Handpick 2 to 5 of your favorite Strava segments to create the ultimate stage race.</p>
       </div>
       <div class="card">
         <div class="number">02</div>
-        <h3 class="lang-element" data-en="Define Sequence" data-fr="Définissez la séquence">Define Sequence</h3>
-        <p class="lang-element" data-en="Set the order and time window." data-fr="Définissez l'ordre et la fenêtre de temps.">Set the order and time window.</p>
+        <h3 class="lang-element" data-en="Set the rules" data-fr="Fixez les règles">Set the rules</h3>
+        <p class="lang-element" data-en="Strict order or free-for-all? Weekend sprint or month-long grind? You're the boss." data-fr="Ordre imposé ou libre ? Sprint d'un week-end ou marathon d'un mois ? C'est vous le boss.">Strict order or free-for-all? Weekend sprint or month-long grind? You're the boss.</p>
       </div>
       <div class="card">
         <div class="number">03</div>
-        <h3 class="lang-element" data-en="Complete Challenge" data-fr="Relevez le défi">Complete Challenge</h3>
-        <p class="lang-element" data-en="Run or ride every segment." data-fr="Courez ou roulez chaque segment.">Run or ride every segment.</p>
+        <h3 class="lang-element" data-en="Hit the road" data-fr="Transpirez un bon coup">Hit the road</h3>
+        <p class="lang-element" data-en="Run or ride the segments alone or with your crew. Your GPS watch does the rest." data-fr="Courez ou roulez sur les segments, seul ou avec votre crew. Votre montre GPS fait le reste.">Run or ride the segments alone or with your crew. Your GPS watch does the rest.</p>
       </div>
       <div class="card">
         <div class="number">04</div>
-        <h3 class="lang-element" data-en="Own The Leaderboard" data-fr="Dominez le classement">Own The Leaderboard</h3>
-        <p class="lang-element" data-en="Compare total time against everyone else." data-fr="Comparez votre temps total avec tous les autres.">Compare total time against everyone else.</p>
+        <h3 class="lang-element" data-en="Claim the crown" data-fr="Décrochez la couronne">Claim the crown</h3>
+        <p class="lang-element" data-en="Crush the clock, climb the unified leaderboard, and earn your bragging rights." data-fr="Écrasez le chrono, grimpez au classement général et gagnez le droit de frimer.">Crush the clock, climb the unified leaderboard, and earn your bragging rights.</p>
       </div>
     </div>
   </div>
 </section>
 
+
 <section class="section" id="featured-section" style="display: none;">
   <div class="container">
-    <h2 class="section-title lang-element" data-en="Featured Challenges" data-fr="Défis à la une">Featured Challenges</h2>
+    
+    <!-- Titre avec icône Info -->
+    <h2 class="section-title" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+      <span class="lang-element" data-en="Featured Challenges" data-fr="Défis à la une">Featured Challenges</span>
+      <button id="info-featured-btn" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; padding: 0; display: flex;" aria-label="More info">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      </button>
+    </h2>
+
     <div class="carousel-container" style="max-width: 900px;">
-	<button class="carousel-arrow left" id="featured-prev" style="display:none;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+      <button class="carousel-arrow left" id="featured-prev" style="display:none;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
       <button class="carousel-arrow right" id="featured-next" style="display:none;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
 
       <div class="carousel-track" id="featured-carousel-track" style="gap: 24px;">
@@ -80,50 +89,74 @@
   </div>
 </section>
 
+<!-- MODALE D'INFORMATION (Cachée par défaut) -->
+<div id="featured-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+  <div class="modal-content" style="background: var(--color-bg-surface); border: 1px solid var(--color-accent); border-radius: 12px; padding: 30px; max-width: 500px; width: 100%; position: relative;">
+    <button id="close-featured-modal" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--color-text-main); font-size: 1.5rem; cursor: pointer;">&times;</button>
+    
+    <h3 class="lang-element" data-en="What is a Featured Challenge?" data-fr="Qu'est-ce qu'un Défi à la une ?" style="margin-top: 0; color: var(--color-accent);">Qu'est-ce qu'un Défi à la une ?</h3>
+    
+    <div style="margin-top: 20px; font-size: 0.95rem; line-height: 1.6; color: var(--color-text-main);">
+      <p><strong>🏃‍♂️ <span class="lang-element" data-en="For Athletes:" data-fr="Pour les athlètes :">Pour les athlètes :</span></strong><br>
+      <span class="lang-element" data-en="Official events hosted by brands, clubs, or tourism offices. Join the battle, discover new routes, and often compete for real rewards!" data-fr="Des événements officiels organisés par des marques, des clubs ou des offices de tourisme. Rejoignez la bataille, découvrez de nouveaux parcours et tentez de gagner de vraies récompenses !">Des événements officiels organisés par des marques, des clubs ou des offices de tourisme. Rejoignez la bataille, découvrez de nouveaux parcours et tentez de gagner de vraies récompenses !</span></p>
+      
+      <p style="margin-top: 15px;"><strong>🏢 <span class="lang-element" data-en="For Organizers & Brands:" data-fr="Pour les organisateurs & marques :">Pour les organisateurs & marques :</span></strong><br>
+      <span class="lang-element" data-en="Turn any route into an epic, 100% automated virtual stage race. Zero logistics, massive engagement, and a dedicated branded space for your community." data-fr="Transformez n'importe quel parcours en course virtuelle 100% automatisée. Zéro logistique, un engagement massif, et un espace dédié à vos couleurs.">Transformez n'importe quel parcours en course virtuelle 100% automatisée. Zéro logistique, un engagement massif, et un espace dédié à vos couleurs.</span></p>
+    </div>
+    
+    <div style="margin-top: 25px; text-align: center;">
+      <a href="mailto:info.segseq@gmail.com" style="display: inline-block; background: var(--color-accent); color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9rem;" class="lang-element" data-en="Host your event" data-fr="Créer votre événement">Créer votre événement</a>
+    </div>
+  </div>
+</div>
+
+
+
 
 <section class="section">
   <div class="container">
     <h2 class="section-title lang-element" data-en="Ways To Compete" data-fr="Façons de participer">Ways To Compete</h2>
     <div class="carousel-container">
-	<button class="carousel-arrow left" id="ways-prev"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+      <button class="carousel-arrow left" id="ways-prev"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
       <button class="carousel-arrow right" id="ways-next"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
 
       <div class="carousel-track" id="ways-carousel">
         <div class="carousel-slide card">
           <div class="number">⛰️</div>
           <h3 class="lang-element" data-en="Climber's Trophy" data-fr="Trophée du Grimpeur">Climber's Trophy</h3>
-          <p class="lang-element" data-en="Link only the toughest ascents of a legendary route to crown the ultimate climber." data-fr="Reliez uniquement les ascensions les plus dures d'un parcours mythique.">Link only the toughest ascents of a legendary route to crown the ultimate climber.</p>
+          <p class="lang-element" data-en="String together the most brutal ascents in your area to crown the ultimate King or Queen of the Mountain." data-fr="Enchaînez les pires ascensions du coin pour couronner le roi ou la reine de la montagne.">String together the most brutal ascents in your area to crown the ultimate King or Queen of the Mountain.</p>
         </div>
-		<div class="carousel-slide card">
+        <div class="carousel-slide card">
           <div class="number">📍</div>
           <h3 class="lang-element" data-en="City Explorer" data-fr="Explorateur Urbain">City Explorer</h3>
-          <p class="lang-element" data-en="Turn sightseeing into a race. Connect iconic landmarks and discover the city." data-fr="Transformez le tourisme en course. Reliez des lieux emblématiques.">Turn sightseeing into a race. Connect iconic landmarks and discover the city.</p>
+          <p class="lang-element" data-en="Turn your city into a playground. Link iconic landmarks and race through the streets!" data-fr="Transformez votre ville en terrain de jeu. Reliez les spots emblématiques à fond la caisse !">Turn your city into a playground. Link iconic landmarks and race through the streets!</p>
         </div>
-		<div class="carousel-slide card">
+        <div class="carousel-slide card">
           <div class="number">🏅</div>
           <h3 class="lang-element" data-en="Multi-Sport Madness" data-fr="Folie Multi-Sports">Multi-Sport Madness</h3>
-          <p class="lang-element" data-en="While Strava limits you to one sport per challenge, SegSeq lets you mix them up." data-fr="Alors que Strava ne permet pas de défis multi-sports, SegSeq le permet.">While Strava limits you to one sport per challenge, SegSeq lets you mix them up.</p>
+          <p class="lang-element" data-en="Why choose? Bike, run, hike... Mix it all up in a single, epic multi-disciplinary challenge." data-fr="Pourquoi choisir ? Vélo, course, trail... Mélangez les plaisirs sur un seul et même défi épique.">Why choose? Bike, run, hike... Mix it all up in a single, epic multi-disciplinary challenge.</p>
         </div>
         <div class="carousel-slide card">
           <div class="number">🔁</div>
           <h3 class="lang-element" data-en="Non-Consecutive Reps" data-fr="Répétitions Libres">Non-Consecutive Reps</h3>
-          <p class="lang-element" data-en="SegSeq innovates by taking your best efforts on a segment over a given period." data-fr="SegSeq innove en retenant uniquement vos meilleurs efforts sur une période donnée.">SegSeq innovates by taking your best efforts on a segment over a given period.</p>
+          <p class="lang-element" data-en="No time to do it all at once? SegSeq automatically compiles your best efforts over days or weeks." data-fr="Pas le temps de tout faire d'un coup ? SegSeq cumule automatiquement vos meilleurs chronos sur plusieurs jours.">No time to do it all at once? SegSeq automatically compiles your best efforts over days or weeks.</p>
         </div>
         <div class="carousel-slide card">
           <div class="number">⛷️</div>
-          <h3 class="lang-element" data-en="Ski Resort Showdown" data-fr="Défi des Sommets (Ski)">Ski Resort Showdown</h3>
-          <p class="lang-element" data-en="Explore a mountain and measure yourself on the slopes of a ski resort." data-fr="Explorez une montagne et mesurez-vous sur les pistes d'une station de ski.">Explore a mountain and measure yourself on the slopes of a ski resort.</p>
+          <h3 class="lang-element" data-en="Ski Resort Showdown" data-fr="Défi des Sommets">Ski Resort Showdown</h3>
+          <p class="lang-element" data-en="Trade wheels for skis. Who will be the fastest down the slopes of the resort this winter?" data-fr="Troquez les roues pour les spatules. Qui sera le plus rapide de la station cet hiver ?">Trade wheels for skis. Who will be the fastest down the slopes of the resort this winter?</p>
         </div>
-		<div class="carousel-slide card">
+        <div class="carousel-slide card">
           <div class="number">🗺️</div>
           <h3 class="lang-element" data-en="Accessible Ultras" data-fr="Ultras Accessibles">Accessible Ultras</h3>
-        <p class="lang-element" data-en="Break down an intimidating ultra-distance route into a manageable multi-day challenge over a 5-day window." data-fr="Découpez un parcours ultra-distance intimidant en un défi gérable sur plusieurs jours avec une fenêtre de 5 jours.">Break down an intimidating ultra-distance route into a manageable multi-day challenge over a 5-day window.</p>
+          <p class="lang-element" data-en="Ultra-distance for everyone. Break down an intimidating route into a manageable multi-day adventure." data-fr="L'ultra-distance pour tous. Découpez un parcours de titan en plusieurs étapes gérables sur la semaine.">Ultra-distance for everyone. Break down an intimidating route into a manageable multi-day adventure.</p>
         </div>
       </div>
       <div class="carousel-dots" id="carousel-dots"></div>
     </div>
   </div>
 </section>
+
 
 <section class="section waitlist">
   <div class="container">
@@ -227,6 +260,31 @@
 
 
     } catch (err) { console.error("Erreur chargement featured:", err); }
+  });
+</script>
+<script>
+  // Gestion de la modale "Featured Challenges"
+  document.addEventListener('DOMContentLoaded', () => {
+    const infoBtn = document.getElementById('info-featured-btn');
+    const modal = document.getElementById('featured-modal');
+    const closeBtn = document.getElementById('close-featured-modal');
+
+    if(infoBtn && modal && closeBtn) {
+      infoBtn.addEventListener('click', () => {
+        modal.style.display = 'flex';
+      });
+
+      closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+
+      // Fermer au clic à l'extérieur
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
   });
 </script>
 
