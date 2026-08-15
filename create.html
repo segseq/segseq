@@ -409,6 +409,7 @@ async function publishChallenge(event) {
       if (event) event.preventDefault(); 
       const lang = localStorage.getItem('userLang') || 'en';
       
+      // 1. LECTURE DE TOUTES LES VARIABLES DÈS LE DÉBUT
       const name = document.getElementById("challenge-name").value.trim();
       const description = document.getElementById("description").value.trim();
       const durationStr = document.getElementById("duration").value;
@@ -416,31 +417,29 @@ async function publishChallenge(event) {
       const isPublic = document.getElementById("is-public").checked;
       const imageUrl = document.getElementById("image-url").value.trim();
       const isFeatured = document.getElementById("is-featured").checked;
+      const startDateStr = document.getElementById("start-date").value; // <-- REMONTÉ ICI
+      const endDateStr = document.getElementById("end-date").value;     // <-- REMONTÉ ICI
 
-      
+      // 2. VÉRIFICATIONS (Maintenant endDateStr existe quand on arrive ici)
       if (!name) return alert(lang === 'fr' ? "Veuillez donner un nom." : "Please give a name.");
       if (!description) return alert(lang === 'fr' ? "Veuillez ajouter une description." : "Please add a description.");
-	  if (isFeatured && !endDateStr) return alert(lang === 'fr' ? "Une date de fin est obligatoire pour un défi Featured." : "End date is required for a Featured challenge.");
+      if (isFeatured && !endDateStr) return alert(lang === 'fr' ? "Une date de fin est obligatoire pour un défi Featured." : "End date is required for a Featured challenge.");
 
-      
       const validSegments = segments.filter(s => s.isValidated);
       const publishBtn = document.getElementById("publish-btn");
       
-      // 1. On sauvegarde le code HTML de l'icône (et non plus le texte)
+      // On sauvegarde le code HTML de l'icône (et non plus le texte)
       const originalHTML = publishBtn.innerHTML; 
       
       publishBtn.style.pointerEvents = "none";
       
-      // 2. On remplace l'icône par le SVG du spinner de chargement
+      // On remplace l'icône par le SVG du spinner de chargement
       publishBtn.innerHTML = `<svg class="spinning" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>`;
 
       const urlParams = new URLSearchParams(window.location.search);
       const editId = urlParams.get('edit');
-       // Vérifier si la vue admin est active pour envoyer l'URL de l'image
+      // Vérifier si la vue admin est active pour envoyer l'URL de l'image
       const isViewAdminActive = document.body.classList.contains('view-admin');
-	  const startDateStr = document.getElementById("start-date").value;
-      const endDateStr = document.getElementById("end-date").value;
-	  
       
       const payload = { 
         name, description, 
@@ -453,7 +452,6 @@ async function publishChallenge(event) {
         end_date: endDateStr ? new Date(endDateStr).toISOString() : null,
         segments: validSegments.map(s => s.id) 
       };
-
       
       if (editId) payload.id = editId;
       
@@ -469,8 +467,6 @@ async function publishChallenge(event) {
         if (!res.ok) {
           alert((lang === 'fr' ? "Erreur : " : "Error: ") + (data.error || "Unable to create challenge."));
           publishBtn.style.pointerEvents = "auto"; 
-          
-          // 3. En cas d'erreur API, on restaure le HTML de l'icône d'origine
           publishBtn.innerHTML = originalHTML; 
           return;
         }
@@ -478,11 +474,9 @@ async function publishChallenge(event) {
       } catch (err) {
         alert(lang === 'fr' ? "Erreur réseau." : "Network error.");
         publishBtn.style.pointerEvents = "auto"; 
-        
-        // 4. En cas d'erreur réseau, on restaure le HTML de l'icône d'origine
         publishBtn.innerHTML = originalHTML; 
       }
-    }
+}
 
 
     document.addEventListener("DOMContentLoaded", async () => {
