@@ -8,37 +8,37 @@ import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
   // INJECTION SEO : Interception pour le Sitemap dynamique
-if (req.query.sitemap === 'true') {
-  try {
-    // Remplacer par votre logique de pool de base de données existante
-    const { rows } = await pool.query('SELECT id FROM challenges'); 
-    
-    // Définissez votre domaine principal ici
-    const baseUrl = 'https://votre-domaine-segseq.com'; 
-    
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
-    
-    // Pages statiques
-    xml += `\n  <url><loc>${baseUrl}/</loc><changefreq>weekly</changefreq></url>`;
-    xml += `\n  <url><loc>${baseUrl}/explore.html</loc><changefreq>daily</changefreq></url>`;
-    
-    // Pages dynamiques (Challenges)
-    rows.forEach(row => {
-      xml += `\n  <url><loc>${baseUrl}/challenge.html?id=${row.id}</loc><changefreq>daily</changefreq></url>`;
-    });
-    
-    xml += '\n</urlset>';
+  if (req.query.sitemap === 'true') {
+    try {
+      // CORRECTION : utilisation de query() au lieu de pool.query()
+      const rows = await query('SELECT id FROM challenges'); 
+      
+      // Définissez votre domaine principal ici
+      const baseUrl = 'https://www.segseq.com'; 
+      
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+      
+      // Pages statiques
+      xml += `\n  <url><loc>${baseUrl}/</loc><changefreq>weekly</changefreq></url>`;
+      xml += `\n  <url><loc>${baseUrl}/explore.html</loc><changefreq>daily</changefreq></url>`;
+      
+      // Pages dynamiques (Challenges)
+      rows.forEach(row => {
+        xml += `\n  <url><loc>${baseUrl}/challenge.html?id=${row.id}</loc><changefreq>daily</changefreq></url>`;
+      });
+      
+      xml += '\n</urlset>';
 
-    res.setHeader('Content-Type', 'application/xml');
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate'); // Cache Vercel
-    return res.status(200).send(xml);
-  } catch (error) {
-    console.error('Erreur Sitemap:', error);
-    return res.status(500).send('Erreur génération sitemap');
+      res.setHeader('Content-Type', 'application/xml');
+      res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate'); // Cache Vercel
+      return res.status(200).send(xml);
+    } catch (error) {
+      console.error('Erreur Sitemap:', error);
+      return res.status(500).send('Erreur génération sitemap');
+    }
   }
-}
 
-if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
   const scope = req.query.scope;
 
@@ -56,13 +56,13 @@ if (req.method !== "GET") return res.status(405).json({ error: "Method not allow
       const createdRes = await query(`SELECT COUNT(*) as count FROM challenges WHERE creator_id = $1`, [athleteId]);
       const completedRes = await query(`SELECT COUNT(DISTINCT challenge_id) as count FROM challenge_results WHERE athlete_id = $1`, [athleteId]);
       const effortsRes = await query(`SELECT COUNT(*) as count FROM segment_efforts WHERE athlete_id = $1`, [athleteId]);
-	  const victoriesRes = await query(`SELECT COUNT(*) as count FROM challenge_results WHERE athlete_id = $1 AND rank = 1`, [athleteId]);
+      const victoriesRes = await query(`SELECT COUNT(*) as count FROM challenge_results WHERE athlete_id = $1 AND rank = 1`, [athleteId]);
 
       return res.status(200).json({
         created: parseInt(createdRes[0].count, 10),
         completed: parseInt(completedRes[0].count, 10),
         efforts: parseInt(effortsRes[0].count, 10),
-		victories: parseInt(victoriesRes[0].count, 10),
+        victories: parseInt(victoriesRes[0].count, 10),
       });
     } 
     
@@ -70,15 +70,22 @@ if (req.method !== "GET") return res.status(405).json({ error: "Method not allow
     else {
       const athletesRes = await query(`SELECT COUNT(*) as count FROM athletes`);
       const challengesRes = await query(`SELECT COUNT(*) as count FROM challenges`);
-	  const featuredData = await query(`  SELECT c.name, COUNT(a.id) as count  FROM challenges c  LEFT JOIN athletes a ON c.id = ANY(a.restricted_challenge_ids)  WHERE c.is_featured = true  GROUP BY c.id, c.name  ORDER BY count DESC`);
-
+      
+      // CORRECTION : Ajout du cast ::int[] pour éviter l'erreur PostgreSQL
+      const featuredData = await query(`
+        SELECT c.name, COUNT(a.id) as count  
+        FROM challenges c  
+        LEFT JOIN athletes a ON c.id = ANY(a.restricted_challenge_ids::int[])  
+        WHERE c.is_featured = true  
+        GROUP BY c.id, c.name  
+        ORDER BY count DESC
+      `);
 
       return res.status(200).json({
         athletes: parseInt(athletesRes[0].count, 10),
-        challenges: parseInt(challengesRes[0].count, 10)
-		featured_count: featuredData.length,
-		featured_breakdown: featuredData // [{ name: "Nom", count: "12" }, ...]
-
+        challenges: parseInt(challengesRes[0].count, 10), // CORRECTION : La virgule manquante était ici !
+        featured_count: featuredData.length,
+        featured_breakdown: featuredData
       });
     }
 
