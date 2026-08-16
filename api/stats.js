@@ -70,10 +70,15 @@ if (req.method !== "GET") return res.status(405).json({ error: "Method not allow
     else {
       const athletesRes = await query(`SELECT COUNT(*) as count FROM athletes`);
       const challengesRes = await query(`SELECT COUNT(*) as count FROM challenges`);
+	  const featuredData = await query(`  SELECT c.name, COUNT(a.id) as count  FROM challenges c  LEFT JOIN athletes a ON c.id = ANY(a.restricted_challenge_ids)  WHERE c.is_featured = true  GROUP BY c.id, c.name  ORDER BY count DESC`);
+
 
       return res.status(200).json({
         athletes: parseInt(athletesRes[0].count, 10),
         challenges: parseInt(challengesRes[0].count, 10)
+		featured_count: featuredData.length,
+		featured_breakdown: featuredData // [{ name: "Nom", count: "12" }, ...]
+
       });
     }
 

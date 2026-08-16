@@ -31,17 +31,38 @@
     <!-- DÉBUT : Statistiques globales (Admin Only) -->
     <div class="admin-feature">
       <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px;">
-        <div class="stat-card">
-          <div class="stat-value" id="stat-athletes">-</div>
-          <div class="stat-label lang-element" data-en="Registered Athletes" data-fr="Athlètes Inscrits">Registered Athletes</div>
-        </div>
+        
+        <!-- Tuile 1 : Défis Créés -->
         <div class="stat-card">
           <div class="stat-value" id="stat-challenges">-</div>
-          <div class="stat-label lang-element" data-en="Created Challenges" data-fr="Défis Créés">Created Challenges</div>
+          <div class="stat-label lang-element" data-en="Total Challenges" data-fr="Défis Créés">Total Challenges</div>
         </div>
+
+        <!-- Tuile 2 : Athlètes Inscrits -->
+        <div class="stat-card">
+          <div class="stat-value" id="stat-athletes">-</div>
+          <div class="stat-label lang-element" data-en="Total Athletes" data-fr="Athlètes Inscrits">Total Athletes</div>
+        </div>
+
+        <!-- Tuile 3 : Featured Challenges -->
+        <div class="stat-card">
+          <div class="stat-value" id="stat-featured">-</div>
+          <div class="stat-label lang-element" data-en="Featured Challenges" data-fr="Défis Sponsorisés">Featured Challenges</div>
+        </div>
+
+        <!-- Tuile 4 : Athlètes par Featured Challenge (Pleine largeur) -->
+        <div class="stat-card" style="grid-column: 1 / -1; text-align: left; padding: 15px;">
+          <div class="stat-label lang-element" data-en="Athletes per Featured Challenge" data-fr="Athlètes par Défi Sponsorisé" style="margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+            Athletes per Featured Challenge
+          </div>
+          <div id="stat-featured-breakdown" style="font-size: 0.9rem; color: var(--color-text-main); display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+            <span style="opacity: 0.5;">Chargement...</span>
+          </div>
+        </div>
+
       </div>
     </div>
-    <!-- FIN : Statistiques globales -->
+
 
 
     <!-- Barre de contrôles (Recherche, Filtre Sport & Tri) -->
@@ -279,16 +300,36 @@ paginatedData.forEach(challenge => {
       } catch (err) { alert(lang === 'fr' ? "Erreur réseau." : "Network error."); }
     }
 
-    async function loadStats() {
+       async function loadStats() {
       try {
         const res = await fetch("/api/stats");
         if (res.ok) {
           const data = await res.json();
-          document.getElementById("stat-athletes").textContent = data.athletes;
-          document.getElementById("stat-challenges").textContent = data.challenges;
+          
+          // Mise à jour des 3 premières tuiles
+          document.getElementById("stat-challenges").textContent = data.challenges || 0;
+          document.getElementById("stat-athletes").textContent = data.athletes || 0;
+          document.getElementById("stat-featured").textContent = data.featured_count || 0;
+          
+          // Mise à jour de la 4ème tuile (Liste détaillée)
+          const breakdownContainer = document.getElementById("stat-featured-breakdown");
+          if (data.featured_breakdown && data.featured_breakdown.length > 0) {
+            breakdownContainer.innerHTML = data.featured_breakdown.map(item => 
+              `<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 6px;">
+                 <span style="font-weight: 500;">${item.name}</span>
+                 <span style="color: var(--color-accent); font-weight: bold;">${item.count} 👤</span>
+               </div>`
+            ).join('');
+          } else {
+            const lang = localStorage.getItem('userLang') || 'en';
+            breakdownContainer.innerHTML = `<span style="opacity: 0.5; font-style: italic;">${lang === 'fr' ? 'Aucun défi sponsorisé actif.' : 'No active featured challenges.'}</span>`;
+          }
         }
-      } catch (err) {}
+      } catch (err) {
+        console.error("Erreur chargement des statistiques:", err);
+      }
     }
+
 
     loadStats();
     loadChallenges();
