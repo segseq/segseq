@@ -12,6 +12,7 @@ export const config = { api: { bodyParser: true } };
 import { query } from "../db.js";
 import { parse } from "cookie-es";
 import jwt from "jsonwebtoken";
+import { getValidStravaToken } from "./token.js";.
 
 // --- HELPER ---
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
@@ -117,8 +118,13 @@ if (req.method === 'GET' && req.query.render_html === 'true') {
       const challengeId = rows[0].id;
 
       // Récupérer le token de l'utilisateur pour fetch les métadonnées
-      const userDb = await query(`SELECT access_token FROM athletes WHERE id = $1`, [currentAthleteId]);
-      const token = userDb.length > 0 ? userDb[0].access_token : null;
+      let token = null;
+		try {
+		  token = await getValidStravaToken(currentAthleteId);
+		} catch (e) {
+		  console.error("Erreur récupération token pour création/édition:", e);
+		}
+
 
       for (let i = 0; i < segments.length; i++) {
         let sName = null, sDist = 0, sElev = 0, sGrade = 0, sSport = null;
@@ -217,8 +223,12 @@ if (req.method === 'GET' && req.query.render_html === 'true') {
          // 2. Remplacer les segments (Fetch Strava pour les métadonnées)
       await query(`DELETE FROM challenge_segments WHERE challenge_id = $1`, [id]);
       
-      const userDb = await query(`SELECT access_token FROM athletes WHERE id = $1`, [currentAthleteId]);
-      const token = userDb.length > 0 ? userDb[0].access_token : null;
+      let token = null;
+		try {
+		  token = await getValidStravaToken(currentAthleteId);
+		} catch (e) {
+		  console.error("Erreur récupération token pour création/édition:", e);
+		}
 
       for (let i = 0; i < segments.length; i++) {
         let sName = null, sDist = 0, sElev = 0, sGrade = 0, sSport = null;
