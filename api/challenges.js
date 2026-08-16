@@ -12,7 +12,7 @@ export const config = { api: { bodyParser: true } };
 import { query } from "../db.js";
 import { parse } from "cookie-es";
 import jwt from "jsonwebtoken";
-import { getValidStravaToken } from "./token.js";.
+import { getValidStravaToken } from "./strava/token.js";.
 
 // --- HELPER ---
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
