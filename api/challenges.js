@@ -303,9 +303,10 @@ if (req.method === 'GET' && req.query.render_html === 'true') {
           GROUP BY c.id
           ORDER BY c.created_at DESC
         `);
-        return res.status(200).json(rows.map(row => ({ 
+         return res.status(200).json(rows.map(row => ({ 
           ...row, 
-          sports: row.sports.filter(s => s !== null), // Nettoyer les nulls
+          // CORRECTION : On s'assure que row.sports est un tableau avant de filtrer
+          sports: (row.sports || []).filter(s => s !== null), 
           can_delete: String(row.creator_id) === String(currentAthleteId) 
         })));
       } else {
