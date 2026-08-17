@@ -96,15 +96,23 @@ async function injectComponents() {
       // --- UTILISATEUR CONNECTÉ ---
       sessionStorage.removeItem('locked_challenge'); // On nettoie le verrouillage visiteur
       
-      const athlete = await res.json();
-      const isRestricted = athlete.restricted_challenge_ids && athlete.restricted_challenge_ids.length > 0;
+        const athlete = await res.json();
+      
+      // --- CORRECTION DU BUG DE NAVIGATION (MODE ISOLÉ) ---
+      let isRestricted = false;
+      if (Array.isArray(athlete.restricted_challenge_ids)) {
+          // Si c'est un tableau, on filtre les éventuelles valeurs nulles (ex: [null])
+          const validIds = athlete.restricted_challenge_ids.filter(id => id !== null && id !== '');
+          isRestricted = validIds.length > 0;
+      } else if (typeof athlete.restricted_challenge_ids === 'string') {
+          // Si c'est une chaîne de caractères, on ignore les formats vides de Postgres (ex: "{}")
+          isRestricted = athlete.restricted_challenge_ids.trim() !== '' && athlete.restricted_challenge_ids !== '{}';
+      }
+      // ----------------------------------------------------
       
       if (isRestricted) {
         document.body.classList.add('isolated-mode');
-        
-        // Lockdown : On bloque l'accès à l'accueil, explore et create.
-        // On autorise uniquement challenge, terms et profile.
-      }
+
 
         authSection.innerHTML = `
         <div class="notification-wrapper" style="position: relative; display: flex; align-items: center;">
@@ -123,7 +131,7 @@ async function injectComponents() {
           <span id="btn-fr" class="lang-btn" onclick="setLanguage('fr')">FR</span>
         </div>
         <a href="profile.html" class="lang-element" data-titleFr="Mon Profil" data-titleEn="My Profile">
-          <img src="${athlete.profile}" alt="Profile" class="nav-profile-pic">
+           <img src="${athlete.profile || '/default-avatar.svg'}" alt="Profile" class="nav-profile-pic">
         </a>
         <a href="#" onclick="logout(); return false;" class="nav-icon lang-element" data-titleFr="Se déconnecter" data-titleEn="Logout">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>

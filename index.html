@@ -173,7 +173,25 @@
       if (!res.ok) return;
       const challenges = await res.json();
       
-      const featured = challenges.filter(c => c.is_featured);
+      // const featured = challenges.filter(c => c.is_featured);
+	   const now = new Date();
+      const oneWeekInMs = 7 * 24 * 60 * 60 * 1000; // 7 jours en millisecondes
+
+      const featured = challenges.filter(c => {
+        // Doit être "Featured"
+        if (!c.is_featured) return false;
+        
+        // S'il n'y a pas de date de fin, il est actif indéfiniment
+        if (!c.end_date) return true;
+
+        const endDate = new Date(c.end_date);
+        const timeSinceEnd = now.getTime() - endDate.getTime();
+
+        // On le garde si :
+        // 1. La date de fin est dans le futur (timeSinceEnd est négatif)
+        // 2. OU la date de fin est passée depuis moins d'une semaine (timeSinceEnd <= oneWeekInMs)
+        return timeSinceEnd <= oneWeekInMs;
+      });
       if (featured.length === 0) return; // On cache la section s'il n'y en a pas
       
       document.getElementById('featured-section').style.display = 'block';

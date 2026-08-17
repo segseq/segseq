@@ -181,19 +181,22 @@
             window.isPremiumUser = false;
         }
 
-        const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.firstname + ' ' + athlete.lastname)}&background=random&color=fff&size=140`;
+        const defaultAvatarUrl = '/default-avatar.svg'; 
         const photoEl = document.getElementById("athlete-photo");
         
-        if (!athlete.profile || athlete.profile.includes("avatar/athlete")) {
-          photoEl.src = defaultAvatar;
+        // Vérifie si athlete.profile est null, undefined, une chaîne vide, ou une URL de placeholder Strava
+        // On utilise la méthode .trim() pour s'assurer que les espaces ne font pas passer une chaîne vide pour valide.
+        if (!athlete.profile || athlete.profile.trim() === '' || athlete.profile.includes("avatar/athlete")) {
+          photoEl.src = defaultAvatarUrl; // Utilise votre icône statique par défaut
         } else {
-          photoEl.src = athlete.profile;
+          photoEl.src = athlete.profile; // Utilise la photo de profil Strava
         }
         
+        // Gère les erreurs de chargement de l'image Strava pour retomber sur votre icône statique
         photoEl.onerror = function() {
-          this.onerror = null; 
-          this.src = defaultAvatar;
-        };        
+          this.onerror = null; // Empêche une boucle infinie si l'icône par défaut échoue aussi
+          this.src = defaultAvatarUrl; // Fallback à votre icône statique
+        };          
 
         document.getElementById("welcome").textContent = lang === 'fr' ? `Bon retour, ${athlete.firstname} !` : `Welcome back, ${athlete.firstname}!`;
         document.getElementById("welcome").classList.remove('lang-element');
